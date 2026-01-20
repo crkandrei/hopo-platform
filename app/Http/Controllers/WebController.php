@@ -23,7 +23,7 @@ class WebController extends Controller
     }
 
     /**
-     * Redirect root to login or dashboard
+     * Show landing page or redirect to app
      */
     public function index()
     {
@@ -34,6 +34,8 @@ class WebController extends Controller
             }
             return redirect('/dashboard');
         }
-        return redirect('/login');
+        
+        // Show landing page for non-authenticated users
+        return view('landing');
     }
 }
