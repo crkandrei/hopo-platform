@@ -23,10 +23,9 @@ class CreateChildRequest extends FormRequest
             'bracelet_code' => [
                 'required',
                 'string',
-                'regex:/^BONGO\d{4,5}$/',
+                'min:1',
+                'max:50',
             ],
-            'is_birthday' => ['nullable', 'boolean'],
-            'is_jungle' => ['nullable', 'boolean'],
         ];
     }
 
@@ -50,9 +49,7 @@ class CreateChildRequest extends FormRequest
 
     public function messages(): array
     {
-        return [
-            'bracelet_code.regex' => 'Cod invalid. Format așteptat: BONGO urmat de 4 sau 5 cifre (ex: BONGO1234)',
-        ];
+        return [];
     }
 
     public function withValidator($validator)

@@ -8,9 +8,9 @@ use Illuminate\Support\Collection;
 
 class AuditLogRepository implements AuditLogRepositoryInterface
 {
-    public function latestByTenant(int $tenantId, int $limit = 20): Collection
+    public function latestByLocation(int $locationId, int $limit = 20): Collection
     {
-        return AuditLog::where('tenant_id', $tenantId)
+        return AuditLog::where('location_id', $locationId)
             ->orderBy('id', 'desc')
             ->limit($limit)
             ->get();

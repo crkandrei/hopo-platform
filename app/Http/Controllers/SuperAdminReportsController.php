@@ -43,16 +43,16 @@ class SuperAdminReportsController extends Controller
         $sortBy = (string) $request->input('sort_by', 'sessions_count');
         $sortDir = strtolower((string) $request->input('sort_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
 
-        // Build query - get all children with session count across all tenants
+        // Build query - get all children with session count across all locations
         $query = Child::select([
                 'children.id',
                 'children.name',
-                'children.tenant_id',
+                'children.location_id',
                 DB::raw('COUNT(play_sessions.id) as sessions_count')
             ])
             ->leftJoin('play_sessions', 'children.id', '=', 'play_sessions.child_id')
-            ->with('tenant')
-            ->groupBy('children.id', 'children.name', 'children.tenant_id');
+            ->with('location')
+            ->groupBy('children.id', 'children.name', 'children.location_id');
 
         // Search filter
         if ($search !== '') {
@@ -91,7 +91,7 @@ class SuperAdminReportsController extends Controller
                 'id' => $child->id,
                 'name' => $child->name,
                 'sessions_count' => (int) $child->sessions_count,
-                'tenant_name' => $child->tenant->name ?? 'N/A',
+                'location_name' => $child->location->name ?? 'N/A',
             ];
         });
 

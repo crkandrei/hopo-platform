@@ -62,9 +62,7 @@
                     <p class="text-sm font-medium text-gray-600 mb-1">Total Sesiuni</p>
                     <p id="totalSessions" class="text-2xl md:text-3xl font-bold text-blue-600">-</p>
                     <div id="sessionsBreakdown" class="text-xs text-gray-500 mt-1 space-y-0.5">
-                        <div>Normale: <span id="normalSessions">-</span></div>
-                        <div>Birthday: <span id="birthdaySessions">-</span></div>
-                        <div>Jungle: <span id="jungleSessions">-</span></div>
+                        <div>Total: <span id="normalSessions">-</span></div>
                     </div>
                 </div>
                 <div class="w-10 h-10 md:w-12 md:h-12 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -214,8 +212,6 @@
         // Sessions card
         document.getElementById('totalSessions').textContent = data.sessions.total;
         document.getElementById('normalSessions').textContent = data.sessions.normal;
-        document.getElementById('birthdaySessions').textContent = data.sessions.birthday;
-        document.getElementById('jungleSessions').textContent = data.sessions.jungle;
         
         // Products card
         document.getElementById('totalProducts').textContent = data.products.total_sold;
@@ -317,9 +313,6 @@
                 ['Total ore jucate', removeDiacritics(data.hours.formatted)],
                 ['Durata medie sesiune', data.hours.avg_per_session],
                 ['Total sesiuni', data.sessions.total.toString()],
-                ['  - Sesiuni normale', data.sessions.normal.toString()],
-                ['  - Sesiuni Birthday', data.sessions.birthday.toString()],
-                ['  - Sesiuni Jungle', data.sessions.jungle.toString()],
                 ['Total produse vandute', data.products.total_sold.toString()],
                 ['Valoare produse', data.products.total_revenue.toFixed(2) + ' RON'],
                 ['TOTAL VANZARI', data.sales.total.toFixed(2) + ' RON'],

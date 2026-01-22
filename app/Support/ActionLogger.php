@@ -25,7 +25,8 @@ class ActionLogger
         string $level = 'info'
     ): void {
         $user = Auth::user();
-        $tenant = $user?->tenant;
+        $location = $user?->location;
+        $company = $user?->company;
 
         $logData = [
             'action' => $action,
@@ -33,8 +34,10 @@ class ActionLogger
             'entity_id' => $entityId,
             'user_id' => $user?->id,
             'user_email' => $user?->email,
-            'tenant_id' => $tenant?->id,
-            'tenant_name' => $tenant?->name,
+            'location_id' => $location?->id,
+            'location_name' => $location?->name,
+            'company_id' => $company?->id,
+            'company_name' => $company?->name,
             'ip_address' => request()?->ip(),
             'user_agent' => request()?->userAgent(),
             'timestamp' => now()->toIso8601String(),
@@ -113,7 +116,8 @@ class ActionLogger
     public static function logError(\Throwable $exception, array $context = []): void
     {
         $user = Auth::user();
-        $tenant = $user?->tenant;
+        $location = $user?->location;
+        $company = $user?->company;
 
         $logData = [
             'exception' => get_class($exception),
@@ -123,8 +127,10 @@ class ActionLogger
             'trace' => $exception->getTraceAsString(),
             'user_id' => $user?->id,
             'user_email' => $user?->email,
-            'tenant_id' => $tenant?->id,
-            'tenant_name' => $tenant?->name,
+            'location_id' => $location?->id,
+            'location_name' => $location?->name,
+            'company_id' => $company?->id,
+            'company_name' => $company?->name,
             'ip_address' => request()?->ip(),
             'user_agent' => request()?->userAgent(),
             'url' => request()?->fullUrl(),
@@ -156,7 +162,8 @@ class ActionLogger
         array $context = []
     ): void {
         $user = Auth::user();
-        $tenant = $user?->tenant;
+        $location = $user?->location;
+        $company = $user?->company;
 
         $logData = [
             'action' => $action,
@@ -166,8 +173,10 @@ class ActionLogger
             'data_after' => $dataAfter,
             'user_id' => $user?->id,
             'user_email' => $user?->email,
-            'tenant_id' => $tenant?->id,
-            'tenant_name' => $tenant?->name,
+            'location_id' => $location?->id,
+            'location_name' => $location?->name,
+            'company_id' => $company?->id,
+            'company_name' => $company?->name,
             'ip_address' => request()?->ip(),
             'user_agent' => request()?->userAgent(),
             'timestamp' => now()->toIso8601String(),
@@ -177,11 +186,11 @@ class ActionLogger
         // Log to audit channel
         Log::channel('audit')->info($action, $logData);
 
-        // Also save to AuditLog model if tenant and user are available
-        if ($tenant && $user) {
+        // Also save to AuditLog model if location and user are available
+        if ($location && $user) {
             try {
                 \App\Models\AuditLog::create([
-                    'tenant_id' => $tenant->id,
+                    'location_id' => $location->id,
                     'user_id' => $user->id,
                     'action' => $action,
                     'entity_type' => $entityType,

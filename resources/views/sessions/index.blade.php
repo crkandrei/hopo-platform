@@ -583,8 +583,8 @@
             const tr = document.createElement('tr');
             tr.setAttribute('data-session-id', row.id);
             
-            // Check if this session can be selected (ended, unpaid, not birthday/jungle)
-            const canSelect = row.ended_at && !row.is_paid && !row.is_birthday && !row.is_jungle;
+            // Check if this session can be selected (ended, unpaid)
+            const canSelect = row.ended_at && !row.is_paid;
             const isSelected = selectedSessions.has(row.id);
             
             // Apply highlight animation if this is the just-stopped session
@@ -605,8 +605,6 @@
                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                     <div class="flex items-center">
                         <span>${row.child_name || '-'}</span>
-                        ${row.is_birthday ? `<span class="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-pink-100 text-pink-800"><i class="fas fa-birthday-cake mr-1"></i>Birthday</span>` : ''}
-                        ${row.is_jungle ? `<span class="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-800"><i class="fas fa-tree mr-1"></i>Jungle</span>` : ''}
                         <span id="pause-warning-${row.id}" class="ml-2">
                             ${(() => {
                                 // Only show badge for CURRENT active pause that exceeds threshold
@@ -627,7 +625,7 @@
                     ` : '-'}
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap text-sm">
-                    ${row.ended_at && !row.is_birthday && !row.is_jungle ? `
+                    ${row.ended_at ? `
                         ${row.is_paid ? `
                             <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-800 inline-flex items-center w-fit">
                                 <i class="fas fa-check-circle mr-1"></i>${row.payment_status === 'paid_voucher' ? 'Plătit (Voucher)' : 'Plătit'}
@@ -644,23 +642,7 @@
                         <a href="/sessions/${row.id}/show" class="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs transition-colors">
                             <i class="fas fa-eye mr-1"></i>Detalii
                         </a>
-                        ${!row.is_paid ? `
-                            ${!row.is_jungle ? `
-                                <button onclick="toggleBirthdayQuick(${row.id}, ${row.is_birthday})" 
-                                    class="px-2 py-1 ${row.is_birthday ? 'bg-pink-600 hover:bg-pink-700' : 'bg-gray-400 hover:bg-gray-500'} text-white rounded text-xs transition-colors"
-                                    title="${row.is_birthday ? 'Demarchează Birthday' : 'Marchează ca Birthday'}">
-                                    <i class="fas fa-birthday-cake mr-1"></i>${row.is_birthday ? 'ON' : 'OFF'}
-                                </button>
-                            ` : ''}
-                            ${row.can_toggle_jungle && !row.is_birthday ? `
-                                <button onclick="toggleJungleQuick(${row.id}, ${row.is_jungle})" 
-                                    class="px-2 py-1 ${row.is_jungle ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 hover:bg-gray-500'} text-white rounded text-xs transition-colors"
-                                    title="${row.is_jungle ? 'Demarchează Jungle' : 'Marchează ca Jungle'}">
-                                    <i class="fas fa-tree mr-1"></i>${row.is_jungle ? 'ON' : 'OFF'}
-                                </button>
-                            ` : ''}
-                        ` : ''}
-                        ${row.ended_at && !row.is_paid && ((!row.is_birthday && !row.is_jungle) || row.products_price > 0) ? `
+                        ${row.ended_at && !row.is_paid && row.products_price > 0 ? `
                             <button onclick="openFiscalModal(${row.id})" class="px-2 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs transition-colors">
                                 <i class="fas fa-receipt mr-1"></i>Bon
                             </button>
@@ -1566,65 +1548,6 @@ function showFiscalResult(type, message, file) {
     }
 }
 
-// Quick toggle birthday status from list
-async function toggleBirthdayQuick(sessionId, currentStatus) {
-    const newStatus = !currentStatus;
-    
-    try {
-        const response = await fetch(`/sessions/${sessionId}/update-birthday-status`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                is_birthday: newStatus
-            })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Eroare la actualizarea statusului');
-        }
-
-        // Reload table data
-        fetchData();
-    } catch (error) {
-        console.error('Error toggling birthday status:', error);
-        alert('Eroare: ' + error.message);
-    }
-}
-
-// Quick toggle jungle status from list
-async function toggleJungleQuick(sessionId, currentStatus) {
-    const newStatus = !currentStatus;
-    
-    try {
-        const response = await fetch(`/sessions/${sessionId}/update-jungle-status`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                is_jungle: newStatus
-            })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Eroare la actualizarea statusului');
-        }
-
-        // Reload table data
-        fetchData();
-    } catch (error) {
-        console.error('Error toggling jungle status:', error);
-        alert('Eroare: ' + error.message);
-    }
-}
 </script>
 @endsection
 

@@ -39,31 +39,6 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-gray-600 mb-1">Sesiuni Birthday</p>
-                    <p class="text-3xl font-bold text-pink-600">{{ $birthdaySessions }}</p>
-                    <p class="text-xs text-gray-500 mt-1">Din total</p>
-                </div>
-                <div class="w-12 h-12 bg-pink-100 rounded-xl flex items-center justify-center">
-                    <i class="fas fa-birthday-cake text-pink-600 text-xl"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-gray-600 mb-1">Sesiuni Jungle</p>
-                    <p class="text-3xl font-bold text-green-600">{{ $jungleSessions ?? 0 }}</p>
-                    <p class="text-xs text-gray-500 mt-1">Din total</p>
-                </div>
-                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                    <i class="fas fa-tree text-green-600 text-xl"></i>
-                </div>
-            </div>
-        </div>
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
             <div class="flex items-center justify-between">

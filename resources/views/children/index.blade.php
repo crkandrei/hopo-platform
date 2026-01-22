@@ -41,7 +41,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-gray-600 mb-1">Sesiuni Active</p>
-                    <p class="text-3xl font-bold text-green-600">{{ \App\Models\PlaySession::where('tenant_id', Auth::user()->tenant->id)->whereNull('ended_at')->count() }}</p>
+                    <p class="text-3xl font-bold text-green-600">{{ \App\Models\PlaySession::where('location_id', Auth::user()->location->id)->whereNull('ended_at')->count() }}</p>
                     <p class="text-xs text-gray-500 mt-1">În desfășurare</p>
                 </div>
                 <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
@@ -117,7 +117,7 @@
 @parent
 @if(Auth::user()->isSuperAdmin() || Auth::user()->isCompanyAdmin() || Auth::user()->isStaff())
 @php
-    $guardians = \App\Models\Guardian::where('tenant_id', Auth::user()->tenant->id)->orderBy('name')->get();
+    $guardians = \App\Models\Guardian::where('location_id', Auth::user()->location->id)->orderBy('name')->get();
 @endphp
 <div id="add-child-modal" class="fixed inset-0 z-50 hidden" aria-hidden="true">
     <div id="add-child-overlay" class="fixed inset-0 bg-black bg-opacity-50"></div>
@@ -298,7 +298,6 @@
                             </div>
                             <div class="ml-4">
                                 <div class="text-sm font-medium text-gray-900">${row.child_name || '-'}</div>
-                                <div class="text-xs text-gray-500">Născut: ${row.birth_date || '-'}</div>
                             </div>
                         </div>
                     </td>

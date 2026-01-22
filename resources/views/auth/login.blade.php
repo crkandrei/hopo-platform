@@ -16,8 +16,10 @@
     <div class="max-w-md w-full space-y-8 p-8">
         <div class="bg-white rounded-lg shadow-xl p-8">
             <div class="text-center">
-                <h2 class="text-3xl font-bold text-gray-900 mb-2">Brățări pentru Copii</h2>
-                <p class="text-gray-600 mb-8">Platformă Multi-Tenant</p>
+                @php $logoExists = file_exists(public_path('images/hopo-logo.png')); @endphp
+                @if($logoExists)
+                    <img src="{{ asset('images/hopo-logo.png') }}" alt="Hopo" class="w-[200px] h-[90px] mx-auto mb-8 object-contain">
+                @endif
             </div>
             
             @if ($errors->any())

@@ -20,14 +20,14 @@ class ChildController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return $this->redirectToHome()->with('error', 'Utilizatorul nu este asociat cu niciun tenant');
+        if (!$location) {
+            return $this->redirectToHome()->with('error', 'Utilizatorul nu este asociat cu nicio locație');
         }
 
         // Get children with their guardians and active sessions
-        $children = Child::where('tenant_id', $tenant->id)
+        $children = Child::where('location_id', $location->id)
             ->with(['guardian'])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -44,14 +44,14 @@ class ChildController extends Controller
     public function create(Request $request)
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return $this->redirectToHome()->with('error', 'Utilizatorul nu este asociat cu niciun tenant');
+        if (!$location) {
+            return $this->redirectToHome()->with('error', 'Utilizatorul nu este asociat cu nicio locație');
         }
 
-        // Get guardians for the tenant
-        $guardians = Guardian::where('tenant_id', $tenant->id)
+        // Get guardians for the location
+        $guardians = Guardian::where('location_id', $location->id)
             ->orderBy('name')
             ->get();
 
@@ -75,10 +75,10 @@ class ChildController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return $this->redirectToHome()->with('error', 'Utilizatorul nu este asociat cu niciun tenant');
+        if (!$location) {
+            return $this->redirectToHome()->with('error', 'Utilizatorul nu este asociat cu nicio locație');
         }
 
         $request->validate([
@@ -87,9 +87,9 @@ class ChildController extends Controller
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        // Check if guardian belongs to the same tenant
+        // Check if guardian belongs to the same location
         $guardian = Guardian::where('id', $request->guardian_id)
-            ->where('tenant_id', $tenant->id)
+            ->where('location_id', $location->id)
             ->first();
 
         if (!$guardian) {
@@ -97,10 +97,10 @@ class ChildController extends Controller
         }
 
         // Generate internal code
-        $internalCode = $this->generateInternalCode($tenant, $request->name);
+        $internalCode = $this->generateInternalCode($location, $request->name);
 
         $child = Child::create([
-            'tenant_id' => $tenant->id,
+            'location_id' => $location->id,
             'guardian_id' => $request->guardian_id,
             'name' => $request->name,
             'birth_date' => null,
@@ -122,9 +122,9 @@ class ChildController extends Controller
     public function show(Child $child)
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant || $child->tenant_id !== $tenant->id) {
+        if (!$location || $child->location_id !== $location->id) {
             return redirect()->route('children.index')->with('error', 'Copilul nu a fost găsit');
         }
 
@@ -169,8 +169,6 @@ class ChildController extends Controller
                         'status' => 'active',
                         'price' => $price,
                         'formatted_price' => $session->getFormattedPrice(),
-                        'is_birthday' => $session->is_birthday ?? false,
-                        'is_jungle' => $session->is_jungle ?? false,
                     ];
                 } else {
                     // Closed session: use all intervals
@@ -191,16 +189,12 @@ class ChildController extends Controller
                         'status' => 'completed',
                         'price' => $price,
                         'formatted_price' => $session->getFormattedPrice(),
-                        'is_birthday' => $session->is_birthday ?? false,
-                        'is_jungle' => $session->is_jungle ?? false,
                     ];
                 }
             });
 
-        // Calculate total price (exclude birthday and jungle sessions)
-        $totalPrice = $playSessions->filter(function($session) {
-            return !($session['is_birthday'] ?? false) && !($session['is_jungle'] ?? false);
-        })->sum('price');
+        // Calculate total price
+        $totalPrice = $playSessions->sum('price');
 
         return view('children.show', compact('child', 'playSessions', 'totalPrice'));
     }
@@ -211,13 +205,13 @@ class ChildController extends Controller
     public function edit(Child $child)
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant || $child->tenant_id !== $tenant->id) {
+        if (!$location || $child->location_id !== $location->id) {
             return redirect()->route('children.index')->with('error', 'Copilul nu a fost găsit');
         }
 
-        $guardians = Guardian::where('tenant_id', $tenant->id)
+        $guardians = Guardian::where('location_id', $location->id)
             ->orderBy('name')
             ->get();
 
@@ -230,9 +224,9 @@ class ChildController extends Controller
     public function update(Request $request, Child $child)
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant || $child->tenant_id !== $tenant->id) {
+        if (!$location || $child->location_id !== $location->id) {
             return redirect()->route('children.index')->with('error', 'Copilul nu a fost găsit');
         }
 
@@ -242,9 +236,9 @@ class ChildController extends Controller
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        // Check if guardian belongs to the same tenant
+        // Check if guardian belongs to the same location
         $guardian = Guardian::where('id', $request->guardian_id)
-            ->where('tenant_id', $tenant->id)
+            ->where('location_id', $location->id)
             ->first();
 
         if (!$guardian) {
@@ -282,9 +276,9 @@ class ChildController extends Controller
     public function destroy(Child $child)
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant || $child->tenant_id !== $tenant->id) {
+        if (!$location || $child->location_id !== $location->id) {
             return redirect()->route('children.index')->with('error', 'Copilul nu a fost găsit');
         }
 
@@ -310,16 +304,16 @@ class ChildController extends Controller
     }
 
     /**
-     * Generate unique internal code for tenant
+     * Generate unique internal code for location
      */
-    private function generateInternalCode($tenant, $name)
+    private function generateInternalCode($location, $name)
     {
         do {
             // Use first 2 characters of name + next 2 characters + random 3 digits
             $namePart = substr(trim($name), 0, 2);
             $nextPart = strlen(trim($name)) > 2 ? substr(trim($name), 2, 2) : substr(trim($name), 0, 2);
             $code = strtoupper($namePart . $nextPart . rand(100, 999));
-        } while (Child::where('tenant_id', $tenant->id)
+        } while (Child::where('location_id', $location->id)
             ->where('internal_code', $code)
             ->exists());
 
@@ -332,9 +326,9 @@ class ChildController extends Controller
     public function search(Request $request)
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
-        if (!$tenant) {
-            return response()->json(['success' => false, 'message' => 'Tenant lipsă'], 400);
+        $location = $user->location;
+        if (!$location) {
+            return response()->json(['success' => false, 'message' => 'Locație lipsă'], 400);
         }
 
         $request->validate([
@@ -349,7 +343,7 @@ class ChildController extends Controller
         $guardianId = $request->input('guardian_id');
         $excludeActiveSessions = $request->boolean('exclude_active_sessions', false);
 
-        $children = Child::where('tenant_id', $tenant->id)
+        $children = Child::where('location_id', $location->id)
             ->when($excludeActiveSessions, function ($query) {
                 // Exclude children with active sessions
                 $query->whereDoesntHave('playSessions', function ($q) {
@@ -397,11 +391,11 @@ class ChildController extends Controller
     public function data(Request $request)
     {
         $user = Auth::user();
-        if (!$user || !$user->tenant) {
-            return ApiResponder::error('Neautentificat sau fără tenant', 401);
+        if (!$user || !$user->location) {
+            return ApiResponder::error('Neautentificat sau fără locație', 401);
         }
 
-        $tenantId = $user->tenant->id;
+        $locationId = $user->location->id;
 
         // Inputs
         $page = max(1, (int) $request->input('page', 1));
@@ -414,7 +408,7 @@ class ChildController extends Controller
         $sortDir = strtolower((string) $request->input('sort_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
 
         // Base query
-        $query = Child::where('tenant_id', $tenantId)
+        $query = Child::where('location_id', $locationId)
             ->with(['guardian:id,name,phone'])
             ->with(['activeSessions' => function($q) {
                 $q->whereNull('ended_at')->with('intervals');

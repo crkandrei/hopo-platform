@@ -11,8 +11,11 @@
             <div>
                 <h1 class="text-xl md:text-2xl font-bold text-gray-900">Bun venit, {{ Auth::user()->name }}! 👋</h1>
                 <p class="text-gray-600 text-sm md:text-base">
-                    @if(Auth::user()->tenant)
-                        <i class="fas fa-building mr-2 text-indigo-600"></i>{{ Auth::user()->tenant->name }}
+                    @if(Auth::user()->location)
+                        <i class="fas fa-map-marker-alt mr-2 text-indigo-600"></i>{{ Auth::user()->location->name }}
+                        @if(Auth::user()->company)
+                            <span class="text-gray-400">({{ Auth::user()->company->name }})</span>
+                        @endif
                     @else
                         <i class="fas fa-globe mr-2 text-indigo-600"></i>Acces global
                     @endif
@@ -57,14 +60,8 @@
             </div>
             <!-- Session type breakdown -->
             <div id="sessionsBreakdown" class="text-xs text-gray-500 mt-2 hidden">
-                <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 mr-1">
-                    <span id="sessionsNormal">0</span>n
-                </span>
-                <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-pink-100 text-pink-600 mr-1">
-                    <span id="sessionsBirthday">0</span>b
-                </span>
-                <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-green-100 text-green-600">
-                    <span id="sessionsJungle">0</span>j
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">
+                    <span id="sessionsNormal">0</span> total
                 </span>
             </div>
         </div>
@@ -207,8 +204,6 @@
                 if (stats.sessions_today > 0) {
                     document.getElementById('sessionsBreakdown').classList.remove('hidden');
                     document.getElementById('sessionsNormal').textContent = stats.sessions_normal || 0;
-                    document.getElementById('sessionsBirthday').textContent = stats.sessions_birthday || 0;
-                    document.getElementById('sessionsJungle').textContent = stats.sessions_jungle || 0;
                 }
                 
                 // Sessions comparison with same day last week
@@ -316,11 +311,6 @@
                     container.innerHTML = list.map(session => {
                         // Session type badge
                         let typeBadge = '';
-                        if (session.session_type === 'birthday') {
-                            typeBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-700"><i class="fas fa-birthday-cake mr-1"></i>Birthday</span>';
-                        } else if (session.session_type === 'jungle') {
-                            typeBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700"><i class="fas fa-tree mr-1"></i>Jungle</span>';
-                        }
                         
                         // Pause badge
                         let pauseBadge = session.is_paused ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-700 ml-1"><i class="fas fa-pause mr-1"></i>Pauză</span>' : '';

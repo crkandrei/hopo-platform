@@ -16,7 +16,7 @@ class DashboardService
     {
     }
 
-    public function getStatsForTenant(int $tenantId): array
+    public function getStatsForLocation(int $locationId): array
     {
         $now = now();
         $startOfDay = $now->copy()->startOfDay();
@@ -28,39 +28,27 @@ class DashboardService
         $lastWeekEnd = $lastWeekSameDay->copy()->endOfDay();
         $dayName = $this->getRomanianDayName($now->dayOfWeek);
 
-        $activeSessions = $this->sessions->countActiveSessionsByTenant($tenantId);
-        $sessionsToday = $this->sessions->countSessionsStartedSince($tenantId, $startOfDay);
-        $inProgressToday = $this->sessions->countActiveSessionsStartedSince($tenantId, $startOfDay);
+        $activeSessions = $this->sessions->countActiveSessionsByLocation($locationId);
+        $sessionsToday = $this->sessions->countSessionsStartedSince($locationId, $startOfDay);
+        $inProgressToday = $this->sessions->countActiveSessionsStartedSince($locationId, $startOfDay);
         
-        $todaySessions = $this->sessions->getSessionsSince($tenantId, $startOfDay);
+        $todaySessions = $this->sessions->getSessionsSince($locationId, $startOfDay);
         $totalMinutesToday = $todaySessions->reduce(fn($c, $s) => $c + $s->getCurrentDurationMinutes(), 0);
         $avgToday = $todaySessions->count() > 0 ? (int) floor($totalMinutesToday / $todaySessions->count()) : 0;
 
-        // Session type breakdown for today
-        $normalSessions = 0;
-        $birthdaySessions = 0;
-        $jungleSessions = 0;
-        foreach ($todaySessions as $session) {
-            if ($session->is_birthday) {
-                $birthdaySessions++;
-            } elseif ($session->is_jungle) {
-                $jungleSessions++;
-            } else {
-                $normalSessions++;
-            }
-        }
+        // All sessions are normal (no birthday/jungle types)
+        $normalSessions = $todaySessions->count();
 
-        $allSessions = $this->sessions->getAllByTenant($tenantId);
+        $allSessions = $this->sessions->getAllByLocation($locationId);
         $totalMinutesAll = $allSessions->reduce(fn($c, $s) => $c + $s->getCurrentDurationMinutes(), 0);
         $avgAll = $allSessions->count() > 0 ? (int) floor($totalMinutesAll / $allSessions->count()) : 0;
 
-        // Calculate total income for sessions ended today (exclude birthday sessions)
-        $sessionsEndedToday = PlaySession::where('tenant_id', $tenantId)
+        // Calculate total income for sessions ended today
+        $sessionsEndedToday = PlaySession::where('location_id', $locationId)
             ->whereNotNull('ended_at')
             ->whereNotNull('calculated_price')
             ->where('ended_at', '>=', $startOfDay)
             ->where('ended_at', '<=', $endOfDay)
-            ->where('is_birthday', false)
             ->get();
         
         // Calculate payment breakdown: cash, card, voucher
@@ -104,12 +92,12 @@ class DashboardService
         $totalIncomeToday = $cashTotal + $cardTotal + $voucherTotal;
 
         // Get same day last week stats for comparison
-        $sessionsLastWeek = PlaySession::where('tenant_id', $tenantId)
+        $sessionsLastWeek = PlaySession::where('location_id', $locationId)
             ->where('started_at', '>=', $lastWeekStart)
             ->where('started_at', '<=', $lastWeekEnd)
             ->count();
         
-        $incomeLastWeek = $this->calculateIncomeForPeriod($tenantId, $lastWeekStart, $lastWeekEnd);
+        $incomeLastWeek = $this->calculateIncomeForPeriod($locationId, $lastWeekStart, $lastWeekEnd);
         
         // Calculate comparison percentages
         $sessionsComparison = $this->calculateComparison($sessionsToday, $sessionsLastWeek);
@@ -120,8 +108,6 @@ class DashboardService
             'sessions_today' => $sessionsToday,
             'sessions_today_in_progress' => $inProgressToday,
             'sessions_normal' => $normalSessions,
-            'sessions_birthday' => $birthdaySessions,
-            'sessions_jungle' => $jungleSessions,
             'avg_session_today_minutes' => $avgToday,
             'avg_session_total_minutes' => $avgAll,
             'total_time_today' => $this->formatMinutes($totalMinutesToday),
@@ -141,14 +127,13 @@ class DashboardService
     /**
      * Calculate income for a specific period
      */
-    private function calculateIncomeForPeriod(int $tenantId, Carbon $start, Carbon $end): float
+    private function calculateIncomeForPeriod(int $locationId, Carbon $start, Carbon $end): float
     {
-        $sessions = PlaySession::where('tenant_id', $tenantId)
+        $sessions = PlaySession::where('location_id', $locationId)
             ->whereNotNull('ended_at')
             ->whereNotNull('calculated_price')
             ->where('ended_at', '>=', $start)
             ->where('ended_at', '<=', $end)
-            ->where('is_birthday', false)
             ->get();
         
         $total = 0;
@@ -203,21 +188,13 @@ class DashboardService
         return $days[$dayOfWeek] ?? '';
     }
 
-    public function getActiveSessions(int $tenantId): array
+    public function getActiveSessions(int $locationId): array
     {
-        return $this->sessions->getActiveSessionsWithRelations($tenantId)
+        return $this->sessions->getActiveSessionsWithRelations($locationId)
             ->map(function ($session) {
                 $child = $session->child;
                 $guardian = $child ? $child->guardian : null;
                 $childName = $child ? $child->name : '-';
-                
-                // Determine session type
-                $sessionType = 'normal';
-                if ($session->is_birthday) {
-                    $sessionType = 'birthday';
-                } elseif ($session->is_jungle) {
-                    $sessionType = 'jungle';
-                }
                 
                 return [
                     'id' => $session->id,
@@ -227,7 +204,6 @@ class DashboardService
                     'duration' => $session->getFormattedDuration(),
                     'duration_minutes' => $session->getCurrentDurationMinutes(),
                     'bracelet_code' => $session->bracelet_code ?? null,
-                    'session_type' => $sessionType,
                     'is_paused' => $session->isPaused(),
                 ];
             })
@@ -237,20 +213,17 @@ class DashboardService
     /**
      * Get alerts for the dashboard (unpaid sessions, long running sessions)
      */
-    public function getAlerts(int $tenantId): array
+    public function getAlerts(int $locationId): array
     {
         $alerts = [];
         $now = now();
         $startOfDay = $now->copy()->startOfDay();
         
         // 1. Unpaid sessions - sessions ended today but not paid
-        // Exclude birthday and jungle sessions as they don't require payment
-        $unpaidSessions = PlaySession::where('tenant_id', $tenantId)
+        $unpaidSessions = PlaySession::where('location_id', $locationId)
             ->whereNotNull('ended_at')
             ->whereNull('paid_at')
             ->where('ended_at', '>=', $startOfDay)
-            ->where('is_birthday', false) // Birthday sessions don't need payment
-            ->where('is_jungle', false) // Jungle sessions don't need payment
             ->with('child')
             ->get();
         
@@ -275,7 +248,7 @@ class DashboardService
         }
         
         // 2. Long running sessions - active sessions > 4 hours
-        $longSessions = PlaySession::where('tenant_id', $tenantId)
+        $longSessions = PlaySession::where('location_id', $locationId)
             ->whereNull('ended_at')
             ->with('child')
             ->get()
@@ -307,7 +280,7 @@ class DashboardService
         return $alerts;
     }
 
-    public function getReports(int $tenantId, ?string $startDate = null, ?string $endDate = null, ?array $weekdays = null): array
+    public function getReports(int $locationId, ?string $startDate = null, ?string $endDate = null, ?array $weekdays = null): array
     {
         $now = now();
         $start = $startDate ? Carbon::parse($startDate)->startOfDay() : $now->copy()->startOfDay();
@@ -317,7 +290,7 @@ class DashboardService
         }
 
         // Get sessions between dates
-        $sessionsQuery = PlaySession::where('tenant_id', $tenantId)
+        $sessionsQuery = PlaySession::where('location_id', $locationId)
             ->where('started_at', '>=', $start)
             ->where('started_at', '<=', $end);
         
@@ -345,39 +318,18 @@ class DashboardService
         $totalToday = $sessionsToday->count();
 
         $buckets = ['<1h' => 0, '1-2h' => 0, '2-3h' => 0, '>3h' => 0];
-        // Track session types for each bucket
-        $bucketTypes = [
-            '<1h' => ['jungle' => 0, 'birthday' => 0, 'normal' => 0],
-            '1-2h' => ['jungle' => 0, 'birthday' => 0, 'normal' => 0],
-            '2-3h' => ['jungle' => 0, 'birthday' => 0, 'normal' => 0],
-            '>3h' => ['jungle' => 0, 'birthday' => 0, 'normal' => 0],
-        ];
         
         foreach ($sessionsToday as $s) {
             $mins = $s->getCurrentDurationMinutes();
-            $bucketKey = null;
             
             if ($mins < 60) {
-                $bucketKey = '<1h';
                 $buckets['<1h']++;
             } elseif ($mins < 120) {
-                $bucketKey = '1-2h';
                 $buckets['1-2h']++;
             } elseif ($mins < 180) {
-                $bucketKey = '2-3h';
                 $buckets['2-3h']++;
             } else {
-                $bucketKey = '>3h';
                 $buckets['>3h']++;
-            }
-            
-            // Count session types for this bucket
-            if ($s->is_jungle) {
-                $bucketTypes[$bucketKey]['jungle']++;
-            } elseif ($s->is_birthday) {
-                $bucketTypes[$bucketKey]['birthday']++;
-            } else {
-                $bucketTypes[$bucketKey]['normal']++;
             }
         }
         
@@ -386,7 +338,7 @@ class DashboardService
             $bucketPerc[$k] = $totalToday > 0 ? round(($v / $totalToday) * 100, 1) : 0.0;
         }
 
-        $children = $this->children->getAllWithBirthdateByTenant($tenantId);
+        $children = $this->children->getAllWithBirthdateByLocation($locationId);
         $avgAgeYears = 0;
         $avgAgeMonths = 0;
         if ($children->count() > 0) {
@@ -438,30 +390,18 @@ class DashboardService
                 'lt_1h' => [
                     'count' => $buckets['<1h'],
                     'percent' => $bucketPerc['<1h'],
-                    'jungle' => $bucketTypes['<1h']['jungle'],
-                    'birthday' => $bucketTypes['<1h']['birthday'],
-                    'normal' => $bucketTypes['<1h']['normal'],
                 ],
                 'h1_2' => [
                     'count' => $buckets['1-2h'],
                     'percent' => $bucketPerc['1-2h'],
-                    'jungle' => $bucketTypes['1-2h']['jungle'],
-                    'birthday' => $bucketTypes['1-2h']['birthday'],
-                    'normal' => $bucketTypes['1-2h']['normal'],
                 ],
                 'h2_3' => [
                     'count' => $buckets['2-3h'],
                     'percent' => $bucketPerc['2-3h'],
-                    'jungle' => $bucketTypes['2-3h']['jungle'],
-                    'birthday' => $bucketTypes['2-3h']['birthday'],
-                    'normal' => $bucketTypes['2-3h']['normal'],
                 ],
                 'gt_3h' => [
                     'count' => $buckets['>3h'],
                     'percent' => $bucketPerc['>3h'],
-                    'jungle' => $bucketTypes['>3h']['jungle'],
-                    'birthday' => $bucketTypes['>3h']['birthday'],
-                    'normal' => $bucketTypes['>3h']['normal'],
                 ],
             ],
             'avg_child_age_years' => $avgAgeYears,
@@ -474,12 +414,12 @@ class DashboardService
     /**
      * Get entries (session starts) over time by period type
      * 
-     * @param int $tenantId
+     * @param int $locationId
      * @param string $periodType 'daily', 'weekly', or 'monthly'
      * @param int $count Number of periods to show
      * @return array Array with labels, data, and growth indicators
      */
-    public function getEntriesOverTime(int $tenantId, string $periodType, int $count): array
+    public function getEntriesOverTime(int $locationId, string $periodType, int $count): array
     {
         $now = now();
         $labels = [];
@@ -492,7 +432,7 @@ class DashboardService
                 $date = $now->copy()->subDays($i)->startOfDay();
                 $endDate = $date->copy()->endOfDay();
                 
-                $entries = PlaySession::where('tenant_id', $tenantId)
+                $entries = PlaySession::where('location_id', $locationId)
                     ->where('started_at', '>=', $date)
                     ->where('started_at', '<=', $endDate)
                     ->count();
@@ -519,7 +459,7 @@ class DashboardService
                 $weekStart = $now->copy()->subWeeks($i)->startOfWeek();
                 $weekEnd = $weekStart->copy()->endOfWeek();
                 
-                $entries = PlaySession::where('tenant_id', $tenantId)
+                $entries = PlaySession::where('location_id', $locationId)
                     ->where('started_at', '>=', $weekStart)
                     ->where('started_at', '<=', $weekEnd)
                     ->count();
@@ -546,7 +486,7 @@ class DashboardService
                 $monthStart = $now->copy()->subMonths($i)->startOfMonth();
                 $monthEnd = $monthStart->copy()->endOfMonth();
                 
-                $entries = PlaySession::where('tenant_id', $tenantId)
+                $entries = PlaySession::where('location_id', $locationId)
                     ->where('started_at', '>=', $monthStart)
                     ->where('started_at', '<=', $monthEnd)
                     ->count();

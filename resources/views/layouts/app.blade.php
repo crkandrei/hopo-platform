@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'KidsPass') - Admin Panel</title>
+    <title>@yield('title', 'Hopo') - Admin Panel</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -167,26 +167,26 @@
     <div class="flex h-screen">
         <!-- Sidebar -->
         <div id="sidebar" class="w-64 bg-gray-900 text-white sidebar-transition fixed inset-y-0 left-0 z-50 sidebar-hidden lg:static lg:translate-x-0 lg:sidebar-visible">
-            <div class="flex items-center justify-between h-16 bg-gray-800 px-4">
-                <div class="flex items-center flex-1 min-w-0">
-                    @php $logoExists = file_exists(public_path('images/kidspass-logo.png')); @endphp
+            <div class="flex items-center justify-between h-16 bg-gray-800 px-4 relative">
+                <div class="flex-1"></div>
+                <div class="flex-1 flex items-center justify-center">
+                    @php $logoExists = file_exists(public_path('images/hopo-logo.png')); @endphp
                     @if($logoExists)
-                        <img src="{{ asset('images/kidspass-logo.png') }}" alt="KidsPass" class="w-8 h-8 rounded-lg mr-3 flex-shrink-0">
+                        <img src="{{ asset('images/hopo-logo.png') }}" alt="Hopo" class="object-contain flex-shrink-0" style="width: 120px;">
                     @else
-                        <div class="w-8 h-8 bg-sky-600 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
-                            <i class="fas fa-child text-white text-sm"></i>
+                        <div class="w-14 h-14 bg-sky-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-child text-white text-xl"></i>
                         </div>
                     @endif
-                    <h1 class="text-xl font-bold sidebar-logo-text whitespace-nowrap">KidsPass</h1>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex-1 flex items-center justify-end gap-2">
                     @if($currentUser && $currentUser->role && $currentUser->role->name === 'SUPER_ADMIN')
                     <div id="bridge-health-indicator" class="flex items-center gap-1 px-2 py-1 rounded" title="Bridge Fiscal Status">
                         <div id="bridge-health-dot" class="w-2 h-2 rounded-full bg-gray-500"></div>
                         <span id="bridge-health-text" class="text-xs text-gray-400 hidden sidebar-text">Bridge</span>
                     </div>
                     @endif
-                    <button id="sidebar-collapse-btn" class="sidebar-toggle-btn text-gray-400 hover:text-white ml-2 lg:block hidden">
+                    <button id="sidebar-collapse-btn" class="sidebar-toggle-btn text-gray-400 hover:text-white lg:block hidden">
                         <i class="fas fa-chevron-left text-sm"></i>
                     </button>
                 </div>
@@ -282,16 +282,28 @@
                     </div>
                     @endif
                     
-                    @if($currentUser && $currentUser->isSuperAdmin())
-                    <a href="{{ route('birthday-reservations.index') }}" 
-                       data-title="Rezervări Zile Naștere"
-                       class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('birthday-reservations.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
-                        <i class="fas fa-birthday-cake sidebar-icon mr-3"></i>
-                        <span class="sidebar-text">Rezervări Zile Naștere</span>
-                    </a>
-                    @endif
-                    
                     @if($currentUser && $currentUser->role && $currentUser->role->name === 'SUPER_ADMIN')
+                    <a href="{{ route('companies.index') }}" 
+                       data-title="Companii"
+                       class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('companies.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                        <i class="fas fa-building sidebar-icon mr-3"></i>
+                        <span class="sidebar-text">Companii</span>
+                    </a>
+                    
+                    <a href="{{ route('locations.index') }}" 
+                       data-title="Locații"
+                       class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('locations.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                        <i class="fas fa-map-marker-alt sidebar-icon mr-3"></i>
+                        <span class="sidebar-text">Locații</span>
+                    </a>
+                    
+                    <a href="{{ route('users.index') }}" 
+                       data-title="Utilizatori"
+                       class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('users.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                        <i class="fas fa-users sidebar-icon mr-3"></i>
+                        <span class="sidebar-text">Utilizatori</span>
+                    </a>
+                    
                     <a href="{{ route('fiscal-receipts.index') }}" 
                        data-title="Bon"
                        class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('fiscal-receipts.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
@@ -325,6 +337,13 @@
                     @endif
                     
                     @if($currentUser && ($currentUser->isSuperAdmin() || $currentUser->isCompanyAdmin()))
+                    <a href="{{ route('users.index') }}" 
+                       data-title="Utilizatori"
+                       class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('users.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                        <i class="fas fa-users sidebar-icon mr-3"></i>
+                        <span class="sidebar-text">Utilizatori</span>
+                    </a>
+                    
                     <a href="{{ route('pricing.index') }}" 
                        data-title="Gestionare Tarife"
                        class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('pricing.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
@@ -367,8 +386,11 @@
                                 <div class="px-4 py-2 border-b border-gray-100">
                                     <p class="text-sm font-medium text-gray-900">{{ Auth::user()->name }}</p>
                                     <p class="text-sm text-gray-500">{{ Auth::user()->email }}</p>
-                                    @if(Auth::user()->tenant)
-                                        <p class="text-xs text-gray-400">{{ Auth::user()->tenant->name }}</p>
+                                    @if(Auth::user()->location)
+                                        <p class="text-xs text-gray-400">{{ Auth::user()->location->name }}</p>
+                                        @if(Auth::user()->company)
+                                            <p class="text-xs text-gray-400">{{ Auth::user()->company->name }}</p>
+                                        @endif
                                     @endif
                                 </div>
                                 <a href="{{ route('change-password') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">

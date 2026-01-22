@@ -21,29 +21,29 @@ class DashboardApiController extends Controller
         $this->auditLogs = $auditLogs;
     }
 
-    /** Return dashboard stats for the authenticated user's tenant */
+    /** Return dashboard stats for the authenticated user's location */
     public function stats()
     {
         $user = Auth::user();
-        if (!$user || !$user->tenant) {
+        if (!$user || !$user->location) {
             return ApiResponder::error('Neautentificat', 401);
         }
-        $tenantId = $user->tenant->id;
+        $locationId = $user->location->id;
 
-        $stats = $this->dashboard->getStatsForTenant($tenantId);
+        $stats = $this->dashboard->getStatsForLocation($locationId);
         return ApiResponder::success(['stats' => $stats]);
     }
 
-    /** Return recent activity for tenant (from audit logs if available) */
+    /** Return recent activity for location (from audit logs if available) */
     public function recentActivity()
     {
         $user = Auth::user();
-        if (!$user || !$user->tenant) {
+        if (!$user || !$user->location) {
             return ApiResponder::error('Neautentificat', 401);
         }
-        $tenantId = $user->tenant->id;
+        $locationId = $user->location->id;
 
-        $logs = $this->auditLogs->latestByTenant($tenantId, 20)
+        $logs = $this->auditLogs->latestByLocation($locationId, 20)
             ->map(function ($log) {
                 return [
                     'id' => $log->id,
@@ -60,10 +60,10 @@ class DashboardApiController extends Controller
     public function reports()
     {
         $user = Auth::user();
-        if (!$user || !$user->tenant) {
+        if (!$user || !$user->location) {
             return ApiResponder::error('Neautentificat', 401);
         }
-        $tenantId = $user->tenant->id;
+        $locationId = $user->location->id;
 
         $start = request()->query('start');
         $end = request()->query('end');
@@ -75,7 +75,7 @@ class DashboardApiController extends Controller
             $weekdaysArray = is_array($weekdays) ? $weekdays : [$weekdays];
         }
 
-        $reports = $this->dashboard->getReports($tenantId, $start, $end, $weekdaysArray);
+        $reports = $this->dashboard->getReports($locationId, $start, $end, $weekdaysArray);
         return ApiResponder::success(['reports' => $reports]);
     }
 
@@ -83,10 +83,10 @@ class DashboardApiController extends Controller
     public function entriesReport()
     {
         $user = Auth::user();
-        if (!$user || !$user->tenant) {
+        if (!$user || !$user->location) {
             return ApiResponder::error('Neautentificat', 401);
         }
-        $tenantId = $user->tenant->id;
+        $locationId = $user->location->id;
 
         $periodType = request()->query('period', 'daily'); // daily, weekly, monthly
         $count = (int) request()->query('count', 7); // Number of periods
@@ -101,7 +101,7 @@ class DashboardApiController extends Controller
             return ApiResponder::error('Numărul de perioade trebuie să fie între 1 și 365', 400);
         }
 
-        $entriesData = $this->dashboard->getEntriesOverTime($tenantId, $periodType, $count);
+        $entriesData = $this->dashboard->getEntriesOverTime($locationId, $periodType, $count);
         return ApiResponder::success(['entries' => $entriesData]);
     }
     
@@ -109,12 +109,12 @@ class DashboardApiController extends Controller
     public function alerts()
     {
         $user = Auth::user();
-        if (!$user || !$user->tenant) {
+        if (!$user || !$user->location) {
             return ApiResponder::error('Neautentificat', 401);
         }
-        $tenantId = $user->tenant->id;
+        $locationId = $user->location->id;
 
-        $alerts = $this->dashboard->getAlerts($tenantId);
+        $alerts = $this->dashboard->getAlerts($locationId);
         return ApiResponder::success(['alerts' => $alerts]);
     }
 }

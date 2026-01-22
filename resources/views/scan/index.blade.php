@@ -30,9 +30,9 @@
                 <div class="flex items-center gap-3 relative">
                     <label for="rfidCode" class="sr-only">Cod RFID</label>
                     <div class="flex-1 relative">
-                        <input id="rfidCode" maxlength="10" autocomplete="off"
+                        <input id="rfidCode" maxlength="50" autocomplete="off"
                                class="w-full h-12 px-4 pr-10 text-2xl tracking-widest font-mono border rounded-md focus:outline-none focus:ring-4 transition-colors"
-                               placeholder="BONGO1234">
+                               placeholder="Cod brățară">
                         <!-- Validation icon -->
                         <div id="rfidCodeIcon" class="absolute right-3 top-1/2 -translate-y-1/2 hidden">
                             <i class="fas fa-check-circle text-green-500"></i>
@@ -156,20 +156,6 @@
                         <p class="text-xs text-gray-500 mt-1">* Poți scrie în câmp pentru a căuta</p>
                     </div>
                     
-                    <div class="flex flex-col gap-2 pt-2 border-t border-gray-200">
-                        <div class="flex items-center gap-2" id="birthdayAssignContainer">
-                            <input type="checkbox" id="isBirthdayAssign" class="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500">
-                            <label for="isBirthdayAssign" class="text-sm font-medium text-gray-700 cursor-pointer">
-                                <i class="fas fa-birthday-cake mr-1 text-pink-600"></i>Sesiune Birthday (gratuită)
-                            </label>
-                        </div>
-                        <div class="flex items-center gap-2" id="jungleAssignContainer" style="display: none;">
-                            <input type="checkbox" id="isJungleAssign" class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
-                            <label for="isJungleAssign" class="text-sm font-medium text-gray-700 cursor-pointer">
-                                <i class="fas fa-tree mr-1 text-green-600"></i>Sesiune Jungle (gratuită)
-                            </label>
-                        </div>
-                    </div>
                     
                     <button 
                         id="assignChildBtn" 
@@ -279,20 +265,6 @@
                             </div>
                         </div>
                         
-                        <div class="flex flex-col gap-2 pt-2 border-t border-gray-200">
-                            <div class="flex items-center gap-2" id="birthdayCreateContainer">
-                                <input type="checkbox" id="isBirthdayCreate" class="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500">
-                                <label for="isBirthdayCreate" class="text-sm font-medium text-gray-700 cursor-pointer">
-                                    <i class="fas fa-birthday-cake mr-1 text-pink-600"></i>Sesiune Birthday (gratuită)
-                                </label>
-                            </div>
-                            <div class="flex items-center gap-2" id="jungleCreateContainer" style="display: none;">
-                                <input type="checkbox" id="isJungleCreate" class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
-                                <label for="isJungleCreate" class="text-sm font-medium text-gray-700 cursor-pointer">
-                                    <i class="fas fa-tree mr-1 text-green-600"></i>Sesiune Jungle (gratuită)
-                                </label>
-                            </div>
-                        </div>
                         
                         <button 
                             id="createAndAssignBtn" 
@@ -744,29 +716,14 @@
         prepareInputForScanning();
     }
     
-    // Validation functions for BONGO format
+    // Validate bracelet code - accept any non-empty code
     function isValidBraceletCode(code) {
-        // Format: BONGO + 4-5 digits
-        return /^BONGO\d{4,5}$/.test(code);
-    }
-    
-    function isValidCharForPosition(char, position) {
-        if (position < 5) {
-            // First 5 positions: only letters (A-Z, a-z)
-            return /^[A-Za-z]$/.test(char);
-        } else if (position < 10) {
-            // Positions 5-9: only digits
-            return /^\d$/.test(char);
+        if (!code || typeof code !== 'string') {
+            return false;
         }
-        return false; // Position >= 10 not allowed
-    }
-    
-    function normalizeBraceletCode(value) {
-        // Normalize: uppercase first 5 chars (BONGO), keep digits as-is
-        if (value.length <= 5) {
-            return value.toUpperCase();
-        }
-        return value.substring(0, 5).toUpperCase() + value.substring(5);
+        const trimmed = code.trim();
+        // Accept any non-empty code (no pattern validation)
+        return trimmed.length > 0 && trimmed.length <= 50;
     }
     
     function updateValidationFeedback(code) {
@@ -783,34 +740,11 @@
             return;
         }
         
-        const isValid = isValidBraceletCode(code);
-        
-        if (isValid) {
-            // Valid format
-            icon.classList.remove('hidden');
-            errorDiv.classList.add('hidden');
-            codeInput.classList.remove('border-gray-300', 'border-red-500', 'focus:ring-gray-900/20', 'focus:ring-red-500/20');
-            codeInput.classList.add('border-green-500', 'focus:ring-green-500/20');
-        } else {
-            // Invalid format
-            icon.classList.add('hidden');
-            errorDiv.classList.remove('hidden');
-            codeInput.classList.remove('border-gray-300', 'border-green-500', 'focus:ring-gray-900/20', 'focus:ring-green-500/20');
-            codeInput.classList.add('border-red-500', 'focus:ring-red-500/20');
-            
-            // Set error message
-            if (code.length < 5) {
-                errorSpan.textContent = 'Prefix incomplet. Trebuie să înceapă cu BONGO';
-            } else if (code.length < 9) {
-                errorSpan.textContent = 'Cod incomplet. Trebuie BONGO + 4-5 cifre';
-            } else if (code.length > 10) {
-                errorSpan.textContent = 'Cod prea lung. Format: BONGO + 4-5 cifre';
-            } else if (!/^BONGO/.test(code)) {
-                errorSpan.textContent = 'Format invalid. Trebuie să înceapă cu BONGO';
-            } else {
-                errorSpan.textContent = 'Format invalid. Trebuie BONGO + 4-5 cifre (ex: BONGO1234)';
-            }
-        }
+        // Any non-empty code is valid (no pattern validation)
+        icon.classList.remove('hidden');
+        errorDiv.classList.add('hidden');
+        codeInput.classList.remove('border-gray-300', 'border-red-500', 'focus:ring-gray-900/20', 'focus:ring-red-500/20');
+        codeInput.classList.add('border-green-500', 'focus:ring-green-500/20');
     }
     
     // Track input changes to detect barcode scanner (rapid input)
@@ -832,17 +766,12 @@
         // Detect rapid input (barcode scanner) - characters coming in < 50ms apart
         const isRapidInput = timeSinceLastInput < 50 && currentLength > inputLengthBefore;
         
-        // PREVENT concatenation: When new scan starts (after pause > 200ms) and there's existing content,
-        // clear the old content immediately before scanner writes new characters
-        if (timeSinceLastInput > 200 && inputLengthBefore > 0 && currentLength > inputLengthBefore) {
-            // New scan starting over existing content - clear old content and keep only new scan
-            const newChars = fullValue.substring(inputLengthBefore);
-            e.target.value = newChars;
-            inputLengthBefore = newChars.length;
-            rapidInputStartLength = 0;
-            lastInputTime = now;
-            fullValue = newChars;
-        } else {
+        // Only apply scanner logic if input is truly rapid (scanner) or if it's a complete paste/change
+        // For manual typing, allow normal editing without interference
+        const isManualTyping = timeSinceLastInput > 100; // Manual typing has gaps > 100ms
+        
+        if (!isManualTyping && isRapidInput) {
+            // This is likely a barcode scanner
             // Track when rapid input starts (after a pause > 200ms)
             if (timeSinceLastInput > 200 && currentLength > inputLengthBefore) {
                 // New input sequence starting - mark the start length
@@ -859,28 +788,36 @@
                 lastInputTime = now;
                 fullValue = newScan;
             } else {
-                // Normal input - just track
+                // Normal rapid input - just track
                 lastInputTime = now;
                 inputLengthBefore = currentLength;
-                // Reset rapid input start if input stopped (pause > 500ms)
-                if (timeSinceLastInput > 500) {
-                    rapidInputStartLength = 0;
-                }
+            }
+        } else if (isManualTyping && timeSinceLastInput > 200 && inputLengthBefore > 0 && currentLength > inputLengthBefore) {
+            // Manual typing after a pause - DON'T clear, just allow normal editing
+            // Only clear if user is typing at the beginning (deleting and retyping)
+            if (currentLength < inputLengthBefore) {
+                // User deleted characters - this is normal editing
+                lastInputTime = now;
+                inputLengthBefore = currentLength;
+                rapidInputStartLength = 0;
+            } else {
+                // User is adding characters after a pause - normal typing, don't interfere
+                lastInputTime = now;
+                inputLengthBefore = currentLength;
+                rapidInputStartLength = 0;
+            }
+        } else {
+            // Normal input - just track
+            lastInputTime = now;
+            inputLengthBefore = currentLength;
+            // Reset rapid input start if input stopped (pause > 500ms)
+            if (timeSinceLastInput > 500) {
+                rapidInputStartLength = 0;
             }
         }
         
-        // STRICT VALIDATION: Block invalid characters and normalize
-        let normalizedValue = normalizeBraceletCode(fullValue);
-        let filteredValue = '';
-        
-        // Filter and validate each character
-        for (let i = 0; i < normalizedValue.length && i < 10; i++) {
-            const char = normalizedValue[i];
-            if (isValidCharForPosition(char, i)) {
-                filteredValue += char;
-            }
-            // If invalid character, stop adding (block it)
-        }
+        // Trim and limit length
+        let filteredValue = fullValue.trim().substring(0, 50);
         
         // Update input value with filtered and normalized value
         if (filteredValue !== fullValue) {
@@ -900,8 +837,8 @@
         // Clear previous barcode scan timeout
         clearTimeout(barcodeScanTimeout);
         
-        // Auto-submit for valid barcode scanner input
-        if (isValid && filteredValue.length >= 9) {
+        // Auto-submit for valid barcode scanner input (only for rapid input)
+        if (!isManualTyping && isValid && filteredValue.length >= 9) {
             barcodeScanTimeout = setTimeout(() => {
                 const currentValue = codeInput.value.trim();
                 if (isValidBraceletCode(currentValue) && searchBtn) {
@@ -910,8 +847,8 @@
                 }
             }, 500);
         } else {
-            // If input is not empty but short, search for children (only if not BONGO format)
-            if (filteredValue.length > 0 && filteredValue.length < 5 && !/^BONGO/i.test(filteredValue)) {
+            // If input is not empty but short, search for children
+            if (filteredValue.length > 0 && filteredValue.length < 5) {
                 clearTimeout(childrenSearchTimeout);
                 childrenSearchTimeout = setTimeout(() => {
                     searchChildrenWithSessions(filteredValue);
@@ -922,37 +859,16 @@
         }
     });
     
-    // Handle paste event - validate before allowing
+    // Handle paste event - allow any text
     codeInput.addEventListener('paste', function(e) {
         e.preventDefault();
         const pastedText = (e.clipboardData || window.clipboardData).getData('text');
         const trimmed = pastedText.trim();
         
-        // Normalize pasted text
-        const normalized = normalizeBraceletCode(trimmed);
-        
-        // Filter invalid characters
-        let filtered = '';
-        for (let i = 0; i < normalized.length && i < 10; i++) {
-            const char = normalized[i];
-            if (isValidCharForPosition(char, i)) {
-                filtered += char;
-            }
-        }
-        
-        // Only allow paste if it's valid or can become valid
-        if (filtered.length > 0) {
-            codeInput.value = filtered;
+        // Allow paste if text is not empty
+        if (trimmed.length > 0) {
+            codeInput.value = trimmed.substring(0, 50); // Limit to 50 chars
             codeInput.dispatchEvent(new Event('input'));
-        } else {
-            // Show error for invalid paste
-            updateValidationFeedback('');
-            setTimeout(() => {
-                const errorDiv = document.getElementById('rfidCodeError');
-                const errorSpan = errorDiv.querySelector('span');
-                errorDiv.classList.remove('hidden');
-                errorSpan.textContent = 'Cod paste-uit invalid. Format: BONGO + 4-5 cifre';
-            }, 100);
         }
     });
     
@@ -970,12 +886,10 @@
     // Handle change event (for programmatic changes or barcode scanners)
     codeInput.addEventListener('change', function(e) {
         const value = codeInput.value.trim();
-        const normalized = normalizeBraceletCode(value);
-        codeInput.value = normalized;
-        updateValidationFeedback(normalized);
-        const isValid = isValidBraceletCode(normalized);
+        codeInput.value = value;
+        updateValidationFeedback(value);
         if (searchBtn) {
-            searchBtn.disabled = !isValid || normalized.length === 0;
+            searchBtn.disabled = value.length === 0;
             // Auto-submit if valid
             if (isValid && normalized.length >= 9) {
                 setTimeout(() => {
@@ -1776,15 +1690,11 @@
         this.textContent = 'Se asignează...';
         
         try {
-            const isBirthday = document.getElementById('isBirthdayAssign')?.checked || false;
-            const isJungle = document.getElementById('isJungleAssign')?.checked || false;
             const result = await apiCall('/scan-api/assign', {
                 method: 'POST',
                 body: JSON.stringify({
                     bracelet_code: currentBracelet ? currentBracelet.code : null,
-                    child_id: childId,
-                    is_birthday: isBirthday,
-                    is_jungle: isJungle
+                    child_id: childId
                 })
             });
             
@@ -1887,14 +1797,10 @@
         this.textContent = 'Se creează...';
         
         try {
-            const isBirthday = document.getElementById('isBirthdayCreate')?.checked || false;
-            const isJungle = document.getElementById('isJungleCreate')?.checked || false;
             const payload = {
                 first_name: childFirstName,
                 allergies: null,
-                bracelet_code: currentBracelet.code,
-                is_birthday: isBirthday,
-                is_jungle: isJungle
+                bracelet_code: currentBracelet.code
             };
             
             if (guardianMode === 'existing' && guardianId) {
@@ -2498,95 +2404,6 @@
     // Load products on page load
     loadAvailableProducts();
 
-    // ===== JUNGLE SESSION LOGIC =====
-    const isJungleAllowedToday = @json($isJungleAllowedToday ?? false);
-    
-    // Show/hide jungle checkboxes based on day configuration
-    // Also hide if birthday is checked
-    function updateJungleCheckboxesVisibility() {
-        const jungleAssignContainer = document.getElementById('jungleAssignContainer');
-        const jungleCreateContainer = document.getElementById('jungleCreateContainer');
-        const birthdayAssign = document.getElementById('isBirthdayAssign');
-        const birthdayCreate = document.getElementById('isBirthdayCreate');
-        
-        if (jungleAssignContainer) {
-            const shouldShow = isJungleAllowedToday && (!birthdayAssign || !birthdayAssign.checked);
-            jungleAssignContainer.style.display = shouldShow ? 'flex' : 'none';
-        }
-        if (jungleCreateContainer) {
-            const shouldShow = isJungleAllowedToday && (!birthdayCreate || !birthdayCreate.checked);
-            jungleCreateContainer.style.display = shouldShow ? 'flex' : 'none';
-        }
-    }
-    
-    // Mutual exclusivity: Birthday and Jungle cannot be both checked
-    // Also hide/show checkboxes based on the other's state
-    function setupMutualExclusivity() {
-        const birthdayAssign = document.getElementById('isBirthdayAssign');
-        const jungleAssign = document.getElementById('isJungleAssign');
-        const birthdayCreate = document.getElementById('isBirthdayCreate');
-        const jungleCreate = document.getElementById('isJungleCreate');
-        const jungleAssignContainer = document.getElementById('jungleAssignContainer');
-        const jungleCreateContainer = document.getElementById('jungleCreateContainer');
-        const birthdayAssignContainer = document.getElementById('birthdayAssignContainer');
-        const birthdayCreateContainer = document.getElementById('birthdayCreateContainer');
-        
-        // Assign panel
-        if (birthdayAssign && jungleAssign && jungleAssignContainer && birthdayAssignContainer) {
-            birthdayAssign.addEventListener('change', function() {
-                if (this.checked) {
-                    // Hide jungle checkbox when birthday is checked
-                    jungleAssignContainer.style.display = 'none';
-                    jungleAssign.checked = false;
-                } else {
-                    // Show jungle checkbox when birthday is unchecked (if allowed today)
-                    if (isJungleAllowedToday) {
-                        jungleAssignContainer.style.display = 'flex';
-                    }
-                }
-            });
-            jungleAssign.addEventListener('change', function() {
-                if (this.checked) {
-                    // Hide birthday checkbox when jungle is checked
-                    birthdayAssignContainer.style.display = 'none';
-                    birthdayAssign.checked = false;
-                } else {
-                    // Show birthday checkbox when jungle is unchecked
-                    birthdayAssignContainer.style.display = 'flex';
-                }
-            });
-        }
-        
-        // Create panel
-        if (birthdayCreate && jungleCreate && jungleCreateContainer && birthdayCreateContainer) {
-            birthdayCreate.addEventListener('change', function() {
-                if (this.checked) {
-                    // Hide jungle checkbox when birthday is checked
-                    jungleCreateContainer.style.display = 'none';
-                    jungleCreate.checked = false;
-                } else {
-                    // Show jungle checkbox when birthday is unchecked (if allowed today)
-                    if (isJungleAllowedToday) {
-                        jungleCreateContainer.style.display = 'flex';
-                    }
-                }
-            });
-            jungleCreate.addEventListener('change', function() {
-                if (this.checked) {
-                    // Hide birthday checkbox when jungle is checked
-                    birthdayCreateContainer.style.display = 'none';
-                    birthdayCreate.checked = false;
-                } else {
-                    // Show birthday checkbox when jungle is unchecked
-                    birthdayCreateContainer.style.display = 'flex';
-                }
-            });
-        }
-    }
-    
-    // Initialize on page load
-    updateJungleCheckboxesVisibility();
-    setupMutualExclusivity();
 
 </script>
 @endsection

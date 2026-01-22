@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ScanEvent;
-use App\Models\Tenant;
+use App\Models\Location;
 use App\Services\ScanService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,36 +25,36 @@ class ScanController extends Controller
     {
         $user = Auth::user();
         
-        // SUPER_ADMIN poate genera coduri pentru orice tenant
+        // SUPER_ADMIN poate genera coduri pentru orice locație
         if ($user->isSuperAdmin()) {
-            $tenantId = $request->get('tenant_id');
-            if (!$tenantId) {
+            $locationId = $request->get('location_id');
+            if (!$locationId) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Pentru SUPER_ADMIN, specificați tenant_id',
+                    'message' => 'Pentru SUPER_ADMIN, specificați location_id',
                 ], 400);
             }
-            $tenant = Tenant::find($tenantId);
+            $location = Location::find($locationId);
         } else {
-            if (!$user->tenant_id) {
+            if (!$user->location_id) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Utilizatorul nu este asociat cu niciun tenant',
+                    'message' => 'Utilizatorul nu este asociat cu nicio locație',
                 ], 400);
             }
-            $tenant = Tenant::find($user->tenant_id);
+            $location = Location::find($user->location_id);
         }
         
-        if (!$tenant) {
+        if (!$location) {
             return response()->json([
                 'success' => false,
-                'message' => 'Tenant nu a fost găsit',
+                'message' => 'Locația nu a fost găsită',
             ], 404);
         }
 
         try {
-            $code = $this->scanService->generateRandomCode($tenant);
-            $scanEvent = $this->scanService->createScanEvent($tenant, $code);
+            $code = $this->scanService->generateRandomCode($location);
+            $scanEvent = $this->scanService->createScanEvent($location, $code);
 
             return response()->json([
                 'success' => true,
@@ -81,34 +81,34 @@ class ScanController extends Controller
 
         $user = Auth::user();
         
-        // SUPER_ADMIN poate valida coduri pentru orice tenant
+        // SUPER_ADMIN poate valida coduri pentru orice locație
         if ($user->isSuperAdmin()) {
-            $tenantId = $request->get('tenant_id');
-            if (!$tenantId) {
+            $locationId = $request->get('location_id');
+            if (!$locationId) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Pentru SUPER_ADMIN, specificați tenant_id',
+                    'message' => 'Pentru SUPER_ADMIN, specificați location_id',
                 ], 400);
             }
-            $tenant = Tenant::find($tenantId);
+            $location = Location::find($locationId);
         } else {
-            if (!$user->tenant_id) {
+            if (!$user->location_id) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Utilizatorul nu este asociat cu niciun tenant',
+                    'message' => 'Utilizatorul nu este asociat cu nicio locație',
                 ], 400);
             }
-            $tenant = Tenant::find($user->tenant_id);
+            $location = Location::find($user->location_id);
         }
         
-        if (!$tenant) {
+        if (!$location) {
             return response()->json([
                 'success' => false,
-                'message' => 'Tenant nu a fost găsit',
+                'message' => 'Locația nu a fost găsită',
             ], 404);
         }
 
-        $result = $this->scanService->validateCode($request->code, $tenant);
+        $result = $this->scanService->validateCode($request->code, $location);
 
         return response()->json([
             'success' => $result['valid'],
@@ -126,26 +126,26 @@ class ScanController extends Controller
         $limit = $request->get('limit', 10);
         
         if ($user->isSuperAdmin()) {
-            $tenantId = $request->get('tenant_id');
-            if (!$tenantId) {
+            $locationId = $request->get('location_id');
+            if (!$locationId) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Pentru SUPER_ADMIN, specificați tenant_id',
+                    'message' => 'Pentru SUPER_ADMIN, specificați location_id',
                 ], 400);
             }
-            $scans = ScanEvent::where('tenant_id', $tenantId)
+            $scans = ScanEvent::where('location_id', $locationId)
                 ->orderBy('created_at', 'desc')
                 ->limit($limit)
                 ->get();
         } else {
-            if (!$user->tenant_id) {
+            if (!$user->location_id) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Utilizatorul nu este asociat cu niciun tenant',
+                    'message' => 'Utilizatorul nu este asociat cu nicio locație',
                 ], 400);
             }
             
-            $scans = ScanEvent::where('tenant_id', $user->tenant_id)
+            $scans = ScanEvent::where('location_id', $user->location_id)
                 ->orderBy('created_at', 'desc')
                 ->limit($limit)
                 ->get();
@@ -166,32 +166,32 @@ class ScanController extends Controller
         $days = $request->get('days', 7);
         
         if ($user->isSuperAdmin()) {
-            $tenantId = $request->get('tenant_id');
-            if (!$tenantId) {
+            $locationId = $request->get('location_id');
+            if (!$locationId) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Pentru SUPER_ADMIN, specificați tenant_id',
+                    'message' => 'Pentru SUPER_ADMIN, specificați location_id',
                 ], 400);
             }
-            $tenant = Tenant::find($tenantId);
+            $location = Location::find($locationId);
         } else {
-            if (!$user->tenant_id) {
+            if (!$user->location_id) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Utilizatorul nu este asociat cu niciun tenant',
+                    'message' => 'Utilizatorul nu este asociat cu nicio locație',
                 ], 400);
             }
-            $tenant = Tenant::find($user->tenant_id);
+            $location = Location::find($user->location_id);
         }
         
-        if (!$tenant) {
+        if (!$location) {
             return response()->json([
                 'success' => false,
-                'message' => 'Tenant nu a fost găsit',
+                'message' => 'Locația nu a fost găsită',
             ], 404);
         }
         
-        $stats = $this->scanService->getTenantStats($tenant, $days);
+        $stats = $this->scanService->getLocationStats($location, $days);
 
         return response()->json([
             'success' => true,

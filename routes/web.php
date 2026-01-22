@@ -47,8 +47,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/sessions/save-fiscal-receipt-log', [App\Http\Controllers\SessionsController::class, 'saveFiscalReceiptLog'])->name('sessions.save-fiscal-receipt-log');
     Route::post('/sessions/save-combined-fiscal-receipt-log', [App\Http\Controllers\SessionsController::class, 'saveCombinedFiscalReceiptLog'])->name('sessions.save-combined-fiscal-receipt-log');
     Route::post('/sessions/{id}/mark-paid-with-voucher', [App\Http\Controllers\SessionsController::class, 'markPaidWithVoucher'])->name('sessions.mark-paid-with-voucher');
-    Route::post('/sessions/{id}/update-birthday-status', [App\Http\Controllers\SessionsController::class, 'updateBirthdayStatus'])->name('sessions.update-birthday-status');
-    Route::post('/sessions/{id}/update-jungle-status', [App\Http\Controllers\SessionsController::class, 'updateJungleStatus'])->name('sessions.update-jungle-status');
     Route::post('/sessions/{id}/toggle-payment-status', [App\Http\Controllers\SessionsController::class, 'togglePaymentStatus'])->name('sessions.toggle-payment-status');
     Route::post('/sessions/{id}/restart', [App\Http\Controllers\SessionsController::class, 'restartSession'])->name('sessions.restart');
 
@@ -117,23 +115,19 @@ Route::middleware('auth')->group(function () {
     Route::get('/legal/terms', [App\Http\Controllers\LegalController::class, 'terms'])->name('legal.terms');
     Route::get('/legal/gdpr', [App\Http\Controllers\LegalController::class, 'gdpr'])->name('legal.gdpr');
     
-    // Birthday reservations (super admin only)
-    Route::get('/birthday-reservations', [App\Http\Controllers\BirthdayReservationController::class, 'index'])->name('birthday-reservations.index');
-    Route::post('/birthday-reservations', [App\Http\Controllers\BirthdayReservationController::class, 'store'])->name('birthday-reservations.store');
-    Route::put('/birthday-reservations/{id}', [App\Http\Controllers\BirthdayReservationController::class, 'update'])->name('birthday-reservations.update');
-    Route::delete('/birthday-reservations/{id}', [App\Http\Controllers\BirthdayReservationController::class, 'destroy'])->name('birthday-reservations.destroy');
+    // Companies management (super admin only)
+    Route::resource('companies', App\Http\Controllers\CompanyController::class);
     
-    // Birthday reservations API
-    Route::prefix('birthday-reservations-api')->group(function () {
-        Route::get('/calendar', [App\Http\Controllers\BirthdayReservationController::class, 'calendar'])->name('birthday-reservations-api.calendar');
-    });
+    // Locations management (super admin and company admin)
+    Route::resource('locations', App\Http\Controllers\LocationController::class);
     
-    // Pricing management (super admin only)
+    // Users management (super admin and company admin)
+    Route::resource('users', App\Http\Controllers\UserController::class);
+    
+    // Pricing management (super admin and company admin)
     Route::get('/pricing', [App\Http\Controllers\PricingController::class, 'index'])->name('pricing.index');
     Route::get('/pricing/weekly-rates', [App\Http\Controllers\PricingController::class, 'showWeeklyRates'])->name('pricing.weekly-rates');
     Route::post('/pricing/weekly-rates', [App\Http\Controllers\PricingController::class, 'updateWeeklyRates'])->name('pricing.weekly-rates.update');
-    Route::get('/pricing/jungle-session-days', [App\Http\Controllers\PricingController::class, 'showJungleSessionDays'])->name('pricing.jungle-session-days');
-    Route::post('/pricing/jungle-session-days', [App\Http\Controllers\PricingController::class, 'updateJungleSessionDays'])->name('pricing.jungle-session-days.update');
     Route::get('/pricing/special-periods', [App\Http\Controllers\PricingController::class, 'indexSpecialPeriods'])->name('pricing.special-periods');
     Route::post('/pricing/special-periods', [App\Http\Controllers\PricingController::class, 'storeSpecialPeriod'])->name('pricing.special-periods.store');
     Route::put('/pricing/special-periods/{id}', [App\Http\Controllers\PricingController::class, 'updateSpecialPeriod'])->name('pricing.special-periods.update');

@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\ScanEvent;
 use App\Models\PlaySession;
 use App\Models\Child;
-use App\Models\Tenant;
+use App\Models\Location;
 use App\Services\PricingService;
 use App\Support\ActionLogger;
 use Carbon\Carbon;
@@ -29,9 +29,9 @@ class ScanService
     private const CODE_TTL_SECONDS = 60;
 
     /**
-     * Generează un cod random unic pentru un tenant
+     * Generează un cod random unic pentru o locație
      */
-    public function generateRandomCode(Tenant $tenant): string
+    public function generateRandomCode(Location $location): string
     {
         $maxAttempts = 10;
         $attempts = 0;
@@ -41,7 +41,7 @@ class ScanService
             $attempts++;
             
             // Verifică dacă codul este unic în intervalul TTL
-            $isUnique = !$this->codeExistsInTTL($code, $tenant);
+            $isUnique = !$this->codeExistsInTTL($code, $location);
             
             if ($isUnique) {
                 break;
@@ -59,13 +59,13 @@ class ScanService
     /**
      * Creează un eveniment de scanare
      */
-    public function createScanEvent(Tenant $tenant, string $code): ScanEvent
+    public function createScanEvent(Location $location, string $code): ScanEvent
     {
         $now = now();
         $expiresAt = $now->copy()->addSeconds(self::CODE_TTL_SECONDS);
 
         $scanEvent = ScanEvent::create([
-            'tenant_id' => $tenant->id,
+            'location_id' => $location->id,
             'code_used' => $code,
             'status' => 'pending',
             'scanned_at' => $now,
@@ -83,10 +83,10 @@ class ScanService
     /**
      * Validează un cod de scanare
      */
-    public function validateCode(string $code, Tenant $tenant): array
+    public function validateCode(string $code, Location $location): array
     {
         $scanEvent = ScanEvent::where('code_used', $code)
-            ->where('tenant_id', $tenant->id)
+            ->where('location_id', $location->id)
             ->where('expires_at', '>', now())
             ->first();
 
@@ -141,12 +141,12 @@ class ScanService
     /**
      * Verifică dacă codul există în intervalul TTL
      */
-    private function codeExistsInTTL(string $code, Tenant $tenant): bool
+    private function codeExistsInTTL(string $code, Location $location): bool
     {
         $ttlStart = now()->subSeconds(self::CODE_TTL_SECONDS);
         
         return ScanEvent::where('code_used', $code)
-            ->where('tenant_id', $tenant->id)
+            ->where('location_id', $location->id)
             ->where('created_at', '>=', $ttlStart)
             ->exists();
     }
@@ -162,22 +162,22 @@ class ScanService
     }
 
     /**
-     * Obține statistici pentru un tenant
+     * Obține statistici pentru o locație
      */
-    public function getTenantStats(Tenant $tenant, int $days = 7): array
+    public function getLocationStats(Location $location, int $days = 7): array
     {
         $startDate = now()->subDays($days);
         
-        $totalScans = ScanEvent::where('tenant_id', $tenant->id)
+        $totalScans = ScanEvent::where('location_id', $location->id)
             ->where('created_at', '>=', $startDate)
             ->count();
             
-        $validScans = ScanEvent::where('tenant_id', $tenant->id)
+        $validScans = ScanEvent::where('location_id', $location->id)
             ->where('status', 'valid')
             ->where('created_at', '>=', $startDate)
             ->count();
             
-        $expiredScans = ScanEvent::where('tenant_id', $tenant->id)
+        $expiredScans = ScanEvent::where('location_id', $location->id)
             ->where('status', 'expired')
             ->where('created_at', '>=', $startDate)
             ->count();
@@ -194,22 +194,21 @@ class ScanService
      * Caută codul de bare și returnează informațiile despre copil și sesiune
      * Verifică dacă codul a fost deja folosit (single-use)
      */
-    public function lookupBracelet(string $code, Tenant $tenant): array
+    public function lookupBracelet(string $code, Location $location): array
     {
         // Trim only (no normalization - code should already be correct from frontend)
         $code = trim($code);
-
-        // Strict validation: Format must be BONGO + 4-5 digits
-        if (!preg_match('/^BONGO\d{4,5}$/', $code)) {
+        
+        if (empty($code)) {
             return [
                 'success' => false,
-                'message' => 'Cod invalid. Format așteptat: BONGO urmat de 4 sau 5 cifre (ex: BONGO1234)',
+                'message' => 'Codul nu poate fi gol',
             ];
         }
 
         // Verifică dacă există o sesiune activă cu acest cod
         $activeSession = PlaySession::where('bracelet_code', $code)
-            ->where('tenant_id', $tenant->id)
+            ->where('location_id', $location->id)
             ->whereNull('ended_at')
             ->with(['child.guardian', 'intervals'])
             ->first();
@@ -253,14 +252,13 @@ class ScanService
     /**
      * Începe o sesiune de joacă pentru un copil cu un cod de bare
      */
-    public function startPlaySession(Tenant $tenant, Child $child, string $braceletCode, bool $isBirthday = false, bool $isJungle = false): PlaySession
+    public function startPlaySession(Location $location, Child $child, string $braceletCode): PlaySession
     {
         // Trim only (no normalization - code should already be correct from frontend)
         $braceletCode = trim($braceletCode);
-
-        // Strict validation: Format must be BONGO + 4-5 digits
-        if (!preg_match('/^BONGO\d{4,5}$/', $braceletCode)) {
-            throw new \Exception('Cod invalid. Format așteptat: BONGO urmat de 4 sau 5 cifre (ex: BONGO1234)');
+        
+        if (empty($braceletCode)) {
+            throw new \Exception('Codul nu poate fi gol');
         }
 
         // Verifică dacă copilul are deja o sesiune activă
@@ -275,7 +273,7 @@ class ScanService
         // Permite reutilizarea codurilor după închiderea sesiunii
         // Verifică doar dacă există o sesiune activă cu acest cod
         $activeSessionWithCode = PlaySession::where('bracelet_code', $braceletCode)
-            ->where('tenant_id', $tenant->id)
+            ->where('location_id', $location->id)
             ->whereNull('ended_at')
             ->first();
 
@@ -283,22 +281,12 @@ class ScanService
             throw new \Exception('Codul este deja folosit într-o sesiune activă. Te rog oprește sesiunea existentă înainte.');
         }
 
-        // Validate Jungle session is allowed on current day
-        if ($isJungle) {
-            $pricingService = app(PricingService::class);
-            if (!$pricingService->isJungleSessionAllowed($tenant)) {
-                throw new \Exception('Sesiunile Jungle nu sunt permise în această zi. Te rog verifică configurarea zilelor disponibile.');
-            }
-        }
-
-        $session = PlaySession::startSession($tenant, $child, $braceletCode, $isBirthday, $isJungle);
+        $session = PlaySession::startSession($location, $child, $braceletCode);
 
         ActionLogger::logSession('started', $session->id, [
             'child_id' => $child->id,
             'child_name' => $child->name,
             'bracelet_code' => $braceletCode,
-            'is_birthday' => $isBirthday,
-            'is_jungle' => $isJungle,
         ]);
 
         return $session;
@@ -366,11 +354,11 @@ class ScanService
     }
 
     /**
-     * Obține sesiunile active pentru un tenant
+     * Obține sesiunile active pentru o locație
      */
-    public function getActiveSessions(Tenant $tenant): array
+    public function getActiveSessions(Location $location): array
     {
-        return PlaySession::where('tenant_id', $tenant->id)
+        return PlaySession::where('location_id', $location->id)
             ->whereNull('ended_at')
             ->with(['child.guardian', 'intervals'])
             ->get()
@@ -398,27 +386,27 @@ class ScanService
     }
 
     /**
-     * Obține statistici despre sesiuni pentru un tenant
+     * Obține statistici despre sesiuni pentru o locație
      */
-    public function getSessionStats(Tenant $tenant, int $days = 7): array
+    public function getSessionStats(Location $location, int $days = 7): array
     {
         $startDate = now()->subDays($days);
         
-        $totalSessions = PlaySession::where('tenant_id', $tenant->id)
+        $totalSessions = PlaySession::where('location_id', $location->id)
             ->where('started_at', '>=', $startDate)
             ->count();
             
-        $activeSessions = PlaySession::where('tenant_id', $tenant->id)
+        $activeSessions = PlaySession::where('location_id', $location->id)
             ->whereNull('ended_at')
             ->count();
             
-        $completedSessions = PlaySession::where('tenant_id', $tenant->id)
+        $completedSessions = PlaySession::where('location_id', $location->id)
             ->whereNotNull('ended_at')
             ->where('started_at', '>=', $startDate)
             ->count();
 
         // Recalculează durata din started_at și ended_at pentru sesiunile închise
-        $completedSessionsCollection = PlaySession::where('tenant_id', $tenant->id)
+        $completedSessionsCollection = PlaySession::where('location_id', $location->id)
             ->whereNotNull('ended_at')
             ->where('started_at', '>=', $startDate)
             ->get();
@@ -437,11 +425,11 @@ class ScanService
     }
 
     /**
-     * Return last N completed sessions for a tenant
+     * Return last N completed sessions for a location
      */
-    public function getRecentCompletedSessions(Tenant $tenant, int $limit = 3): array
+    public function getRecentCompletedSessions(Location $location, int $limit = 3): array
     {
-        $sessions = PlaySession::where('tenant_id', $tenant->id)
+        $sessions = PlaySession::where('location_id', $location->id)
             ->whereNotNull('ended_at')
             ->with(['child.guardian', 'intervals'])
             ->orderByDesc('ended_at')

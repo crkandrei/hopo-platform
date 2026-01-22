@@ -8,9 +8,9 @@ use Illuminate\Support\Collection;
 
 class ChildRepository implements ChildRepositoryInterface
 {
-    public function getAllWithBirthdateByTenant(int $tenantId): Collection
+    public function getAllWithBirthdateByLocation(int $locationId): Collection
     {
-        return Child::where('tenant_id', $tenantId)
+        return Child::where('location_id', $locationId)
             ->whereNotNull('birth_date')
             ->get();
     }

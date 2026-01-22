@@ -2,17 +2,19 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToLocation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class FiscalReceiptLog extends Model
 {
+    use BelongsToLocation;
     protected $fillable = [
         'type',
         'play_session_id',
         'play_session_ids',
-        'tenant_id',
+        'location_id',
         'filename',
         'status',
         'error_message',
@@ -34,13 +36,6 @@ class FiscalReceiptLog extends Model
         return $this->belongsTo(PlaySession::class);
     }
 
-    /**
-     * Get the tenant that owns this fiscal receipt log (for Z reports).
-     */
-    public function tenant(): BelongsTo
-    {
-        return $this->belongsTo(Tenant::class);
-    }
 
     /**
      * Check if this is a combined receipt (has multiple play sessions).

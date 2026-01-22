@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToLocation;
 use App\Services\PricingService;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,17 +12,16 @@ use Carbon\Carbon;
 
 class PlaySession extends Model
 {
+    use HasFactory, BelongsToLocation;
     public $timestamps = false;
     protected $fillable = [
-        'tenant_id',
+        'location_id',
         'child_id',
         'bracelet_code',
         'started_at',
         'ended_at',
         'calculated_price',
         'price_per_hour_at_calculation',
-        'is_birthday',
-        'is_jungle',
         'paid_at',
         'voucher_hours',
         'payment_status',
@@ -32,34 +33,10 @@ class PlaySession extends Model
         'ended_at' => 'datetime',
         'calculated_price' => 'decimal:2',
         'price_per_hour_at_calculation' => 'decimal:2',
-        'is_birthday' => 'boolean',
-        'is_jungle' => 'boolean',
         'paid_at' => 'datetime',
         'voucher_hours' => 'decimal:2',
     ];
 
-    /**
-     * Boot method to ensure mutual exclusivity
-     */
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::saving(function ($session) {
-            // Ensure mutual exclusivity: cannot be both birthday and jungle
-            if ($session->is_birthday && $session->is_jungle) {
-                throw new \Exception('O sesiune nu poate fi simultan Birthday și Jungle');
-            }
-        });
-    }
-
-    /**
-     * Get the tenant that owns the play session.
-     */
-    public function tenant(): BelongsTo
-    {
-        return $this->belongsTo(Tenant::class);
-    }
 
     /**
      * Get the child for this play session.
@@ -255,20 +232,13 @@ class PlaySession extends Model
     /**
      * Start a new play session
      */
-    public static function startSession(Tenant $tenant, Child $child, string $braceletCode, bool $isBirthday = false, bool $isJungle = false): self
+    public static function startSession(Location $location, Child $child, string $braceletCode): self
     {
-        // Ensure mutual exclusivity
-        if ($isBirthday && $isJungle) {
-            throw new \Exception('O sesiune nu poate fi simultan Birthday și Jungle');
-        }
-
         $session = self::create([
-            'tenant_id' => $tenant->id,
+            'location_id' => $location->id,
             'child_id' => $child->id,
             'bracelet_code' => $braceletCode,
             'started_at' => now(),
-            'is_birthday' => $isBirthday,
-            'is_jungle' => $isJungle,
         ]);
 
         // Create initial open interval

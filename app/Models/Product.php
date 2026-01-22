@@ -2,14 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToLocation;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
+    use HasFactory, BelongsToLocation;
     protected $fillable = [
-        'tenant_id',
+        'location_id',
         'name',
         'price',
         'is_active',
@@ -20,13 +23,6 @@ class Product extends Model
         'is_active' => 'boolean',
     ];
 
-    /**
-     * Get the tenant that owns the product.
-     */
-    public function tenant(): BelongsTo
-    {
-        return $this->belongsTo(Tenant::class);
-    }
 
     /**
      * Get the play session products for this product.

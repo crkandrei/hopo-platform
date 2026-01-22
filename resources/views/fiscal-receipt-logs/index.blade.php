@@ -45,7 +45,7 @@
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" data-sort="created_at">Data <span class="sort-ind" data-col="created_at"></span></th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tip</th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sesiune</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tenant</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Locație</th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" data-sort="filename">Fișier <span class="sort-ind" data-col="filename"></span></th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" data-sort="status">Status <span class="sort-ind" data-col="status"></span></th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Eroare</th>
@@ -126,7 +126,7 @@
                 <td class="px-4 py-3 whitespace-nowrap text-sm">
                     ${row.play_session_id ? `<a href="/sessions/${row.play_session_id}/show" class="text-blue-600 hover:text-blue-800">#${row.play_session_id}</a>` : '<span class="text-gray-400">-</span>'}
                 </td>
-                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">${row.tenant_name}</td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">${row.location_name}</td>
                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">${row.filename || '<span class="text-gray-400">-</span>'}</td>
                 <td class="px-4 py-3 whitespace-nowrap text-sm">
                     <span class="px-2 py-1 rounded-full text-xs font-medium ${

@@ -10,9 +10,9 @@
         <div class="flex justify-between items-center">
             <div>
                 <h1 class="text-3xl font-bold text-gray-900 mb-2">Tarife Săptămânale 📅</h1>
-                <p class="text-gray-600 text-lg">Setați tarife diferite pentru fiecare zi a săptămânii pentru <strong>{{ $tenant->name }}</strong></p>
+                <p class="text-gray-600 text-lg">Setați tarife diferite pentru fiecare zi a săptămânii pentru <strong>{{ $location->name }}</strong></p>
             </div>
-            <a href="{{ route('pricing.index') }}{{ Auth::user()->isSuperAdmin() ? '?tenant_id=' . $tenant->id : '' }}" 
+            <a href="{{ route('pricing.index') }}{{ Auth::user()->isSuperAdmin() ? '?location_id=' . $location->id : '' }}" 
                class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-all duration-200 font-medium flex items-center shadow-md">
                 <i class="fas fa-arrow-left mr-2"></i>
                 Înapoi
@@ -24,7 +24,7 @@
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <form method="POST" action="{{ route('pricing.weekly-rates.update') }}">
             @csrf
-            <input type="hidden" name="tenant_id" value="{{ $tenant->id }}">
+            <input type="hidden" name="location_id" value="{{ $location->id }}">
 
             <div class="space-y-4">
                 @php

@@ -32,7 +32,8 @@ class LogRequests
         if ($shouldLog && $request->method() !== 'GET') {
             // Log POST, PUT, PATCH, DELETE requests
             $user = $request->user();
-            $tenant = $user?->tenant;
+            $location = $user?->location;
+            $company = $user?->company;
 
             Log::channel('actions')->info('Request logged', [
                 'method' => $request->method(),
@@ -40,8 +41,10 @@ class LogRequests
                 'path' => $request->path(),
                 'user_id' => $user?->id,
                 'user_email' => $user?->email,
-                'tenant_id' => $tenant?->id,
-                'tenant_name' => $tenant?->name,
+                'location_id' => $location?->id,
+                'location_name' => $location?->name,
+                'company_id' => $company?->id,
+                'company_name' => $company?->name,
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
                 'timestamp' => now()->toIso8601String(),

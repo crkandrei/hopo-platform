@@ -48,17 +48,6 @@
         <div class="p-6">
             <dl class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <dt class="text-sm font-medium text-gray-500 mb-1">Data Nașterii</dt>
-                    <dd class="text-gray-900">
-                        @if($child->birth_date)
-                            {{ $child->birth_date->format('d.m.Y') }}
-                            <span class="text-sm text-gray-500">({{ \Carbon\Carbon::parse($child->birth_date)->age }} ani)</span>
-                        @else
-                            <span class="text-gray-400">-</span>
-                        @endif
-                    </dd>
-                </div>
-                <div>
                     <dt class="text-sm font-medium text-gray-500 mb-1">Data Înregistrare</dt>
                     <dd class="text-gray-900">{{ $child->created_at->format('d.m.Y H:i') }}</dd>
                 </div>

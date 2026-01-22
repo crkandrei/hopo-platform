@@ -171,7 +171,7 @@ class AnomaliesController extends Controller
         PlaySession::where('started_at', '>=', $sevenDaysAgo)
             ->whereNotNull('ended_at')
             ->whereNotNull('calculated_price')
-            ->with(['tenant', 'intervals'])
+            ->with(['location', 'intervals'])
             ->chunk(100, function($sessions) use (&$priceDiscrepancyCount, $pricingService) {
                 foreach ($sessions as $session) {
                     $calculatedPrice = (float) $session->calculated_price;
@@ -337,7 +337,7 @@ class AnomaliesController extends Controller
                 PlaySession::where('started_at', '>=', $sevenDaysAgo)
                     ->whereNotNull('ended_at')
                     ->whereNotNull('calculated_price')
-                    ->with(['tenant', 'intervals'])
+                    ->with(['location', 'intervals'])
                     ->chunk(100, function($sessions) use (&$sessionIds, $pricingService) {
                         foreach ($sessions as $session) {
                             $calculatedPrice = (float) $session->calculated_price;
@@ -357,7 +357,7 @@ class AnomaliesController extends Controller
 
         // Load sessions with relationships
         $sessions = PlaySession::whereIn('id', $sessionIds)
-            ->with(['child', 'tenant'])
+            ->with(['child', 'location'])
             ->orderBy('started_at', 'desc')
             ->get()
             ->map(function($session) {

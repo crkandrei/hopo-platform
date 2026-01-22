@@ -7,10 +7,7 @@ use App\Models\Guardian;
 use App\Models\PlaySession;
 use App\Models\PlaySessionProduct;
 use App\Models\Product;
-use App\Models\Tenant;
-use App\Models\TenantConfiguration;
 use App\Services\ScanService;
-use App\Services\PricingService;
 use App\Support\ApiResponder;
 use Illuminate\Http\Request;
 use App\Http\Requests\Scan\LookupBraceletRequest;
@@ -36,27 +33,18 @@ class ScanPageController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        // Get available children for the tenant
+        // Get available children for the location
         $children = [];
-        $jungleSessionDays = [];
-        $isJungleAllowedToday = false;
         
-        if ($tenant) {
-            $children = Child::where('tenant_id', $tenant->id)
+        if ($location) {
+            $children = Child::where('location_id', $location->id)
                 ->with('guardian')
                 ->get();
-            
-            // Get jungle session days configuration
-            $jungleSessionDays = TenantConfiguration::getJungleSessionDays($tenant->id);
-            
-            // Check if jungle is allowed today
-            $pricingService = app(PricingService::class);
-            $isJungleAllowedToday = $pricingService->isJungleSessionAllowed($tenant);
         }
 
-        return view('scan.index', compact('children', 'jungleSessionDays', 'isJungleAllowedToday'));
+        return view('scan.index', compact('children'));
     }
 
     /**
@@ -68,15 +56,15 @@ class ScanPageController extends Controller
         if (!$user) {
             return ApiResponder::error('Neautentificat', 401);
         }
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return ApiResponder::error('Nu există niciun tenant în sistem', 400);
+        if (!$location) {
+            return ApiResponder::error('Nu există niciun locație în sistem', 400);
         }
 
         try {
-            $code = $this->scanService->generateRandomCode($tenant);
-            $scanEvent = $this->scanService->createScanEvent($tenant, $code);
+            $code = $this->scanService->generateRandomCode($location);
+            $scanEvent = $this->scanService->createScanEvent($location, $code);
 
             return response()->json([
                 'success' => true,
@@ -105,12 +93,12 @@ class ScanPageController extends Controller
         if (!$user) {
             return ApiResponder::error('Neautentificat', 401);
         }
-        $tenant = $user->tenant;
-        if (!$tenant) {
-            return ApiResponder::error('Utilizatorul nu este asociat cu niciun tenant', 400);
+        $location = $user->location;
+        if (!$location) {
+            return ApiResponder::error('Utilizatorul nu este asociat cu nicio locație', 400);
         }
 
-        return response()->json($this->scanService->lookupBracelet($code, $tenant));
+        return response()->json($this->scanService->lookupBracelet($code, $location));
     }
 
     /**
@@ -122,15 +110,15 @@ class ScanPageController extends Controller
         if (!$user) {
             return ApiResponder::error('Neautentificat', 401);
         }
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return ApiResponder::error('Nu există niciun tenant în sistem', 400);
+        if (!$location) {
+            return ApiResponder::error('Nu există nicio locație în sistem', 400);
         }
 
         $braceletCode = trim($request->bracelet_code);
         $child = Child::where('id', $request->child_id)
-            ->where('tenant_id', $tenant->id)
+            ->where('location_id', $location->id)
             ->first();
 
         if (!$child) {
@@ -153,9 +141,7 @@ class ScanPageController extends Controller
         }
 
         try {
-            $isBirthday = $request->boolean('is_birthday', false);
-            $isJungle = $request->boolean('is_jungle', false);
-            $session = $this->scanService->startPlaySession($tenant, $child, $braceletCode, $isBirthday, $isJungle);
+            $session = $this->scanService->startPlaySession($location, $child, $braceletCode);
 
             return ApiResponder::success([
                 'message' => 'Sesiune pornită cu succes',
@@ -163,8 +149,6 @@ class ScanPageController extends Controller
                     'id' => $session->id,
                     'started_at' => $session->started_at->toISOString(),
                     'bracelet_code' => $braceletCode,
-                    'is_birthday' => $session->is_birthday,
-                    'is_jungle' => $session->is_jungle,
                 ],
             ]);
         } catch (\Throwable $e) {
@@ -181,23 +165,23 @@ class ScanPageController extends Controller
         if (!$user) {
             return ApiResponder::error('Neautentificat', 401);
         }
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return ApiResponder::error('Nu există niciun tenant în sistem', 400);
+        if (!$location) {
+            return ApiResponder::error('Nu există nicio locație în sistem', 400);
         }
 
         $braceletCode = trim($request->bracelet_code);
 
         try {
-            $data = DB::transaction(function () use ($request, $tenant, $braceletCode) {
+            $data = DB::transaction(function () use ($request, $location, $braceletCode) {
                 // Identifică sau creează părintele/tutorul în funcție de datele primite
                 if ($request->filled('guardian_id')) {
                     $guardian = Guardian::where('id', $request->guardian_id)
-                        ->where('tenant_id', $tenant->id)
+                        ->where('location_id', $location->id)
                         ->first();
                     if (!$guardian) {
-                        throw new \Exception('Părintele selectat nu a fost găsit în acest tenant');
+                        throw new \Exception('Părintele selectat nu a fost găsit în această locație');
                     }
                     
                     // Verifică dacă părintele existent a acceptat termenii
@@ -206,7 +190,7 @@ class ScanPageController extends Controller
                     }
                 } else {
                     // Verifică dacă există deja un părinte cu același telefon
-                    $existingGuardian = Guardian::where('tenant_id', $tenant->id)
+                    $existingGuardian = Guardian::where('location_id', $location->id)
                         ->where('phone', $request->guardian_phone)
                         ->first();
                     
@@ -225,7 +209,7 @@ class ScanPageController extends Controller
                     $guardian = Guardian::create([
                         'name' => $request->guardian_name,
                         'phone' => $request->guardian_phone,
-                        'tenant_id' => $tenant->id,
+                        'location_id' => $location->id,
                         'terms_accepted_at' => now(),
                         'gdpr_accepted_at' => now(),
                         'terms_version' => \App\Http\Controllers\LegalController::TERMS_VERSION,
@@ -245,13 +229,11 @@ class ScanPageController extends Controller
                     'allergies' => $request->allergies,
                     'internal_code' => $internalCode,
                     'guardian_id' => $guardian->id,
-                    'tenant_id' => $tenant->id,
+                    'location_id' => $location->id,
                 ]);
 
                 // Pornește sesiunea cu codul de bare
-                $isBirthday = $request->boolean('is_birthday', false);
-                $isJungle = $request->boolean('is_jungle', false);
-                $session = $this->scanService->startPlaySession($tenant, $child, $braceletCode, $isBirthday, $isJungle);
+                $session = $this->scanService->startPlaySession($location, $child, $braceletCode);
 
                 return [
                     'child' => $child,
@@ -289,17 +271,17 @@ class ScanPageController extends Controller
     public function checkGuardianTerms(Request $request)
     {
         $user = Auth::user();
-        if (!$user || !$user->tenant) {
-            return ApiResponder::error('Neautentificat sau fără tenant', 401);
+        if (!$user || !$user->location) {
+            return ApiResponder::error('Neautentificat sau fără locație', 401);
         }
 
         $request->validate([
             'guardian_id' => 'required|integer|exists:guardians,id',
         ]);
 
-        $tenant = $user->tenant;
+        $location = $user->location;
         $guardian = Guardian::where('id', $request->guardian_id)
-            ->where('tenant_id', $tenant->id)
+            ->where('location_id', $location->id)
             ->first();
 
         if (!$guardian) {
@@ -323,17 +305,17 @@ class ScanPageController extends Controller
     public function acceptGuardianTerms(Request $request)
     {
         $user = Auth::user();
-        if (!$user || !$user->tenant) {
-            return ApiResponder::error('Neautentificat sau fără tenant', 401);
+        if (!$user || !$user->location) {
+            return ApiResponder::error('Neautentificat sau fără locație', 401);
         }
 
         $request->validate([
             'guardian_id' => 'required|integer|exists:guardians,id',
         ]);
 
-        $tenant = $user->tenant;
+        $location = $user->location;
         $guardian = Guardian::where('id', $request->guardian_id)
-            ->where('tenant_id', $tenant->id)
+            ->where('location_id', $location->id)
             ->first();
 
         if (!$guardian) {
@@ -362,15 +344,15 @@ class ScanPageController extends Controller
         if (!$user) {
             return ApiResponder::error('Neautentificat', 401);
         }
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return ApiResponder::error('Nu există niciun tenant în sistem', 400);
+        if (!$location) {
+            return ApiResponder::error('Nu există nicio locație în sistem', 400);
         }
 
         try {
             $child = Child::where('id', $request->child_id)
-                ->where('tenant_id', $tenant->id)
+                ->where('location_id', $location->id)
                 ->first();
 
             if (!$child) {
@@ -378,9 +360,7 @@ class ScanPageController extends Controller
             }
 
             $braceletCode = trim($request->bracelet_code);
-            $isBirthday = $request->boolean('is_birthday', false);
-            $isJungle = $request->boolean('is_jungle', false);
-            $session = $this->scanService->startPlaySession($tenant, $child, $braceletCode, $isBirthday, $isJungle);
+            $session = $this->scanService->startPlaySession($location, $child, $braceletCode);
 
             return ApiResponder::success([
                 'message' => 'Sesiunea a început cu succes',
@@ -390,8 +370,6 @@ class ScanPageController extends Controller
                     'parent_name' => $child->guardian->name,
                     'started_at' => $session->started_at->toISOString(),
                     'bracelet_code' => $braceletCode,
-                    'is_birthday' => $session->is_birthday,
-                    'is_jungle' => $session->is_jungle,
                 ],
             ]);
 
@@ -492,13 +470,13 @@ class ScanPageController extends Controller
         if (!$user) {
             return ApiResponder::error('Neautentificat', 401);
         }
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return ApiResponder::error('Nu există niciun tenant în sistem', 400);
+        if (!$location) {
+            return ApiResponder::error('Nu există nicio locație în sistem', 400);
         }
 
-        $sessions = $this->scanService->getActiveSessions($tenant);
+        $sessions = $this->scanService->getActiveSessions($location);
 
         return ApiResponder::success(['sessions' => $sessions]);
     }
@@ -512,13 +490,13 @@ class ScanPageController extends Controller
         if (!$user) {
             return ApiResponder::error('Neautentificat', 401);
         }
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return ApiResponder::error('Nu există niciun tenant în sistem', 400);
+        if (!$location) {
+            return ApiResponder::error('Nu există nicio locație în sistem', 400);
         }
 
-        $stats = $this->scanService->getSessionStats($tenant);
+        $stats = $this->scanService->getSessionStats($location);
 
         return ApiResponder::success(['stats' => $stats]);
     }
@@ -532,13 +510,13 @@ class ScanPageController extends Controller
         if (!$user) {
             return ApiResponder::error('Neautentificat', 401);
         }
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return ApiResponder::error('Nu există niciun tenant în sistem', 400);
+        if (!$location) {
+            return ApiResponder::error('Nu există nicio locație în sistem', 400);
         }
 
-        $list = $this->scanService->getRecentCompletedSessions($tenant, 3);
+        $list = $this->scanService->getRecentCompletedSessions($location, 3);
         return ApiResponder::success(['recent' => $list]);
     }
 
@@ -551,10 +529,10 @@ class ScanPageController extends Controller
         if (!$user) {
             return ApiResponder::error('Neautentificat', 401);
         }
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return ApiResponder::error('Nu există niciun tenant în sistem', 400);
+        if (!$location) {
+            return ApiResponder::error('Nu există nicio locație în sistem', 400);
         }
 
         $request->validate([
@@ -566,7 +544,7 @@ class ScanPageController extends Controller
         $limit = (int) ($request->input('limit', 15));
 
         // Get children with active sessions only
-        $children = Child::where('tenant_id', $tenant->id)
+        $children = Child::where('location_id', $location->id)
             ->whereHas('activeSessions')
             ->when($q !== '', function ($query) use ($q) {
                 $like = "%" . str_replace(['%','_'], ['\\%','\\_'], $q) . "%";
@@ -621,14 +599,14 @@ class ScanPageController extends Controller
         if (!$user) {
             return ApiResponder::error('Neautentificat', 401);
         }
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return ApiResponder::error('Nu există niciun tenant în sistem', 400);
+        if (!$location) {
+            return ApiResponder::error('Nu există nicio locație în sistem', 400);
         }
 
         $child = Child::where('id', $childId)
-            ->where('tenant_id', $tenant->id)
+            ->where('location_id', $location->id)
             ->with(['guardian'])
             ->first();
 
@@ -675,15 +653,15 @@ class ScanPageController extends Controller
         if (!$user) {
             return ApiResponder::error('Neautentificat', 401);
         }
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return ApiResponder::error('Nu există niciun tenant în sistem', 400);
+        if (!$location) {
+            return ApiResponder::error('Nu există nicio locație în sistem', 400);
         }
 
         try {
             $session = PlaySession::where('id', $request->session_id)
-                ->where('tenant_id', $tenant->id)
+                ->where('location_id', $location->id)
                 ->first();
 
             if (!$session) {
@@ -698,7 +676,7 @@ class ScanPageController extends Controller
             // Verifică că produsele aparțin tenant-ului și sunt active
             $productIds = collect($request->products)->pluck('product_id')->unique();
             $products = Product::whereIn('id', $productIds)
-                ->where('tenant_id', $tenant->id)
+                ->where('location_id', $location->id)
                 ->where('is_active', true)
                 ->get()
                 ->keyBy('id');
@@ -751,14 +729,14 @@ class ScanPageController extends Controller
         if (!$user) {
             return ApiResponder::error('Neautentificat', 401);
         }
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return ApiResponder::error('Nu există niciun tenant în sistem', 400);
+        if (!$location) {
+            return ApiResponder::error('Nu există nicio locație în sistem', 400);
         }
 
         try {
-            $products = Product::where('tenant_id', $tenant->id)
+            $products = Product::where('location_id', $location->id)
                 ->where('is_active', true)
                 ->orderBy('name')
                 ->get(['id', 'name', 'price']);
@@ -781,15 +759,15 @@ class ScanPageController extends Controller
         if (!$user) {
             return ApiResponder::error('Neautentificat', 401);
         }
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return ApiResponder::error('Nu există niciun tenant în sistem', 400);
+        if (!$location) {
+            return ApiResponder::error('Nu există nicio locație în sistem', 400);
         }
 
         try {
             $session = PlaySession::where('id', $sessionId)
-                ->where('tenant_id', $tenant->id)
+                ->where('location_id', $location->id)
                 ->first();
 
             if (!$session) {

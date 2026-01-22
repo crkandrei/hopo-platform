@@ -2,14 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToLocation;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Child extends Model
 {
+    use HasFactory, BelongsToLocation;
     protected $fillable = [
-        'tenant_id',
+        'location_id',
         'guardian_id',
         'name',
         'birth_date',
@@ -22,13 +25,6 @@ class Child extends Model
         'birth_date' => 'date',
     ];
 
-    /**
-     * Get the tenant that owns the child.
-     */
-    public function tenant(): BelongsTo
-    {
-        return $this->belongsTo(Tenant::class);
-    }
 
     /**
      * Get the guardian that owns the child.

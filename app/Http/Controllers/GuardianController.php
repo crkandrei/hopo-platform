@@ -18,15 +18,15 @@ class GuardianController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return redirect($this->getHomeRoute())->with('error', 'Utilizatorul nu este asociat cu niciun tenant');
+        if (!$location) {
+            return redirect($this->getHomeRoute())->with('error', 'Utilizatorul nu este asociat cu nicio locație');
         }
 
         // Stats for cards - only counts
-        $totalGuardians = Guardian::where('tenant_id', $tenant->id)->count();
-        $guardiansWithChildren = Guardian::where('tenant_id', $tenant->id)
+        $totalGuardians = Guardian::where('location_id', $location->id)->count();
+        $guardiansWithChildren = Guardian::where('location_id', $location->id)
             ->has('children')
             ->count();
         $guardiansWithoutChildren = $totalGuardians - $guardiansWithChildren;
@@ -49,10 +49,10 @@ class GuardianController extends Controller
         }
         
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return redirect($this->getHomeRoute())->with('error', 'Utilizatorul nu este asociat cu niciun tenant');
+        if (!$location) {
+            return redirect($this->getHomeRoute())->with('error', 'Utilizatorul nu este asociat cu nicio locație');
         }
 
         return view('guardians.create');
@@ -69,10 +69,10 @@ class GuardianController extends Controller
         }
         
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return redirect($this->getHomeRoute())->with('error', 'Utilizatorul nu este asociat cu niciun tenant');
+        if (!$location) {
+            return redirect($this->getHomeRoute())->with('error', 'Utilizatorul nu este asociat cu nicio locație');
         }
 
         $request->validate([
@@ -89,7 +89,7 @@ class GuardianController extends Controller
         ]);
 
         $guardian = Guardian::create([
-            'tenant_id' => $tenant->id,
+            'location_id' => $location->id,
             'name' => $request->name,
             'phone' => $request->phone,
             'notes' => $request->notes,
@@ -120,9 +120,9 @@ class GuardianController extends Controller
     public function show(Guardian $guardian)
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant || $guardian->tenant_id !== $tenant->id) {
+        if (!$location || $guardian->location_id !== $location->id) {
             // Pentru STAFF, redirecționăm la scan sau la copil dacă există parametrul from_child
             if ($user->isStaff()) {
                 $fromChildId = request()->query('from_child');
@@ -178,8 +178,6 @@ class GuardianController extends Controller
                         'status' => 'active',
                         'price' => $price,
                         'formatted_price' => $session->getFormattedPrice(),
-                        'is_birthday' => $session->is_birthday ?? false,
-                        'is_jungle' => $session->is_jungle ?? false,
                     ];
                 } else {
                     // Closed session: use all intervals
@@ -202,16 +200,12 @@ class GuardianController extends Controller
                         'status' => 'completed',
                         'price' => $price,
                         'formatted_price' => $session->getFormattedPrice(),
-                        'is_birthday' => $session->is_birthday ?? false,
-                        'is_jungle' => $session->is_jungle ?? false,
                     ];
                 }
             });
 
-        // Calculate total price (exclude birthday and jungle sessions)
-        $totalPrice = $playSessions->filter(function($session) {
-            return !($session['is_birthday'] ?? false) && !($session['is_jungle'] ?? false);
-        })->sum('price');
+        // Calculate total price
+        $totalPrice = $playSessions->sum('price');
 
         return view('guardians.show', compact('guardian', 'playSessions', 'totalPrice'));
     }
@@ -227,9 +221,9 @@ class GuardianController extends Controller
         }
         
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant || $guardian->tenant_id !== $tenant->id) {
+        if (!$location || $guardian->location_id !== $location->id) {
             return redirect()->route('guardians.index')->with('error', 'Părintele nu a fost găsit');
         }
 
@@ -247,9 +241,9 @@ class GuardianController extends Controller
         }
         
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant || $guardian->tenant_id !== $tenant->id) {
+        if (!$location || $guardian->location_id !== $location->id) {
             return redirect()->route('guardians.index')->with('error', 'Părintele nu a fost găsit');
         }
 
@@ -293,9 +287,9 @@ class GuardianController extends Controller
         }
         
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant || $guardian->tenant_id !== $tenant->id) {
+        if (!$location || $guardian->location_id !== $location->id) {
             return redirect()->route('guardians.index')->with('error', 'Părintele nu a fost găsit');
         }
 
@@ -321,9 +315,9 @@ class GuardianController extends Controller
     public function search(Request $request)
     {
         $user = Auth::user();
-        $tenant = $user->tenant;
-        if (!$tenant) {
-            return response()->json(['success' => false, 'message' => 'Tenant lipsă'], 400);
+        $location = $user->location;
+        if (!$location) {
+            return response()->json(['success' => false, 'message' => 'Locație lipsă'], 400);
         }
 
         $request->validate([
@@ -334,7 +328,7 @@ class GuardianController extends Controller
         $q = (string) $request->input('q', '');
         $limit = (int) ($request->input('limit', 20));
 
-        $results = Guardian::where('tenant_id', $tenant->id)
+        $results = Guardian::where('location_id', $location->id)
             ->when($q !== '', function ($query) use ($q) {
                 $like = "%" . str_replace(['%','_'], ['\\%','\\_'], $q) . "%";
                 $query->where(function ($inner) use ($like) {
@@ -358,14 +352,14 @@ class GuardianController extends Controller
     public function data(Request $request)
     {
         $user = Auth::user();
-        if (!$user || !$user->tenant) {
+        if (!$user || !$user->location) {
             return response()->json([
                 'success' => false,
-                'message' => 'Neautentificat sau fără tenant'
+                'message' => 'Neautentificat sau fără locație'
             ], 401);
         }
 
-        $tenantId = $user->tenant->id;
+        $locationId = $user->location->id;
 
         // Inputs
         $page = max(1, (int) $request->input('page', 1));
@@ -378,7 +372,7 @@ class GuardianController extends Controller
         $sortDir = strtolower((string) $request->input('sort_dir', 'asc')) === 'desc' ? 'desc' : 'asc';
 
         // Base query
-        $query = Guardian::where('tenant_id', $tenantId)
+        $query = Guardian::where('location_id', $locationId)
             ->withCount('children')
             ->when($search !== '', function ($q) use ($search) {
                 $like = "%" . str_replace(['%','_'], ['\\%','\\_'], $search) . "%";

@@ -3,7 +3,6 @@
 namespace App\Repositories\Eloquent;
 
 use App\Models\PlaySession;
-use App\Models\TenantConfiguration;
 use App\Repositories\Contracts\PlaySessionRepositoryInterface;
 use App\Services\PricingService;
 use Carbon\Carbon;
@@ -11,58 +10,58 @@ use Illuminate\Support\Collection;
 
 class PlaySessionRepository implements PlaySessionRepositoryInterface
 {
-    public function countActiveSessionsByTenant(int $tenantId): int
+    public function countActiveSessionsByLocation(int $locationId): int
     {
-        return PlaySession::where('tenant_id', $tenantId)
+        return PlaySession::where('location_id', $locationId)
             ->whereNull('ended_at')
             ->count();
     }
 
-    public function countSessionsStartedSince(int $tenantId, Carbon $since): int
+    public function countSessionsStartedSince(int $locationId, Carbon $since): int
     {
-        return PlaySession::where('tenant_id', $tenantId)
+        return PlaySession::where('location_id', $locationId)
             ->where('started_at', '>=', $since)
             ->count();
     }
 
-    public function countActiveSessionsStartedSince(int $tenantId, Carbon $since): int
+    public function countActiveSessionsStartedSince(int $locationId, Carbon $since): int
     {
-        return PlaySession::where('tenant_id', $tenantId)
+        return PlaySession::where('location_id', $locationId)
             ->where('started_at', '>=', $since)
             ->whereNull('ended_at')
             ->count();
     }
 
-    public function getSessionsSince(int $tenantId, Carbon $since): Collection
+    public function getSessionsSince(int $locationId, Carbon $since): Collection
     {
-        return PlaySession::where('tenant_id', $tenantId)
+        return PlaySession::where('location_id', $locationId)
             ->where('started_at', '>=', $since)
             ->get();
     }
 
-    public function getSessionsBetween(int $tenantId, Carbon $start, Carbon $end): Collection
+    public function getSessionsBetween(int $locationId, Carbon $start, Carbon $end): Collection
     {
-        return PlaySession::where('tenant_id', $tenantId)
+        return PlaySession::where('location_id', $locationId)
             ->where('started_at', '>=', $start)
             ->where('started_at', '<=', $end)
             ->get();
     }
 
-    public function getAllByTenant(int $tenantId): Collection
+    public function getAllByLocation(int $locationId): Collection
     {
-        return PlaySession::where('tenant_id', $tenantId)->get();
+        return PlaySession::where('location_id', $locationId)->get();
     }
 
-    public function getActiveSessionsWithRelations(int $tenantId): Collection
+    public function getActiveSessionsWithRelations(int $locationId): Collection
     {
-        return PlaySession::where('tenant_id', $tenantId)
+        return PlaySession::where('location_id', $locationId)
             ->whereNull('ended_at')
             ->with(['child.guardian'])
             ->get();
     }
 
     public function paginateSessions(
-        int $tenantId,
+        int $locationId,
         int $page,
         int $perPage,
         ?string $search,
@@ -83,7 +82,7 @@ class PlaySessionRepository implements PlaySessionRepositoryInterface
         $dateEnd = $date->copy()->endOfDay();
         
         $query = PlaySession::query()
-            ->where('play_sessions.tenant_id', $tenantId)
+            ->where('play_sessions.location_id', $locationId)
             ->whereBetween('play_sessions.started_at', [$dateStart, $dateEnd])
             ->leftJoin('children', 'children.id', '=', 'play_sessions.child_id')
             ->leftJoin('guardians', 'guardians.id', '=', 'children.guardian_id')
@@ -94,8 +93,6 @@ class PlaySessionRepository implements PlaySessionRepositoryInterface
                 'play_sessions.status',
                 'play_sessions.calculated_price',
                 'play_sessions.price_per_hour_at_calculation',
-                'play_sessions.is_birthday',
-                'play_sessions.is_jungle',
                 'play_sessions.paid_at',
                 'play_sessions.payment_status',
                 'play_sessions.voucher_hours',
@@ -173,14 +170,6 @@ class PlaySessionRepository implements PlaySessionRepositoryInterface
                     }
                 }
                 
-                // Check if jungle toggle is allowed (check if session date allows jungle)
-                $canToggleJungle = false;
-                if ($ps && $ps->tenant) {
-                    $pricingService = app(PricingService::class);
-                    $sessionDate = $row->started_at ? Carbon::parse($row->started_at) : now();
-                    $canToggleJungle = $pricingService->isJungleSessionAllowed($ps->tenant, $sessionDate);
-                }
-                
                 // Get current pause duration ONLY if session is currently paused
                 // We only care about the CURRENT active pause, not historical pauses
                 $currentPauseMinutes = 0;
@@ -189,10 +178,8 @@ class PlaySessionRepository implements PlaySessionRepositoryInterface
                 }
                 
                 // Get pause warning threshold from configuration
+                // TODO: Implement location-specific configuration if needed
                 $pauseThreshold = 15; // Default
-                if ($ps && $ps->tenant) {
-                    $pauseThreshold = TenantConfiguration::getPauseWarningThresholdMinutes($ps->tenant->id);
-                }
                 
                 // Only show badge if session is currently paused AND current pause exceeds threshold
                 // We don't care about historical pauses, only the current active pause
@@ -216,9 +203,6 @@ class PlaySessionRepository implements PlaySessionRepositoryInterface
                     'products_price' => (float) $productsPrice,
                     'products_formatted_price' => $productsFormattedPrice,
                     'price_per_hour_at_calculation' => $row->price_per_hour_at_calculation ? (float) $row->price_per_hour_at_calculation : null,
-                    'is_birthday' => (bool) $row->is_birthday,
-                    'is_jungle' => (bool) ($row->is_jungle ?? false),
-                    'can_toggle_jungle' => $canToggleJungle,
                     'current_pause_minutes' => $currentPauseMinutes,
                     'has_long_pause' => $hasLongPause,
                     'current_pause_exceeds_threshold' => $currentPauseExceedsThreshold,

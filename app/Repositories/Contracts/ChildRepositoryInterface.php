@@ -6,7 +6,7 @@ use Illuminate\Support\Collection;
 
 interface ChildRepositoryInterface
 {
-    public function getAllWithBirthdateByTenant(int $tenantId): Collection;
+    public function getAllWithBirthdateByLocation(int $locationId): Collection;
 }
 
 

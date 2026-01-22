@@ -44,18 +44,18 @@ class FiscalReceiptLogController extends Controller
         $sortDir = strtolower((string) $request->input('sort_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
 
         // Build query - include both session receipts and Z reports
-        $query = FiscalReceiptLog::with(['playSession.tenant', 'tenant']);
+        $query = FiscalReceiptLog::with(['playSession.location', 'location']);
 
         // Search filter
         if ($search !== '') {
             $query->where(function($q) use ($search) {
                 $q->where('filename', 'like', "%{$search}%")
                   ->orWhere('error_message', 'like', "%{$search}%")
-                  ->orWhereHas('tenant', function($q) use ($search) {
+                  ->orWhereHas('location', function($q) use ($search) {
                       $q->where('name', 'like', "%{$search}%");
                   })
                   ->orWhereHas('playSession', function($q) use ($search) {
-                      $q->whereHas('tenant', function($q) use ($search) {
+                      $q->whereHas('location', function($q) use ($search) {
                           $q->where('name', 'like', "%{$search}%");
                       });
                   });
@@ -80,13 +80,13 @@ class FiscalReceiptLogController extends Controller
 
         // Format data
         $rows = $logs->map(function($log) {
-            // For Z reports, get tenant from direct relationship
-            // For session receipts, get tenant from playSession
-            $tenantName = null;
+            // For Z reports, get location from direct relationship
+            // For session receipts, get location from playSession
+            $locationName = null;
             if ($log->type === 'z_report') {
-                $tenantName = $log->tenant->name ?? 'N/A';
+                $locationName = $log->location->name ?? 'N/A';
             } else {
-                $tenantName = $log->playSession->tenant->name ?? 'N/A';
+                $locationName = $log->playSession->location->name ?? 'N/A';
             }
 
             return [
@@ -98,7 +98,7 @@ class FiscalReceiptLogController extends Controller
                 'error_message' => $log->error_message,
                 'created_at' => $log->created_at->format('Y-m-d H:i:s'),
                 'created_at_formatted' => $log->created_at->format('d.m.Y H:i'),
-                'tenant_name' => $tenantName,
+                'location_name' => $locationName,
             ];
         });
 

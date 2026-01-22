@@ -22,16 +22,16 @@ class LegalController extends Controller
      */
     public function terms()
     {
-        $tenantName = 'Locului de Joacă';
+        $locationName = 'Locului de Joacă';
         
-        // Try to get tenant name from authenticated user
-        if (Auth::check() && Auth::user()->tenant) {
-            $tenantName = Auth::user()->tenant->name;
+        // Try to get location name from authenticated user
+        if (Auth::check() && Auth::user()->location) {
+            $locationName = Auth::user()->location->name;
         }
         
         return view('legal.terms', [
             'version' => self::TERMS_VERSION,
-            'tenantName' => $tenantName,
+            'locationName' => $locationName,
         ]);
     }
 
@@ -40,16 +40,16 @@ class LegalController extends Controller
      */
     public function gdpr()
     {
-        $tenantName = 'Locului de Joacă';
+        $locationName = 'Locului de Joacă';
         
-        // Try to get tenant name from authenticated user
-        if (Auth::check() && Auth::user()->tenant) {
-            $tenantName = Auth::user()->tenant->name;
+        // Try to get location name from authenticated user
+        if (Auth::check() && Auth::user()->location) {
+            $locationName = Auth::user()->location->name;
         }
         
         return view('legal.gdpr', [
             'version' => self::GDPR_VERSION,
-            'tenantName' => $tenantName,
+            'locationName' => $locationName,
         ]);
     }
 }

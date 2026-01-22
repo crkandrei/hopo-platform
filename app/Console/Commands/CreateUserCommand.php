@@ -3,7 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Models\Role;
-use App\Models\Tenant;
+use App\Models\Location;
+use App\Models\Company;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
@@ -49,7 +50,7 @@ class CreateUserCommand extends Command
         }
 
         // Verifică dacă utilizatorul există deja
-        $existingUser = User::with(['role', 'tenant'])->where('username', $username)->first();
+        $existingUser = User::with(['role', 'location', 'company'])->where('username', $username)->first();
         if ($existingUser) {
             if (!$this->confirm("Utilizatorul cu username '{$username}' există deja. Vrei să-l actualizezi?", false)) {
                 $this->info('Operațiune anulată.');
@@ -101,38 +102,66 @@ class CreateUserCommand extends Command
         $selectedRoleIndex = array_search($selectedRoleOption, $roleOptions);
         $selectedRole = $roles[$selectedRoleIndex];
 
-        // 5. Tenant (doar dacă nu e SUPER_ADMIN)
-        $tenantId = null;
-        $tenantSlug = null;
+        // 5. Company și Location (doar dacă nu e SUPER_ADMIN)
+        $companyId = null;
+        $locationId = null;
+        $locationName = null;
 
         if ($selectedRole->name !== 'SUPER_ADMIN') {
-            $tenants = Tenant::all(['id', 'name', 'slug']);
+            // Select Company first
+            $companies = Company::all(['id', 'name']);
             
-            if ($tenants->isEmpty()) {
-                $this->error('Nu există tenant-uri în sistem! Rulează mai întâi: php artisan db:seed --class=TenantSeeder');
+            if ($companies->isEmpty()) {
+                $this->error('Nu există companii în sistem! Creează mai întâi o companie.');
                 return Command::FAILURE;
             }
 
-            $tenantOptions = $tenants->map(function ($tenant) {
-                return "{$tenant->name} ({$tenant->slug})";
+            $companyOptions = $companies->map(function ($company) {
+                return $company->name;
             })->toArray();
 
-            $defaultTenantIndex = null;
-            if ($existingUser && $existingUser->tenant) {
-                $tenantString = $existingUser->tenant->name . ' (' . $existingUser->tenant->slug . ')';
-                $defaultTenantIndex = array_search($tenantString, $tenantOptions);
+            $defaultCompanyIndex = null;
+            if ($existingUser && $existingUser->company) {
+                $defaultCompanyIndex = array_search($existingUser->company->name, $companyOptions);
             }
 
-            $selectedTenantOption = $this->choice(
-                'Selectează tenant-ul',
-                $tenantOptions,
-                $defaultTenantIndex !== false ? $defaultTenantIndex : null
+            $selectedCompanyOption = $this->choice(
+                'Selectează compania',
+                $companyOptions,
+                $defaultCompanyIndex !== false ? $defaultCompanyIndex : null
             );
 
-            $selectedTenantIndex = array_search($selectedTenantOption, $tenantOptions);
-            $selectedTenant = $tenants[$selectedTenantIndex];
-            $tenantId = $selectedTenant->id;
-            $tenantSlug = $selectedTenant->slug;
+            $selectedCompanyIndex = array_search($selectedCompanyOption, $companyOptions);
+            $selectedCompany = $companies[$selectedCompanyIndex];
+            $companyId = $selectedCompany->id;
+
+            // Select Location
+            $locations = Location::where('company_id', $companyId)->get(['id', 'name']);
+            
+            if ($locations->isEmpty()) {
+                $this->error('Nu există locații pentru această companie! Creează mai întâi o locație.');
+                return Command::FAILURE;
+            }
+
+            $locationOptions = $locations->map(function ($location) {
+                return $location->name;
+            })->toArray();
+
+            $defaultLocationIndex = null;
+            if ($existingUser && $existingUser->location) {
+                $defaultLocationIndex = array_search($existingUser->location->name, $locationOptions);
+            }
+
+            $selectedLocationOption = $this->choice(
+                'Selectează locația',
+                $locationOptions,
+                $defaultLocationIndex !== false ? $defaultLocationIndex : null
+            );
+
+            $selectedLocationIndex = array_search($selectedLocationOption, $locationOptions);
+            $selectedLocation = $locations[$selectedLocationIndex];
+            $locationId = $selectedLocation->id;
+            $locationName = $selectedLocation->name;
         }
 
         // 6. Parolă
@@ -169,7 +198,8 @@ class CreateUserCommand extends Command
                 ['Nume', $name],
                 ['Email', $email ?: 'N/A'],
                 ['Rol', $selectedRole->display_name . ' (' . $selectedRole->name . ')'],
-                ['Tenant', $tenantSlug ?: 'N/A (Super Admin)'],
+                ['Companie', $companyId ? Company::find($companyId)->name : 'N/A (Super Admin)'],
+                ['Locație', $locationName ?: 'N/A (Super Admin)'],
                 ['Status', $status],
             ]
         );
@@ -188,7 +218,8 @@ class CreateUserCommand extends Command
                     'email' => $email,
                     'password' => Hash::make($password),
                     'role_id' => $selectedRole->id,
-                    'tenant_id' => $tenantId,
+                    'company_id' => $companyId,
+                    'location_id' => $locationId,
                     'status' => $status,
                     'email_verified_at' => $email ? now() : null,
                 ]);
@@ -202,7 +233,8 @@ class CreateUserCommand extends Command
                     'email' => $email,
                     'password' => Hash::make($password),
                     'role_id' => $selectedRole->id,
-                    'tenant_id' => $tenantId,
+                    'company_id' => $companyId,
+                    'location_id' => $locationId,
                     'status' => $status,
                     'email_verified_at' => $email ? now() : null,
                 ]);

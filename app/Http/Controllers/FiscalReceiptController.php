@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Tenant;
+use App\Models\Location;
 use App\Services\PricingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -53,11 +53,11 @@ class FiscalReceiptController extends Controller
     {
         $this->checkSuperAdmin();
 
-        // Get all tenants for super admin to select
-        $tenants = Tenant::where('is_active', true)->orderBy('name')->get();
+        // Get all locations for super admin to select
+        $locations = Location::where('is_active', true)->with('company')->orderBy('name')->get();
 
         return view('fiscal-receipts.index', [
-            'tenants' => $tenants,
+            'locations' => $locations,
         ]);
     }
 
@@ -71,18 +71,18 @@ class FiscalReceiptController extends Controller
         $request->validate([
             'hours' => 'required|integer|min:0|max:24',
             'minutes' => 'required|integer|min:0|max:59',
-            'tenant_id' => 'required|exists:tenants,id',
+            'location_id' => 'required|exists:locations,id',
         ]);
 
-        $tenant = Tenant::findOrFail($request->tenant_id);
+        $location = Location::findOrFail($request->location_id);
         $hours = (int) $request->hours;
         $minutes = (int) $request->minutes;
 
         // Calculate total duration in hours
         $totalHours = $hours + ($minutes / 60);
 
-        // Get hourly rate for the tenant (using current date)
-        $hourlyRate = $this->pricingService->getHourlyRate($tenant, Carbon::now());
+        // Get hourly rate for the location (using current date)
+        $hourlyRate = $this->pricingService->getHourlyRate($location, Carbon::now());
 
         // Round according to pricing rules
         $roundedHours = $this->pricingService->roundToHalfHour($totalHours);
@@ -113,11 +113,11 @@ class FiscalReceiptController extends Controller
         $request->validate([
             'hours' => 'required|integer|min:0|max:24',
             'minutes' => 'required|integer|min:0|max:59',
-            'tenant_id' => 'required|exists:tenants,id',
+            'location_id' => 'required|exists:locations,id',
             'paymentType' => 'required|in:CASH,CARD',
         ]);
 
-        $tenant = Tenant::findOrFail($request->tenant_id);
+        $location = Location::findOrFail($request->location_id);
         $hours = (int) $request->hours;
         $minutes = (int) $request->minutes;
         $paymentType = $request->paymentType;
@@ -126,7 +126,7 @@ class FiscalReceiptController extends Controller
         $totalHours = $hours + ($minutes / 60);
 
         // Get hourly rate
-        $hourlyRate = $this->pricingService->getHourlyRate($tenant, Carbon::now());
+        $hourlyRate = $this->pricingService->getHourlyRate($location, Carbon::now());
 
         // Round according to pricing rules
         $roundedHours = $this->pricingService->roundToHalfHour($totalHours);
@@ -156,9 +156,9 @@ class FiscalReceiptController extends Controller
                 'price' => $price,
                 'paymentType' => $paymentType,
             ],
-            'tenant' => [
-                'id' => $tenant->id,
-                'name' => $tenant->name,
+            'location' => [
+                'id' => $location->id,
+                'name' => $location->name,
             ],
         ]);
     }

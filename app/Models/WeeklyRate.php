@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToLocation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WeeklyRate extends Model
 {
+    use BelongsToLocation;
     protected $fillable = [
-        'tenant_id',
+        'location_id',
         'day_of_week',
         'hourly_rate',
     ];
@@ -18,13 +20,6 @@ class WeeklyRate extends Model
         'hourly_rate' => 'decimal:2',
     ];
 
-    /**
-     * Get the tenant that owns the weekly rate.
-     */
-    public function tenant(): BelongsTo
-    {
-        return $this->belongsTo(Tenant::class);
-    }
 
     /**
      * Get day name in Romanian

@@ -116,7 +116,7 @@
                         <span class="text-sm font-medium text-gray-900">${row.name}</span>
                     </div>
                 </td>
-                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${row.tenant_name}</td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${row.location_name}</td>
                 <td class="px-4 py-3 whitespace-nowrap">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${
                         row.sessions_count > 10 

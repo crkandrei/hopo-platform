@@ -145,7 +145,7 @@
     
     <div class="receipt-container">
         <div class="receipt-header">
-            <h1>{{ $session->tenant->name ?? 'Loc de Joacă' }}</h1>
+            <h1>{{ $session->location->name ?? 'Loc de Joacă' }}</h1>
         </div>
         
         <div class="receipt-body">

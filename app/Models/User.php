@@ -24,7 +24,8 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
-        'tenant_id',
+        'company_id',
+        'location_id',
         'role_id',
         'status',
     ];
@@ -53,11 +54,53 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the tenant that owns the user.
+     * Get the company that owns the user (for COMPANY_ADMIN).
      */
-    public function tenant(): BelongsTo
+    public function company(): BelongsTo
     {
-        return $this->belongsTo(Tenant::class);
+        return $this->belongsTo(Company::class);
+    }
+
+    /**
+     * Get the location that owns the user (for STAFF).
+     */
+    public function location(): BelongsTo
+    {
+        return $this->belongsTo(Location::class);
+    }
+    
+    /**
+     * Obține compania efectivă (directă sau prin locație)
+     */
+    public function getEffectiveCompanyId(): ?int
+    {
+        if ($this->company_id) {
+            return $this->company_id;
+        }
+        
+        return $this->location?->company_id;
+    }
+
+    /**
+     * Verifică dacă user-ul poate accesa o locație
+     */
+    public function canAccessLocation(int $locationId): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+        
+        if ($this->location_id === $locationId) {
+            return true;
+        }
+        
+        if ($this->isCompanyAdmin() && $this->company_id) {
+            return Location::where('id', $locationId)
+                       ->where('company_id', $this->company_id)
+                       ->exists();
+        }
+        
+        return false;
     }
 
     /**

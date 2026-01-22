@@ -40,8 +40,6 @@ class FreshSeedCommand extends Command
         // Listează tabelele aplicației (exclude tabelele Laravel sistem)
         $tables = [
             'audit_logs',
-            'birthday_reservations',
-            'bracelets',
             'children',
             'guardians',
             'play_session_intervals',

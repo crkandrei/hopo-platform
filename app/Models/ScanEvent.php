@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToLocation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ScanEvent extends Model
 {
+    use BelongsToLocation;
     protected $fillable = [
-        'tenant_id',
+        'location_id',
         'bracelet_id',
         'child_id',
         'code_used',
@@ -23,13 +25,6 @@ class ScanEvent extends Model
         'expires_at' => 'datetime',
     ];
 
-    /**
-     * Get the tenant that owns the scan event.
-     */
-    public function tenant(): BelongsTo
-    {
-        return $this->belongsTo(Tenant::class);
-    }
 
     /**
      * Get the child that was scanned.

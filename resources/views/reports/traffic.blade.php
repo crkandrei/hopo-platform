@@ -217,11 +217,8 @@
             
             // Helper function to format session types distribution
             const formatSessionTypes = (bucket) => {
-                const parts = [];
-                if (bucket.jungle > 0) parts.push('jungle: ' + bucket.jungle);
-                if (bucket.birthday > 0) parts.push('birthday: ' + bucket.birthday);
-                if (bucket.normal > 0) parts.push('normale: ' + bucket.normal);
-                return parts.length > 0 ? '(' + parts.join(', ') + ')' : '';
+                // All sessions are normal (no birthday/jungle types)
+                return '';
             };
             
             const setReports = (r) => {
@@ -258,7 +255,7 @@
             if (reportsData.success) {
                 setReports(reportsData.reports);
             } else {
-                const emptyBucket = { percent: 0, count: 0, jungle: 0, birthday: 0, normal: 0 };
+                const emptyBucket = { percent: 0, count: 0 };
                 setReports({
                     total_today: 0,
                     buckets_today: {

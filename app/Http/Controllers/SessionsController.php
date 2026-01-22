@@ -23,11 +23,11 @@ class SessionsController extends Controller
     public function data(Request $request)
     {
         $user = Auth::user();
-        if (!$user || !$user->tenant) {
-            return ApiResponder::error('Neautentificat sau fără tenant', 401);
+        if (!$user || !$user->location) {
+            return ApiResponder::error('Neautentificat sau fără locație', 401);
         }
 
-        $tenantId = $user->tenant->id;
+        $locationId = $user->location->id;
 
         // Inputs
         $page = max(1, (int) $request->input('page', 1));
@@ -45,7 +45,7 @@ class SessionsController extends Controller
 
         // Allowed sorting columns map to SQL columns
         $result = $this->sessions->paginateSessions(
-            $tenantId,
+            $locationId,
             $page,
             $perPage,
             $search === '' ? null : $search,
@@ -77,44 +77,36 @@ class SessionsController extends Controller
             return redirect()->route('login');
         }
 
-        // SUPER_ADMIN poate vedea sesiuni din toate tenant-urile
+        // SUPER_ADMIN poate vedea sesiuni din toate locațiile
         $query = PlaySession::where('id', $id);
         
-        if (!$user->isSuperAdmin() && $user->tenant) {
-            $query->where('tenant_id', $user->tenant->id);
+        if (!$user->isSuperAdmin() && $user->location) {
+            $query->where('location_id', $user->location->id);
         }
 
         $session = $query->with(['child.guardian', 'intervals' => function($query) {
                 $query->orderBy('started_at', 'asc');
-            }, 'products.product', 'tenant'])
+            }, 'products.product', 'location'])
             ->first();
 
         if (!$session) {
             abort(404, 'Sesiunea nu a fost găsită');
         }
 
-        // Check if jungle toggle is allowed (check if session date allows jungle)
-        $canToggleJungle = false;
-        if ($session->tenant) {
-            $pricingService = app(\App\Services\PricingService::class);
-            $sessionDate = $session->started_at ? $session->started_at : now();
-            $canToggleJungle = $pricingService->isJungleSessionAllowed($session->tenant, $sessionDate);
-        }
-
-        return view('sessions.show', compact('session', 'canToggleJungle'));
+        return view('sessions.show', compact('session'));
     }
 
     /** Generate receipt for session */
     public function receipt($id)
     {
         $user = Auth::user();
-        if (!$user || !$user->tenant) {
+        if (!$user || !$user->location) {
             abort(401, 'Neautentificat');
         }
 
         $session = PlaySession::where('id', $id)
-            ->where('tenant_id', $user->tenant->id)
-            ->with(['child.guardian', 'tenant', 'intervals' => function($query) {
+            ->where('location_id', $user->location->id)
+            ->with(['child.guardian', 'location', 'intervals' => function($query) {
                 $query->orderBy('started_at', 'asc');
             }])
             ->first();
@@ -128,11 +120,6 @@ class SessionsController extends Controller
         }
 
         $hasProducts = $session->getProductsTotalPrice() > 0;
-
-        // Pentru sesiuni Birthday/Jungle permitem bon doar dacă există produse (timpul rămâne 0)
-        if (($session->is_birthday || $session->is_jungle) && !$hasProducts) {
-            abort(400, 'Nu se poate printa bon pentru sesiuni de tip Birthday sau Jungle fără produse');
-        }
 
         // Ensure price is calculated
         if (!$session->calculated_price) {
@@ -167,15 +154,15 @@ class SessionsController extends Controller
             'voucherHours' => 'nullable|numeric|min:0',
         ]);
 
-        // For SUPER_ADMIN, can access any session (tenant comes from session)
-        // For other roles, restrict to their tenant
+        // For SUPER_ADMIN, can access any session (location comes from session)
+        // For other roles, restrict to their location
         $sessionQuery = PlaySession::where('id', $id);
         
-        if (!$user->isSuperAdmin() && $user->tenant) {
-            $sessionQuery->where('tenant_id', $user->tenant->id);
+        if (!$user->isSuperAdmin() && $user->location) {
+            $sessionQuery->where('location_id', $user->location->id);
         }
         
-        $session = $sessionQuery->with(['products.product', 'tenant'])->first();
+        $session = $sessionQuery->with(['products.product', 'location'])->first();
 
         if (!$session) {
             return response()->json([
@@ -193,14 +180,6 @@ class SessionsController extends Controller
 
         $hasProducts = $session->getProductsTotalPrice() > 0;
 
-        // Pentru Birthday/Jungle permitem bon doar dacă există produse (timpul rămâne 0)
-        if (($session->is_birthday || $session->is_jungle) && !$hasProducts) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Nu se poate printa bon pentru sesiuni de tip Birthday sau Jungle fără produse'
-            ], 400);
-        }
-
         if ($session->isPaid()) {
             return response()->json([
                 'success' => false,
@@ -214,13 +193,9 @@ class SessionsController extends Controller
             $session->refresh();
         }
 
-        $isFreeSession = $session->is_birthday || $session->is_jungle;
-
-        // Get voucher hours from request (ignored for free sessions)
+        // Get voucher hours from request
         $voucherHours = $request->input('voucherHours', 0);
-        if ($isFreeSession) {
-            $voucherHours = 0;
-        } elseif ($voucherHours > 0) {
+        if ($voucherHours > 0) {
             $voucherHours = (float) $voucherHours;
         } else {
             $voucherHours = 0;
@@ -250,19 +225,19 @@ class SessionsController extends Controller
         }
 
         // Get price per hour (use the one saved at calculation time, or calculate current rate)
-        $pricePerHour = $isFreeSession ? 0 : ($session->price_per_hour_at_calculation ?? $pricingService->getHourlyRate($session->tenant, $session->started_at));
+        $pricePerHour = $session->price_per_hour_at_calculation ?? $pricingService->getHourlyRate($session->location, $session->started_at);
         
         // Calculate voucher price
         $voucherPrice = $voucherHours * $pricePerHour;
 
         // Get prices separately
-        $timePrice = $isFreeSession ? 0 : ($session->calculated_price ?? $session->calculatePrice());
+        $timePrice = $session->calculated_price ?? $session->calculatePrice();
         $productsPrice = $session->getProductsTotalPrice();
         $totalPrice = $timePrice + $productsPrice;
 
         // Voucher applies ONLY to time, not to products
         // Calculate final time price after voucher discount
-        $finalTimePrice = $isFreeSession ? 0 : max(0, $timePrice - $voucherPrice);
+        $finalTimePrice = max(0, $timePrice - $voucherPrice);
         
         // Final total price = final time price + products price (products are never discounted by voucher)
         $finalPrice = $finalTimePrice + $productsPrice;
@@ -271,8 +246,8 @@ class SessionsController extends Controller
         // If there are products, we still need a receipt even if time is fully covered
         $noReceiptNeeded = ($finalTimePrice <= 0 && $productsPrice <= 0);
 
-        // Calculate billed hours (total hours minus voucher hours). For free sessions, time is not billed.
-        $billedHours = $isFreeSession ? 0 : max(0, $roundedHours - $voucherHours);
+        // Calculate billed hours (total hours minus voucher hours)
+        $billedHours = max(0, $roundedHours - $voucherHours);
         
         // Format rounded duration
         $roundedHoursInt = floor($roundedHours);
@@ -325,8 +300,8 @@ class SessionsController extends Controller
             ];
         })->values();
 
-        // Get tenant name
-        $tenantName = $session->tenant->name ?? 'Loc de Joacă';
+        // Get location name
+        $locationName = $session->location->name ?? 'Loc de Joacă';
 
         // Product name
         $productName = 'Ora de joacă';
@@ -371,7 +346,7 @@ class SessionsController extends Controller
                 'price' => max(0, $finalPrice),
             ],
             'receipt' => [
-                'tenantName' => $tenantName,
+                'locationName' => $locationName,
                 'timePrice' => (float) $timePrice,
                 'finalTimePrice' => (float) $finalTimePrice,
                 'billedTimePrice' => (float) $finalTimePrice, // Use finalTimePrice for display
@@ -417,10 +392,10 @@ class SessionsController extends Controller
         
         // Load all sessions
         $sessionQuery = PlaySession::whereIn('id', $sessionIds)
-            ->with(['products.product', 'tenant', 'child']);
+            ->with(['products.product', 'location', 'child']);
         
-        if (!$user->isSuperAdmin() && $user->tenant) {
-            $sessionQuery->where('tenant_id', $user->tenant->id);
+        if (!$user->isSuperAdmin() && $user->location) {
+            $sessionQuery->where('location_id', $user->location->id);
         }
         
         $sessions = $sessionQuery->get();
@@ -439,15 +414,15 @@ class SessionsController extends Controller
             ], 400);
         }
 
-        // Validate all sessions are from the same tenant
-        $tenantIds = $sessions->pluck('tenant_id')->unique();
-        if ($tenantIds->count() > 1) {
+        // Validate all sessions are from the same location
+        $locationIds = $sessions->pluck('location_id')->unique();
+        if ($locationIds->count() > 1) {
             return response()->json([
                 'success' => false,
-                'message' => 'Toate sesiunile trebuie să fie din același tenant'
+                'message' => 'Toate sesiunile trebuie să fie din aceeași locație'
             ], 400);
         }
-        $tenant = $sessions->first()->tenant;
+        $location = $sessions->first()->location;
 
         // Validate all sessions are ended, unpaid, and not Birthday/Jungle
         foreach ($sessions as $session) {
@@ -458,12 +433,6 @@ class SessionsController extends Controller
                 ], 400);
             }
 
-            if ($session->is_birthday || $session->is_jungle) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Nu se pot combina sesiuni de tip Birthday sau Jungle'
-                ], 400);
-            }
 
             if ($session->isPaid()) {
                 return response()->json([
@@ -506,7 +475,7 @@ class SessionsController extends Controller
             $totalRoundedHours += $roundedHours;
 
             // Get price per hour for this session
-            $pricePerHour = $session->price_per_hour_at_calculation ?? $pricingService->getHourlyRate($session->tenant, $session->started_at);
+            $pricePerHour = $session->price_per_hour_at_calculation ?? $pricingService->getHourlyRate($session->location, $session->started_at);
             
             // Get time price
             $timePrice = $session->calculated_price ?? $session->calculatePrice();
@@ -678,8 +647,8 @@ class SessionsController extends Controller
         }
         $durationBilled = $this->formatDuration($billedHoursInt, $billedMinutes);
 
-        // Get tenant name
-        $tenantName = $tenant->name ?? 'Loc de Joacă';
+        // Get location name
+        $locationName = $location->name ?? 'Loc de Joacă';
 
         // Return data for client-side bridge call
         return response()->json([
@@ -693,7 +662,7 @@ class SessionsController extends Controller
                 'price' => max(0, $finalPrice),
             ],
             'receipt' => [
-                'tenantName' => $tenantName,
+                'locationName' => $locationName,
                 'timePrice' => (float) $totalTimePrice,
                 'finalTimePrice' => (float) $finalTimePrice,
                 'billedTimePrice' => (float) $finalTimePrice,
@@ -750,7 +719,7 @@ class SessionsController extends Controller
             $log = \App\Models\FiscalReceiptLog::create([
                 'type' => 'session',
                 'play_session_id' => $request->play_session_id,
-                'tenant_id' => $playSession->tenant_id,
+                'location_id' => $playSession->location_id,
                 'filename' => $request->filename,
                 'status' => $request->status,
                 'error_message' => $request->error_message,
@@ -824,7 +793,7 @@ class SessionsController extends Controller
         try {
             $sessionIds = $request->input('play_session_ids');
             
-            // Load all sessions to get tenant_id
+            // Load all sessions to get location_id
             $sessions = PlaySession::whereIn('id', $sessionIds)->get();
             
             if ($sessions->count() !== count($sessionIds)) {
@@ -834,16 +803,16 @@ class SessionsController extends Controller
                 ], 404);
             }
 
-            // Validate all sessions are from the same tenant
-            $tenantIds = $sessions->pluck('tenant_id')->unique();
-            if ($tenantIds->count() > 1) {
+            // Validate all sessions are from the same location
+            $locationIds = $sessions->pluck('location_id')->unique();
+            if ($locationIds->count() > 1) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Toate sesiunile trebuie să fie din același tenant'
+                    'message' => 'Toate sesiunile trebuie să fie din aceeași locație'
                 ], 400);
             }
             
-            $tenantId = $sessions->first()->tenant_id;
+            $locationId = $sessions->first()->location_id;
             
             $voucherHours = $request->input('voucher_hours', null);
             if ($voucherHours !== null) {
@@ -855,7 +824,7 @@ class SessionsController extends Controller
                 'type' => 'session',
                 'play_session_id' => null, // NULL for combined receipts
                 'play_session_ids' => $sessionIds, // Array of session IDs
-                'tenant_id' => $tenantId,
+                'location_id' => $locationId,
                 'filename' => $request->filename,
                 'status' => $request->status,
                 'error_message' => $request->error_message,
@@ -922,12 +891,12 @@ class SessionsController extends Controller
             'voucher_hours' => 'required|numeric|min:0',
         ]);
 
-        // For SUPER_ADMIN, can access any session (tenant comes from session)
-        // For other roles, restrict to their tenant
+        // For SUPER_ADMIN, can access any session (location comes from session)
+        // For other roles, restrict to their location
         $sessionQuery = PlaySession::where('id', $id);
         
-        if (!$user->isSuperAdmin() && $user->tenant) {
-            $sessionQuery->where('tenant_id', $user->tenant->id);
+        if (!$user->isSuperAdmin() && $user->location) {
+            $sessionQuery->where('location_id', $user->location->id);
         }
         
         $session = $sessionQuery->first();
@@ -978,148 +947,6 @@ class SessionsController extends Controller
         ]);
     }
 
-    /**
-     * Update session birthday status
-     */
-    public function updateBirthdayStatus($id, Request $request)
-    {
-        $user = Auth::user();
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Neautentificat'
-            ], 401);
-        }
-
-        $request->validate([
-            'is_birthday' => 'required|boolean',
-        ]);
-
-        // For SUPER_ADMIN, can access any session (tenant comes from session)
-        // For other roles, restrict to their tenant
-        $sessionQuery = PlaySession::where('id', $id);
-        
-        if (!$user->isSuperAdmin() && $user->tenant) {
-            $sessionQuery->where('tenant_id', $user->tenant->id);
-        }
-        
-        $session = $sessionQuery->first();
-
-        if (!$session) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Sesiunea nu a fost găsită'
-            ], 404);
-        }
-
-        // Prevent modification if session is already paid
-        if ($session->isPaid()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Nu se poate modifica statusul Birthday pentru o sesiune deja plătită'
-            ], 400);
-        }
-
-        $session->update([
-            'is_birthday' => $request->is_birthday,
-        ]);
-
-        // Recalculate price if session is ended
-        if ($session->ended_at) {
-            $session->saveCalculatedPrice();
-            $session->refresh();
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => $request->is_birthday ? 'Sesiunea a fost marcată ca Birthday' : 'Sesiunea nu mai este marcată ca Birthday',
-            'session' => [
-                'id' => $session->id,
-                'is_birthday' => $session->is_birthday,
-                'calculated_price' => $session->calculated_price,
-                'formatted_price' => $session->getFormattedPrice(),
-            ],
-        ]);
-    }
-
-    /**
-     * Update session jungle status
-     */
-    public function updateJungleStatus($id, Request $request)
-    {
-        $user = Auth::user();
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Neautentificat'
-            ], 401);
-        }
-
-        $request->validate([
-            'is_jungle' => 'required|boolean',
-        ]);
-
-        // For SUPER_ADMIN, can access any session (tenant comes from session)
-        // For other roles, restrict to their tenant
-        $sessionQuery = PlaySession::where('id', $id);
-        
-        if (!$user->isSuperAdmin() && $user->tenant) {
-            $sessionQuery->where('tenant_id', $user->tenant->id);
-        }
-        
-        $session = $sessionQuery->first();
-
-        if (!$session) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Sesiunea nu a fost găsită'
-            ], 404);
-        }
-
-        // Prevent modification if session is already paid
-        if ($session->isPaid()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Nu se poate modifica statusul Jungle pentru o sesiune deja plătită'
-            ], 400);
-        }
-
-        // Validate Jungle session is allowed on session date
-        if ($request->is_jungle) {
-            $pricingService = app(\App\Services\PricingService::class);
-            $sessionDate = $session->started_at ? $session->started_at : now();
-            if (!$pricingService->isJungleSessionAllowed($session->tenant, $sessionDate)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Sesiunile Jungle nu sunt permise în ziua sesiunii. Te rog verifică configurarea zilelor disponibile.'
-                ], 400);
-            }
-        }
-
-        $session->update([
-            'is_jungle' => $request->is_jungle,
-            // Ensure mutual exclusivity: if setting jungle, unset birthday
-            'is_birthday' => $request->is_jungle ? false : $session->is_birthday,
-        ]);
-
-        // Recalculate price if session is ended
-        if ($session->ended_at) {
-            $session->saveCalculatedPrice();
-            $session->refresh();
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => $request->is_jungle ? 'Sesiunea a fost marcată ca Jungle' : 'Sesiunea nu mai este marcată ca Jungle',
-            'session' => [
-                'id' => $session->id,
-                'is_jungle' => $session->is_jungle,
-                'is_birthday' => $session->is_birthday,
-                'calculated_price' => $session->calculated_price,
-                'formatted_price' => $session->getFormattedPrice(),
-            ],
-        ]);
-    }
 
     /**
      * Restart a stopped session (Super Admin only)

@@ -73,42 +73,6 @@ class TenantConfiguration extends Model
         );
     }
 
-    /**
-     * Get jungle session days configuration for a tenant
-     * Returns array of day numbers (0=Luni, 1=Marți, ..., 6=Duminică)
-     * 
-     * @param int|null $tenantId
-     * @return array
-     */
-    public static function getJungleSessionDays(?int $tenantId): array
-    {
-        $days = self::getForTenant($tenantId, 'jungle_session_days', []);
-        
-        // Ensure it's an array
-        if (!is_array($days)) {
-            return [];
-        }
-
-        return $days;
-    }
-
-    /**
-     * Set jungle session days configuration for a tenant
-     * 
-     * @param int|null $tenantId
-     * @param array $days Array of day numbers (0=Luni, 1=Marți, ..., 6=Duminică)
-     * @return self
-     */
-    public static function setJungleSessionDays(?int $tenantId, array $days): self
-    {
-        return self::setForTenant(
-            $tenantId,
-            'jungle_session_days',
-            $days,
-            'array',
-            'Zilele săptămânii când sunt permise sesiunile Jungle (0=Luni, 6=Duminică)'
-        );
-    }
 
     /**
      * Get pause warning threshold in minutes for a tenant

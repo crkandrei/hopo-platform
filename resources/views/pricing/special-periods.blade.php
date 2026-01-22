@@ -10,9 +10,9 @@
         <div class="flex justify-between items-center">
             <div>
                 <h1 class="text-3xl font-bold text-gray-900 mb-2">Perioade Speciale 🎉</h1>
-                <p class="text-gray-600 text-lg">Gestionați tarife pentru perioade speciale (ex. ziua de deschidere) pentru <strong>{{ $tenant->name }}</strong></p>
+                <p class="text-gray-600 text-lg">Gestionați tarife pentru perioade speciale (ex. ziua de deschidere) pentru <strong>{{ $location->name }}</strong></p>
             </div>
-            <a href="{{ route('pricing.index') }}{{ Auth::user()->isSuperAdmin() ? '?tenant_id=' . $tenant->id : '' }}" 
+            <a href="{{ route('pricing.index') }}{{ Auth::user()->isSuperAdmin() ? '?location_id=' . $location->id : '' }}" 
                class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-all duration-200 font-medium flex items-center shadow-md">
                 <i class="fas fa-arrow-left mr-2"></i>
                 Înapoi
@@ -38,7 +38,7 @@
 
         <form method="POST" action="{{ route('pricing.special-periods.store') }}">
             @csrf
-            <input type="hidden" name="tenant_id" value="{{ $tenant->id }}">
+            <input type="hidden" name="location_id" value="{{ $location->id }}">
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>

@@ -47,25 +47,6 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
-                <!-- Birth Date -->
-                <div>
-                    <label for="birth_date" class="block text-sm font-medium text-gray-700 mb-2">
-                        Data nașterii <span class="text-red-500">*</span>
-                    </label>
-                    <input type="date"
-                           id="birth_date"
-                           name="birth_date"
-                           value="{{ old('birth_date') }}"
-                           min="{{ \Carbon\Carbon::now()->subYears(18)->format('Y-m-d') }}"
-                           max="{{ \Carbon\Carbon::now()->subDay()->format('Y-m-d') }}"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 @error('birth_date') border-red-500 @enderror"
-                           required>
-                    @error('birth_date')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                    <p class="mt-1 text-sm text-gray-500">Data trebuie să fie în trecut și copilul să aibă maximum 18 ani</p>
-                </div>
-
                 <!-- Guardian Selection -->
                 <div>
                     <label for="guardian_id" class="block text-sm font-medium text-gray-700 mb-2">
@@ -185,73 +166,6 @@
         return counter;
     }
 
-    // Strict birth date validation - only when date is complete
-    const birthDateInput = document.getElementById('birth_date');
-    if (birthDateInput) {
-        function validateBirthDate(input) {
-            const value = input.value.trim();
-            
-            // Don't validate if input is empty or incomplete
-            if (!value) return true;
-            
-            // Check if date is in complete format (YYYY-MM-DD)
-            const datePattern = /^\d{4}-\d{2}-\d{2}$/;
-            if (!datePattern.test(value)) {
-                return true; // Not complete yet, don't validate
-            }
-            
-            const selectedDate = new Date(value);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            const maxDate = new Date();
-            maxDate.setHours(0, 0, 0, 0);
-            maxDate.setDate(maxDate.getDate() - 1); // Yesterday
-            
-            const minDate = new Date();
-            minDate.setFullYear(minDate.getFullYear() - 18); // 18 years ago
-            
-            // Check if date is valid
-            if (isNaN(selectedDate.getTime())) {
-                alert('Data introdusă nu este validă. Te rog verifică formatul datei.');
-                input.value = '';
-                input.focus();
-                return false;
-            }
-            
-            if (selectedDate > maxDate) {
-                alert('Data nașterii nu poate fi în viitor sau astăzi.');
-                input.value = '';
-                input.focus();
-                return false;
-            }
-            
-            if (selectedDate < minDate) {
-                alert('Data nașterii indică un copil mai mare de 18 ani. Te rog verifică data introdusă.');
-                input.value = '';
-                input.focus();
-                return false;
-            }
-            
-            return true;
-        }
-
-        // Validate only on blur (when user finishes entering)
-        birthDateInput.addEventListener('blur', function(e) {
-            validateBirthDate(e.target);
-        });
-
-        // Also validate on form submit
-        const form = birthDateInput.closest('form');
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                if (!validateBirthDate(birthDateInput)) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-            });
-        }
-    }
 </script>
 @endsection
 

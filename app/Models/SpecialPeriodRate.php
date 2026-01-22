@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToLocation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SpecialPeriodRate extends Model
 {
+    use BelongsToLocation;
     protected $fillable = [
-        'tenant_id',
+        'location_id',
         'name',
         'start_date',
         'end_date',
@@ -21,13 +23,6 @@ class SpecialPeriodRate extends Model
         'hourly_rate' => 'decimal:2',
     ];
 
-    /**
-     * Get the tenant that owns the special period rate.
-     */
-    public function tenant(): BelongsTo
-    {
-        return $this->belongsTo(Tenant::class);
-    }
 
     /**
      * Check if a date falls within this special period

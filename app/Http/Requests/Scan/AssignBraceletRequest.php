@@ -17,18 +17,10 @@ class AssignBraceletRequest extends FormRequest
             'bracelet_code' => [
                 'required',
                 'string',
-                'regex:/^BONGO\d{4,5}$/',
+                'min:1',
+                'max:50',
             ],
             'child_id' => ['required', 'exists:children,id'],
-            'is_birthday' => ['nullable', 'boolean'],
-            'is_jungle' => ['nullable', 'boolean'],
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'bracelet_code.regex' => 'Cod invalid. Format așteptat: BONGO urmat de 4 sau 5 cifre (ex: BONGO1234)',
         ];
     }
 

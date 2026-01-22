@@ -38,7 +38,7 @@ class GeneralReportController extends Controller
     public function data(Request $request)
     {
         $user = Auth::user();
-        if (!$user || !$user->tenant) {
+        if (!$user || !$user->location) {
             return ApiResponder::error('Neautentificat', 401);
         }
         
@@ -46,7 +46,7 @@ class GeneralReportController extends Controller
             return ApiResponder::error('Acces interzis', 403);
         }
         
-        $tenantId = $user->tenant->id;
+        $locationId = $user->location->id;
         
         // Parse date range
         $startDate = $request->input('start');
@@ -60,7 +60,7 @@ class GeneralReportController extends Controller
         }
         
         // Get all completed sessions in range
-        $sessions = PlaySession::where('tenant_id', $tenantId)
+        $sessions = PlaySession::where('location_id', $locationId)
             ->whereNotNull('ended_at')
             ->where('started_at', '>=', $start)
             ->where('started_at', '<=', $end)
@@ -76,12 +76,10 @@ class GeneralReportController extends Controller
         
         // Session breakdown
         $totalSessions = $sessions->count();
-        $birthdaySessions = $sessions->where('is_birthday', true)->count();
-        $jungleSessions = $sessions->where('is_jungle', true)->count();
-        $normalSessions = $totalSessions - $birthdaySessions - $jungleSessions;
+        $normalSessions = $totalSessions;
         
-        // Sales breakdown - only paid sessions (exclude birthday)
-        $paidSessions = $sessions->filter(fn($s) => $s->isPaid() && !$s->is_birthday);
+        // Sales breakdown - only paid sessions
+        $paidSessions = $sessions->filter(fn($s) => $s->isPaid());
         
         $cashTotal = 0;
         $cardTotal = 0;
@@ -156,8 +154,6 @@ class GeneralReportController extends Controller
             ],
             'sessions' => [
                 'total' => $totalSessions,
-                'birthday' => $birthdaySessions,
-                'jungle' => $jungleSessions,
                 'normal' => $normalSessions,
             ],
             'products' => [

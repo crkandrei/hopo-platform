@@ -17,16 +17,15 @@ class LookupBraceletRequest extends FormRequest
             'code' => [
                 'required',
                 'string',
-                'regex:/^BONGO\d{4,5}$/',
+                'min:1',
+                'max:50',
             ],
         ];
     }
 
     public function messages(): array
     {
-        return [
-            'code.regex' => 'Cod invalid. Format așteptat: BONGO urmat de 4 sau 5 cifre (ex: BONGO1234)',
-        ];
+        return [];
     }
 
     protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)

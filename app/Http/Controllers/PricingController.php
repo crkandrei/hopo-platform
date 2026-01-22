@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Tenant;
+use App\Models\Location;
 use App\Models\WeeklyRate;
 use App\Models\SpecialPeriodRate;
 use Illuminate\Http\Request;
@@ -25,38 +25,58 @@ class PricingController extends Controller
     }
 
     /**
-     * Get the tenant ID for the current user
-     * SUPER_ADMIN can select any tenant, COMPANY_ADMIN uses their own tenant
+     * Get the location ID for the current user
+     * SUPER_ADMIN can select any location, COMPANY_ADMIN uses locations from their company, STAFF uses their location
      */
-    private function getTenantIdForUser($requestTenantId = null)
+    private function getLocationIdForUser($requestLocationId = null)
     {
         $user = Auth::user();
         
         if ($user->isSuperAdmin()) {
-            // Super admin can select any tenant
-            return $requestTenantId;
-        } elseif ($user->isCompanyAdmin()) {
-            // Company admin can only use their own tenant
-            return $user->tenant_id;
+            // Super admin can select any location
+            return $requestLocationId;
+        } elseif ($user->isCompanyAdmin() && $user->company_id) {
+            // Company admin can use locations from their company
+            if ($requestLocationId) {
+                // Verify location belongs to company
+                $location = Location::where('id', $requestLocationId)
+                    ->where('company_id', $user->company_id)
+                    ->first();
+                return $location ? $location->id : null;
+            }
+            // Return first location from company if no specific location requested
+            $firstLocation = Location::where('company_id', $user->company_id)->first();
+            return $firstLocation ? $firstLocation->id : null;
+        } elseif ($user->isStaff()) {
+            // Staff can only use their own location
+            return $user->location_id;
         }
         
         return null;
     }
 
     /**
-     * Ensure user can only access their own tenant's pricing
+     * Ensure user can only access their own location's pricing
      */
-    private function ensureTenantAccess($tenantId)
+    private function ensureLocationAccess($locationId)
     {
         $user = Auth::user();
         
         if ($user->isSuperAdmin()) {
-            // Super admin can access any tenant
+            // Super admin can access any location
             return;
         }
         
-        if ($user->isCompanyAdmin() && $user->tenant_id != $tenantId) {
-            abort(403, 'Nu aveți acces la acest tenant');
+        if ($user->isCompanyAdmin()) {
+            $location = Location::find($locationId);
+            if (!$location || $location->company_id != $user->company_id) {
+                abort(403, 'Nu aveți acces la această locație');
+            }
+            return;
+        }
+        
+        if ($user->isStaff() && $user->location_id != $locationId) {
+            abort(403, 'Nu aveți acces la această locație');
         }
     }
 
@@ -68,28 +88,31 @@ class PricingController extends Controller
         $this->checkPricingAccess();
 
         $user = Auth::user();
-        $tenantId = $this->getTenantIdForUser($request->get('tenant_id'));
+        $locationId = $this->getLocationIdForUser($request->get('location_id'));
 
-        // For SUPER_ADMIN: show tenant selector
-        // For COMPANY_ADMIN: automatically use their tenant
-        $tenants = null;
-        $selectedTenant = null;
+        // For SUPER_ADMIN: show location selector
+        // For COMPANY_ADMIN: show locations from their company
+        // For STAFF: automatically use their location
+        $locations = null;
+        $selectedLocation = null;
 
         if ($user->isSuperAdmin()) {
-            $tenants = Tenant::orderBy('name')->get();
-            if ($tenantId) {
-                $selectedTenant = Tenant::with(['weeklyRates', 'specialPeriodRates'])->findOrFail($tenantId);
-            } elseif ($tenants->count() > 0) {
-                $selectedTenant = Tenant::with(['weeklyRates', 'specialPeriodRates'])->find($tenants->first()->id);
+            $locations = Location::with('company')->orderBy('name')->get();
+        } elseif ($user->isCompanyAdmin() && $user->company_id) {
+            $locations = Location::where('company_id', $user->company_id)->orderBy('name')->get();
+            if ($locationId) {
+                $selectedLocation = Location::with(['weeklyRates', 'specialPeriodRates'])->findOrFail($locationId);
+            } elseif ($locations->count() > 0) {
+                $selectedLocation = Location::with(['weeklyRates', 'specialPeriodRates'])->find($locations->first()->id);
             }
-        } elseif ($user->isCompanyAdmin() && $user->tenant_id) {
-            // Company admin: automatically use their tenant
-            $selectedTenant = Tenant::with(['weeklyRates', 'specialPeriodRates'])->findOrFail($user->tenant_id);
+        } elseif ($user->isStaff() && $user->location_id) {
+            // Staff: automatically use their location
+            $selectedLocation = Location::with(['weeklyRates', 'specialPeriodRates'])->findOrFail($user->location_id);
         }
 
         return view('pricing.index', [
-            'tenants' => $tenants,
-            'selectedTenant' => $selectedTenant,
+            'locations' => $locations,
+            'selectedLocation' => $selectedLocation,
             'isSuperAdmin' => $user->isSuperAdmin(),
         ]);
     }
@@ -101,23 +124,23 @@ class PricingController extends Controller
     {
         $this->checkPricingAccess();
 
-        $tenantId = $this->getTenantIdForUser($request->get('tenant_id'));
-        if (!$tenantId) {
+        $locationId = $this->getLocationIdForUser($request->get('location_id'));
+        if (!$locationId) {
             return redirect()->route('pricing.index')
-                ->with('error', 'Selectați un tenant');
+                ->with('error', 'Selectați o locație');
         }
 
-        $tenant = Tenant::with('weeklyRates')->findOrFail($tenantId);
-        $this->ensureTenantAccess($tenant->id);
+        $location = Location::with('weeklyRates')->findOrFail($locationId);
+        $this->ensureLocationAccess($location->id);
         
         // Get existing rates indexed by day_of_week
         $weeklyRates = [];
-        foreach ($tenant->weeklyRates as $rate) {
+        foreach ($location->weeklyRates as $rate) {
             $weeklyRates[$rate->day_of_week] = $rate->hourly_rate;
         }
 
         return view('pricing.weekly-rates', [
-            'tenant' => $tenant,
+            'location' => $location,
             'weeklyRates' => $weeklyRates,
         ]);
     }
@@ -129,10 +152,10 @@ class PricingController extends Controller
     {
         $this->checkPricingAccess();
 
-        $tenantId = $this->getTenantIdForUser($request->tenant_id);
-        if (!$tenantId) {
+        $locationId = $this->getLocationIdForUser($request->location_id);
+        if (!$locationId) {
             return redirect()->route('pricing.index')
-                ->with('error', 'Tenant invalid');
+                ->with('error', 'Locație invalidă');
         }
 
         $request->validate([
@@ -140,17 +163,17 @@ class PricingController extends Controller
             'rates.*' => 'required|numeric|min:0',
         ]);
 
-        $tenant = Tenant::findOrFail($tenantId);
-        $this->ensureTenantAccess($tenant->id);
+        $location = Location::findOrFail($locationId);
+        $this->ensureLocationAccess($location->id);
 
-        DB::transaction(function () use ($tenant, $request) {
+        DB::transaction(function () use ($location, $request) {
             // Update or create rates for each day
             for ($day = 0; $day <= 6; $day++) {
                 $rate = $request->rates[$day] ?? null;
                 if ($rate !== null) {
                     WeeklyRate::updateOrCreate(
                         [
-                            'tenant_id' => $tenant->id,
+                            'location_id' => $location->id,
                             'day_of_week' => $day,
                         ],
                         [
@@ -159,7 +182,7 @@ class PricingController extends Controller
                     );
                 } else {
                     // Remove rate if not provided
-                    WeeklyRate::where('tenant_id', $tenant->id)
+                    WeeklyRate::where('location_id', $location->id)
                         ->where('day_of_week', $day)
                         ->delete();
                 }
@@ -168,73 +191,13 @@ class PricingController extends Controller
 
         $redirectParams = [];
         if (Auth::user()->isSuperAdmin()) {
-            $redirectParams['tenant_id'] = $tenant->id;
+            $redirectParams['location_id'] = $location->id;
         }
 
         return redirect()->route('pricing.index', $redirectParams)
             ->with('success', 'Tarifele săptămânale au fost actualizate cu succes');
     }
 
-    /**
-     * Show jungle session days configuration
-     */
-    public function showJungleSessionDays(Request $request)
-    {
-        $this->checkPricingAccess();
-
-        $tenantId = $this->getTenantIdForUser($request->get('tenant_id'));
-        if (!$tenantId) {
-            return redirect()->route('pricing.index')
-                ->with('error', 'Selectați un tenant');
-        }
-
-        $tenant = Tenant::findOrFail($tenantId);
-        $this->ensureTenantAccess($tenant->id);
-        
-        // Get existing jungle session days from configuration
-        $jungleSessionDays = \App\Models\TenantConfiguration::getJungleSessionDays($tenant->id);
-
-        return view('pricing.jungle-session-days', [
-            'tenant' => $tenant,
-            'jungleSessionDays' => $jungleSessionDays,
-        ]);
-    }
-
-    /**
-     * Update jungle session days configuration
-     */
-    public function updateJungleSessionDays(Request $request)
-    {
-        $this->checkPricingAccess();
-
-        $tenantId = $this->getTenantIdForUser($request->tenant_id);
-        if (!$tenantId) {
-            return redirect()->route('pricing.index')
-                ->with('error', 'Tenant invalid');
-        }
-
-        $request->validate([
-            'days' => 'nullable|array',
-            'days.*' => 'integer|min:0|max:6',
-        ]);
-
-        $tenant = Tenant::findOrFail($tenantId);
-        $this->ensureTenantAccess($tenant->id);
-
-        // Get selected days (array of day numbers: 0=Luni, 1=Marți, ..., 6=Duminică)
-        $selectedDays = $request->days ?? [];
-
-        // Save configuration
-        \App\Models\TenantConfiguration::setJungleSessionDays($tenant->id, $selectedDays);
-
-        $redirectParams = [];
-        if (Auth::user()->isSuperAdmin()) {
-            $redirectParams['tenant_id'] = $tenant->id;
-        }
-
-        return redirect()->route('pricing.index', $redirectParams)
-            ->with('success', 'Zilele pentru sesiuni Jungle au fost actualizate cu succes');
-    }
 
     /**
      * List special periods
@@ -243,21 +206,21 @@ class PricingController extends Controller
     {
         $this->checkPricingAccess();
 
-        $tenantId = $this->getTenantIdForUser($request->get('tenant_id'));
-        if (!$tenantId) {
+        $locationId = $this->getLocationIdForUser($request->get('location_id'));
+        if (!$locationId) {
             return redirect()->route('pricing.index')
-                ->with('error', 'Selectați un tenant');
+                ->with('error', 'Selectați o locație');
         }
 
-        $tenant = Tenant::findOrFail($tenantId);
-        $this->ensureTenantAccess($tenant->id);
+        $location = Location::findOrFail($locationId);
+        $this->ensureLocationAccess($location->id);
         
-        $specialPeriods = SpecialPeriodRate::where('tenant_id', $tenantId)
+        $specialPeriods = SpecialPeriodRate::where('location_id', $locationId)
             ->orderBy('start_date', 'desc')
             ->get();
 
         return view('pricing.special-periods', [
-            'tenant' => $tenant,
+            'location' => $location,
             'specialPeriods' => $specialPeriods,
         ]);
     }
@@ -269,13 +232,13 @@ class PricingController extends Controller
     {
         $this->checkPricingAccess();
 
-        $tenantId = $this->getTenantIdForUser($request->tenant_id);
-        if (!$tenantId) {
+        $locationId = $this->getLocationIdForUser($request->location_id);
+        if (!$locationId) {
             return redirect()->route('pricing.index')
-                ->with('error', 'Tenant invalid');
+                ->with('error', 'Locație invalidă');
         }
 
-        $this->ensureTenantAccess($tenantId);
+        $this->ensureLocationAccess($locationId);
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -286,7 +249,7 @@ class PricingController extends Controller
 
         // Check for overlapping periods
         $overlap = $this->checkSpecialPeriodOverlap(
-            $tenantId,
+            $locationId,
             $request->start_date,
             $request->end_date
         );
@@ -298,7 +261,7 @@ class PricingController extends Controller
 
         try {
             SpecialPeriodRate::create([
-                'tenant_id' => $tenantId,
+                'location_id' => $locationId,
                 'name' => $request->name,
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,
@@ -307,7 +270,7 @@ class PricingController extends Controller
 
             $redirectParams = [];
             if (Auth::user()->isSuperAdmin()) {
-                $redirectParams['tenant_id'] = $tenantId;
+                $redirectParams['location_id'] = $locationId;
             }
 
             return redirect()->route('pricing.special-periods', $redirectParams)
@@ -326,7 +289,7 @@ class PricingController extends Controller
         $this->checkPricingAccess();
 
         $specialPeriod = SpecialPeriodRate::findOrFail($id);
-        $this->ensureTenantAccess($specialPeriod->tenant_id);
+        $this->ensureLocationAccess($specialPeriod->location_id);
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -337,7 +300,7 @@ class PricingController extends Controller
 
         // Check for overlapping periods (excluding current one)
         $overlap = $this->checkSpecialPeriodOverlap(
-            $specialPeriod->tenant_id,
+            $specialPeriod->location_id,
             $request->start_date,
             $request->end_date,
             $id
@@ -358,7 +321,7 @@ class PricingController extends Controller
 
             $redirectParams = [];
             if (Auth::user()->isSuperAdmin()) {
-                $redirectParams['tenant_id'] = $specialPeriod->tenant_id;
+                $redirectParams['location_id'] = $specialPeriod->location_id;
             }
 
             return redirect()->route('pricing.special-periods', $redirectParams)
@@ -378,14 +341,14 @@ class PricingController extends Controller
 
         try {
             $specialPeriod = SpecialPeriodRate::findOrFail($id);
-            $this->ensureTenantAccess($specialPeriod->tenant_id);
+            $this->ensureLocationAccess($specialPeriod->location_id);
             
-            $tenantId = $specialPeriod->tenant_id;
+            $locationId = $specialPeriod->location_id;
             $specialPeriod->delete();
 
             $redirectParams = [];
             if (Auth::user()->isSuperAdmin()) {
-                $redirectParams['tenant_id'] = $tenantId;
+                $redirectParams['location_id'] = $locationId;
             }
 
             return redirect()->route('pricing.special-periods', $redirectParams)
@@ -399,15 +362,15 @@ class PricingController extends Controller
     /**
      * Check if a date range overlaps with existing special periods
      * 
-     * @param int $tenantId
+     * @param int $locationId
      * @param string $startDate
      * @param string $endDate
      * @param int|null $excludeId Exclude this ID from check (for updates)
      * @return bool True if overlap exists
      */
-    private function checkSpecialPeriodOverlap($tenantId, $startDate, $endDate, $excludeId = null)
+    private function checkSpecialPeriodOverlap($locationId, $startDate, $endDate, $excludeId = null)
     {
-        $query = SpecialPeriodRate::where('tenant_id', $tenantId)
+        $query = SpecialPeriodRate::where('location_id', $locationId)
             ->where(function ($q) use ($startDate, $endDate) {
                 // Check if new period overlaps with existing periods
                 // Overlap exists if:

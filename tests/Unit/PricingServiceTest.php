@@ -3,7 +3,7 @@
 namespace Tests\Unit;
 
 use App\Models\PlaySession;
-use App\Models\Tenant;
+use App\Models\Location;
 use App\Services\PricingService;
 use Tests\TestCase;
 use Mockery;
@@ -119,12 +119,12 @@ class PricingServiceTest extends TestCase
      */
     public function test_calculate_session_price(): void
     {
-        $tenant = new Tenant();
-        $tenant->price_per_hour = 50.00;
+        $location = new Location();
+        $location->price_per_hour = 50.00;
 
         $session = Mockery::mock(PlaySession::class)->makePartial();
         $session->shouldAllowMockingProtectedMethods();
-        $session->tenant = $tenant;
+        $session->location = $location;
         $session->shouldReceive('getEffectiveDurationSeconds')
             ->andReturn(3600); // 1 oră exactă
 
@@ -139,12 +139,12 @@ class PricingServiceTest extends TestCase
      */
     public function test_calculate_session_price_one_hour_fifteen_minutes(): void
     {
-        $tenant = new Tenant();
-        $tenant->price_per_hour = 50.00;
+        $location = new Location();
+        $location->price_per_hour = 50.00;
 
         $session = Mockery::mock(PlaySession::class)->makePartial();
         $session->shouldAllowMockingProtectedMethods();
-        $session->tenant = $tenant;
+        $session->location = $location;
         $session->shouldReceive('getEffectiveDurationSeconds')
             ->andReturn(4500); // 1:15 = 75 minute = 4500 secunde
 
@@ -159,12 +159,12 @@ class PricingServiceTest extends TestCase
      */
     public function test_calculate_session_price_one_hour_ten_minutes(): void
     {
-        $tenant = new Tenant();
-        $tenant->price_per_hour = 50.00;
+        $location = new Location();
+        $location->price_per_hour = 50.00;
 
         $session = Mockery::mock(PlaySession::class)->makePartial();
         $session->shouldAllowMockingProtectedMethods();
-        $session->tenant = $tenant;
+        $session->location = $location;
         $session->shouldReceive('getEffectiveDurationSeconds')
             ->andReturn(4200); // 1:10 = 70 minute = 4200 secunde
 
@@ -179,12 +179,12 @@ class PricingServiceTest extends TestCase
      */
     public function test_calculate_session_price_one_hour_thirty_five_minutes(): void
     {
-        $tenant = new Tenant();
-        $tenant->price_per_hour = 50.00;
+        $location = new Location();
+        $location->price_per_hour = 50.00;
 
         $session = Mockery::mock(PlaySession::class)->makePartial();
         $session->shouldAllowMockingProtectedMethods();
-        $session->tenant = $tenant;
+        $session->location = $location;
         $session->shouldReceive('getEffectiveDurationSeconds')
             ->andReturn(5700); // 1:35 = 95 minute = 5700 secunde
 
@@ -197,11 +197,11 @@ class PricingServiceTest extends TestCase
     /**
      * Test că sesiunea fără tenant returnează preț 0
      */
-    public function test_session_without_tenant_returns_zero_price(): void
+    public function test_session_without_location_returns_zero_price(): void
     {
         $session = Mockery::mock(PlaySession::class)->makePartial();
         $session->shouldAllowMockingProtectedMethods();
-        $session->tenant = null;
+        $session->location = null;
 
         $price = $this->pricingService->calculateSessionPrice($session);
         
@@ -209,16 +209,16 @@ class PricingServiceTest extends TestCase
     }
 
     /**
-     * Test că sesiunea cu tenant fără preț returnează preț 0
+     * Test că sesiunea cu locație fără preț returnează preț 0
      */
-    public function test_session_with_tenant_without_price_returns_zero_price(): void
+    public function test_session_with_location_without_price_returns_zero_price(): void
     {
-        $tenant = new Tenant();
-        $tenant->price_per_hour = null;
+        $location = new Location();
+        $location->price_per_hour = null;
 
         $session = Mockery::mock(PlaySession::class)->makePartial();
         $session->shouldAllowMockingProtectedMethods();
-        $session->tenant = $tenant;
+        $session->location = $location;
 
         $price = $this->pricingService->calculateSessionPrice($session);
         
@@ -284,12 +284,12 @@ class PricingServiceTest extends TestCase
      */
     public function test_calculate_session_price_eight_hours(): void
     {
-        $tenant = new Tenant();
-        $tenant->price_per_hour = 40.00;
+        $location = new Location();
+        $location->price_per_hour = 40.00;
 
         $session = Mockery::mock(PlaySession::class)->makePartial();
         $session->shouldAllowMockingProtectedMethods();
-        $session->tenant = $tenant;
+        $session->location = $location;
         $session->shouldReceive('getEffectiveDurationSeconds')
             ->andReturn(28800); // 8 ore = 28800 secunde
 
@@ -304,12 +304,12 @@ class PricingServiceTest extends TestCase
      */
     public function test_calculate_session_price_two_hours_twenty_minutes(): void
     {
-        $tenant = new Tenant();
-        $tenant->price_per_hour = 40.00;
+        $location = new Location();
+        $location->price_per_hour = 40.00;
 
         $session = Mockery::mock(PlaySession::class)->makePartial();
         $session->shouldAllowMockingProtectedMethods();
-        $session->tenant = $tenant;
+        $session->location = $location;
         $session->shouldReceive('getEffectiveDurationSeconds')
             ->andReturn(8400); // 2h 20min = 8400 secunde
 

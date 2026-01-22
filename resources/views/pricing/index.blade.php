@@ -15,19 +15,37 @@
         </div>
     </div>
 
-    <!-- Tenant Selector (only for Super Admin) -->
-    @if($isSuperAdmin && $tenants)
+    <!-- Location Selector (only for Super Admin and Company Admin) -->
+    @if($isSuperAdmin && $locations)
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <form method="GET" action="{{ route('pricing.index') }}" class="flex items-end gap-4">
             <div class="flex-1">
-                <label for="tenant_id" class="block text-sm font-medium text-gray-700 mb-2">Selectați Tenant</label>
-                <select name="tenant_id" id="tenant_id" 
+                <label for="location_id" class="block text-sm font-medium text-gray-700 mb-2">Selectați Locație</label>
+                <select name="location_id" id="location_id" 
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         onchange="this.form.submit()">
-                    <option value="">-- Selectați tenant --</option>
-                    @foreach($tenants as $tenant)
-                        <option value="{{ $tenant->id }}" {{ request('tenant_id') == $tenant->id ? 'selected' : '' }}>
-                            {{ $tenant->name }}
+                    <option value="">-- Selectați locație --</option>
+                    @foreach($locations as $location)
+                        <option value="{{ $location->id }}" {{ request('location_id') == $location->id ? 'selected' : '' }}>
+                            {{ $location->name }}@if($location->company) ({{ $location->company->name }})@endif
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </form>
+    </div>
+    @elseif(!$isSuperAdmin && $locations && $locations->count() > 0)
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <form method="GET" action="{{ route('pricing.index') }}" class="flex items-end gap-4">
+            <div class="flex-1">
+                <label for="location_id" class="block text-sm font-medium text-gray-700 mb-2">Selectați Locație</label>
+                <select name="location_id" id="location_id" 
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        onchange="this.form.submit()">
+                    <option value="">-- Selectați locație --</option>
+                    @foreach($locations as $location)
+                        <option value="{{ $location->id }}" {{ request('location_id') == $location->id ? 'selected' : '' }}>
+                            {{ $location->name }}
                         </option>
                     @endforeach
                 </select>
@@ -36,7 +54,7 @@
     </div>
     @endif
 
-    @if($selectedTenant)
+    @if($selectedLocation)
     <!-- Tabs -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200">
         <div class="border-b border-gray-200">
@@ -55,13 +73,6 @@
                     <i class="fas fa-calendar-alt mr-2"></i>
                     Perioade Speciale
                 </a>
-                <a href="#jungle-session-days" 
-                   onclick="showTab('jungle-session-days'); return false;"
-                   class="tab-link flex-1 text-center py-4 px-6 border-b-2 font-medium text-sm transition-colors"
-                   id="tab-jungle-session-days">
-                    <i class="fas fa-tree mr-2"></i>
-                    Zile Jungle
-                </a>
             </nav>
         </div>
 
@@ -71,9 +82,9 @@
             <div id="content-weekly-rates" class="tab-content">
                 <div class="mb-4">
                     <h2 class="text-xl font-bold text-gray-900 mb-2">Tarife pe Zi a Săptămânii</h2>
-                    <p class="text-gray-600">Setați tarife diferite pentru fiecare zi a săptămânii pentru tenant-ul <strong>{{ $selectedTenant->name }}</strong></p>
+                    <p class="text-gray-600">Setați tarife diferite pentru fiecare zi a săptămânii pentru locația <strong>{{ $selectedLocation->name }}</strong></p>
                 </div>
-                <a href="{{ route('pricing.weekly-rates') }}{{ $isSuperAdmin ? '?tenant_id=' . $selectedTenant->id : '' }}" 
+                <a href="{{ route('pricing.weekly-rates') }}{{ $isSuperAdmin ? '?location_id=' . $selectedLocation->id : '' }}" 
                    class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
                     <i class="fas fa-edit mr-2"></i>
                     Editează Tarife Săptămânale
@@ -84,25 +95,12 @@
             <div id="content-special-periods" class="tab-content hidden">
                 <div class="mb-4">
                     <h2 class="text-xl font-bold text-gray-900 mb-2">Perioade Speciale</h2>
-                    <p class="text-gray-600">Gestionați tarife pentru perioade speciale (ex. ziua de deschidere) pentru tenant-ul <strong>{{ $selectedTenant->name }}</strong></p>
+                    <p class="text-gray-600">Gestionați tarife pentru perioade speciale (ex. ziua de deschidere) pentru locația <strong>{{ $selectedLocation->name }}</strong></p>
                 </div>
-                <a href="{{ route('pricing.special-periods') }}{{ $isSuperAdmin ? '?tenant_id=' . $selectedTenant->id : '' }}" 
+                <a href="{{ route('pricing.special-periods') }}{{ $isSuperAdmin ? '?location_id=' . $selectedLocation->id : '' }}" 
                    class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
                     <i class="fas fa-calendar-alt mr-2"></i>
                     Gestionare Perioade Speciale
-                </a>
-            </div>
-
-            <!-- Jungle Session Days Tab -->
-            <div id="content-jungle-session-days" class="tab-content hidden">
-                <div class="mb-4">
-                    <h2 class="text-xl font-bold text-gray-900 mb-2">Zile Sesiuni Jungle</h2>
-                    <p class="text-gray-600">Configurați zilele când sunt permise sesiunile Jungle pentru tenant-ul <strong>{{ $selectedTenant->name }}</strong></p>
-                </div>
-                <a href="{{ route('pricing.jungle-session-days') }}{{ $isSuperAdmin ? '?tenant_id=' . $selectedTenant->id : '' }}" 
-                   class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                    <i class="fas fa-tree mr-2"></i>
-                    Configurare Zile Jungle
                 </a>
             </div>
         </div>
@@ -112,16 +110,16 @@
         <i class="fas fa-info-circle text-gray-400 text-5xl mb-4"></i>
         <h3 class="text-lg font-medium text-gray-900 mb-2">
             @if($isSuperAdmin)
-                Selectați un tenant
+                Selectați o locație
             @else
-                Nu există tenant asociat
+                Nu există locație asociată
             @endif
         </h3>
         <p class="text-gray-600">
             @if($isSuperAdmin)
-                Selectați un tenant din lista de mai sus pentru a gestiona tarifele
+                Selectați o locație din lista de mai sus pentru a gestiona tarifele
             @else
-                Contactați administratorul pentru a vă asocia un tenant
+                Contactați administratorul pentru a vă asocia o locație
             @endif
         </p>
     </div>

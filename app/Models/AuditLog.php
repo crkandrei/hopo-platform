@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToLocation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AuditLog extends Model
 {
+    use BelongsToLocation;
     protected $fillable = [
-        'tenant_id',
+        'location_id',
         'user_id',
         'action',
         'entity_type',
@@ -24,13 +26,6 @@ class AuditLog extends Model
         'data_after' => 'array',
     ];
 
-    /**
-     * Get the tenant that owns the audit log.
-     */
-    public function tenant(): BelongsTo
-    {
-        return $this->belongsTo(Tenant::class);
-    }
 
     /**
      * Get the user that performed the action.

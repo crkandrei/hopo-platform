@@ -30,10 +30,10 @@ class EndOfDayController extends Controller
             abort(403, 'Trebuie să fiți autentificat');
         }
 
-        // Get tenant - super admin can see all, others see their tenant
-        $tenantId = null;
-        if (!$user->isSuperAdmin() && $user->tenant) {
-            $tenantId = $user->tenant->id;
+        // Get location - super admin can see all, others see their location
+        $locationId = null;
+        if (!$user->isSuperAdmin() && $user->location) {
+            $locationId = $user->location->id;
         }
 
         // Get selected date or default to today
@@ -52,16 +52,14 @@ class EndOfDayController extends Controller
         $sessionsQuery = PlaySession::where('started_at', '>=', $startOfDay)
             ->where('started_at', '<=', $endOfDay);
 
-        if ($tenantId) {
-            $sessionsQuery->where('tenant_id', $tenantId);
+        if ($locationId) {
+            $sessionsQuery->where('location_id', $locationId);
         }
 
         $sessionsToday = $sessionsQuery->get();
 
         // Calculate statistics
         $totalSessions = $sessionsToday->count();
-        $birthdaySessions = $sessionsToday->where('is_birthday', true)->count();
-        $jungleSessions = $sessionsToday->where('is_jungle', true)->count();
         
         // Calculate payment breakdown: cash, card, voucher
         $cashTotal = 0;
@@ -106,10 +104,9 @@ class EndOfDayController extends Controller
         $totalMoney = $cashTotal + $cardTotal + $voucherTotal;
 
         // Calculate total billed hours
-        // IMPORTANT: Jungle sessions ARE INCLUDED in billed hours (unlike Birthday which is excluded)
         $totalBilledHours = 0;
         foreach ($sessionsToday as $session) {
-            if ($session->ended_at && !$session->is_birthday) {
+            if ($session->ended_at) {
                 $durationInHours = $this->pricingService->getDurationInHours($session);
                 $roundedHours = $this->pricingService->roundToHalfHour($durationInHours);
                 $totalBilledHours += $roundedHours;
@@ -118,14 +115,12 @@ class EndOfDayController extends Controller
 
         return view('end-of-day.index', [
             'totalSessions' => $totalSessions,
-            'birthdaySessions' => $birthdaySessions,
-            'jungleSessions' => $jungleSessions,
             'totalMoney' => $totalMoney,
             'totalBilledHours' => $totalBilledHours,
             'cashTotal' => round($cashTotal, 2),
             'cardTotal' => round($cardTotal, 2),
             'voucherTotal' => round($voucherTotal, 2),
-            'tenantId' => $tenantId,
+            'locationId' => $locationId,
             'selectedDate' => $date->format('Y-m-d'),
             'selectedDateFormatted' => $date->format('d.m.Y'),
         ]);
@@ -141,10 +136,10 @@ class EndOfDayController extends Controller
             abort(403, 'Trebuie să fiți autentificat');
         }
 
-        // Get tenant - super admin can see all, others see their tenant
-        $tenantId = null;
-        if (!$user->isSuperAdmin() && $user->tenant) {
-            $tenantId = $user->tenant->id;
+        // Get location - super admin can see all, others see their location
+        $locationId = null;
+        if (!$user->isSuperAdmin() && $user->location) {
+            $locationId = $user->location->id;
         }
 
         // Get selected date or default to today
@@ -163,26 +158,18 @@ class EndOfDayController extends Controller
         $sessionsQuery = PlaySession::where('started_at', '>=', $startOfDay)
             ->where('started_at', '<=', $endOfDay);
 
-        if ($tenantId) {
-            $sessionsQuery->where('tenant_id', $tenantId);
+        if ($locationId) {
+            $sessionsQuery->where('location_id', $locationId);
         }
 
         $sessionsToday = $sessionsQuery->with('products.product')->get();
 
         // Calculate statistics
         $totalSessions = $sessionsToday->count();
-        $birthdaySessions = $sessionsToday->where('is_birthday', true)->count();
-        $jungleSessions = $sessionsToday->where('is_jungle', true)->count();
-        $regularSessions = $sessionsToday->where('is_birthday', false)->where('is_jungle', false)->count();
         
-        // Calculate total billed hours and totals by category
-        // IMPORTANT: Jungle sessions ARE INCLUDED in billed hours and reports (unlike Birthday which is excluded)
+        // Calculate total billed hours
         $totalBilledHours = 0;
-        $birthdayBilledHours = 0;
-        $jungleBilledHours = 0;
         $regularBilledHours = 0;
-        $birthdaySessionsTotal = 0;
-        $jungleSessionsTotal = 0;
         $regularSessionsTotal = 0;
         $totalVoucherHours = 0;
         
@@ -196,25 +183,11 @@ class EndOfDayController extends Controller
                     $totalVoucherHours += $session->voucher_hours;
                 }
                 
-                if ($session->is_birthday) {
-                    $birthdayBilledHours += $roundedHours;
-                    if ($session->calculated_price) {
-                        $birthdaySessionsTotal += $session->calculated_price;
-                    }
-                } elseif ($session->is_jungle) {
-                    $jungleBilledHours += $roundedHours;
-                    if ($session->calculated_price) {
-                        $jungleSessionsTotal += $session->calculated_price;
-                    }
-                    // Jungle sessions ARE INCLUDED in total billed hours
-                    $totalBilledHours += $roundedHours;
-                } else {
-                    $regularBilledHours += $roundedHours;
-                    if ($session->calculated_price) {
-                        $regularSessionsTotal += $session->calculated_price;
-                    }
-                    $totalBilledHours += $roundedHours;
+                $regularBilledHours += $roundedHours;
+                if ($session->calculated_price) {
+                    $regularSessionsTotal += $session->calculated_price;
                 }
+                $totalBilledHours += $roundedHours;
             }
         }
         
@@ -302,16 +275,10 @@ class EndOfDayController extends Controller
 
         return view('end-of-day.print-non-fiscal', [
             'totalSessions' => $totalSessions,
-            'birthdaySessions' => $birthdaySessions,
-            'jungleSessions' => $jungleSessions,
-            'regularSessions' => $regularSessions,
-            'birthdaySessionsTotal' => $birthdaySessionsTotal,
-            'jungleSessionsTotal' => $jungleSessionsTotal,
+            'regularSessions' => $totalSessions,
             'regularSessionsTotal' => $regularSessionsTotal,
             'totalSessionsValue' => $totalSessionsValue,
             'totalBilledHours' => $formatHours($totalBilledHours),
-            'birthdayBilledHours' => $formatHours($birthdayBilledHours),
-            'jungleBilledHours' => $formatHours($jungleBilledHours),
             'totalVoucherHours' => $formatHours($totalVoucherHours),
             'productsGrouped' => $productsGrouped,
             'totalProductsValue' => $totalProductsValue,
@@ -342,13 +309,13 @@ class EndOfDayController extends Controller
         ]);
         
         try {
-            // Get tenant_id from user if available (works for both super admin and regular users)
-            $tenantId = $user->tenant_id ?? null;
+            // Get location_id from user if available (works for both super admin and regular users)
+            $locationId = $user->location_id ?? null;
             
             $log = FiscalReceiptLog::create([
                 'type' => 'z_report',
                 'play_session_id' => null,
-                'tenant_id' => $tenantId,
+                'location_id' => $locationId,
                 'filename' => $request->filename,
                 'status' => $request->status,
                 'error_message' => $request->error_message,

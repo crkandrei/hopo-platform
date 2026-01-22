@@ -21,19 +21,19 @@
         <form id="fiscal-receipt-form">
             @csrf
 
-            <!-- Tenant Selection -->
+            <!-- Location Selection -->
             <div class="mb-6">
-                <label for="tenant_id" class="block text-sm font-medium text-gray-700 mb-2">
-                    Tenant <span class="text-red-500">*</span>
+                <label for="location_id" class="block text-sm font-medium text-gray-700 mb-2">
+                    Locație <span class="text-red-500">*</span>
                 </label>
-                <select name="tenant_id" id="tenant_id" required
+                <select name="location_id" id="location_id" required
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                    <option value="">-- Selectați tenant --</option>
-                    @foreach($tenants as $tenant)
-                        <option value="{{ $tenant->id }}">{{ $tenant->name }}</option>
+                    <option value="">-- Selectați locație --</option>
+                    @foreach($locations as $location)
+                        <option value="{{ $location->id }}">{{ $location->name }}@if($location->company) ({{ $location->company->name }})@endif</option>
                     @endforeach
                 </select>
-                @error('tenant_id')
+                @error('location_id')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>
@@ -200,15 +200,15 @@
 
 @section('scripts')
 <script>
-    // Calculate price when tenant or duration changes
+    // Calculate price when location or duration changes
     function calculatePrice() {
-        const tenantId = document.getElementById('tenant_id').value;
+        const locationId = document.getElementById('location_id').value;
         const hours = parseInt(document.getElementById('hours').value) || 0;
         const minutes = parseInt(document.getElementById('minutes').value) || 0;
 
-        // Validate tenant is selected
-        if (!tenantId) {
-            alert('Selectați un tenant');
+        // Validate location is selected
+        if (!locationId) {
+            alert('Selectați o locație');
             return;
         }
 
@@ -242,7 +242,7 @@
                 'Accept': 'application/json'
             },
             body: JSON.stringify({
-                tenant_id: tenantId,
+                location_id: locationId,
                 hours: hours,
                 minutes: minutes
             })
@@ -300,14 +300,14 @@
     document.getElementById('fiscal-receipt-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        const tenantId = document.getElementById('tenant_id').value;
+        const locationId = document.getElementById('location_id').value;
         const hours = parseInt(document.getElementById('hours').value) || 0;
         const minutes = parseInt(document.getElementById('minutes').value) || 0;
         const paymentType = document.querySelector('input[name="paymentType"]:checked').value;
 
         // Validate inputs
-        if (!tenantId) {
-            alert('Selectați un tenant');
+        if (!locationId) {
+            alert('Selectați o locație');
             return false;
         }
 
@@ -332,7 +332,7 @@
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify({
-                    tenant_id: tenantId,
+                    location_id: locationId,
                     hours: hours,
                     minutes: minutes,
                     paymentType: paymentType

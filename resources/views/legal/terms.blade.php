@@ -9,36 +9,36 @@
     <div class="mb-6 pb-4 border-b border-gray-200">
         <h1 class="text-3xl font-bold text-gray-900 mb-2">Termeni și Condiții</h1>
         <p class="text-gray-600">Versiunea {{ $version }} - Ultima actualizare: {{ date('d.m.Y') }}</p>
-        <p class="text-sm text-gray-500 mt-2">{{ $tenantName }}</p>
+        <p class="text-sm text-gray-500 mt-2">{{ $locationName }}</p>
     </div>
 
     <div class="prose prose-lg max-w-none">
         <section class="mb-8">
             <h2 class="text-2xl font-semibold text-gray-900 mb-4">1. Introducere</h2>
             <p class="text-gray-700 mb-4">
-                Bun venit la <strong>{{ $tenantName }}</strong>. Prin utilizarea serviciilor noastre, acceptați în mod expres și necondiționat următorii termeni și condiții.
+                Bun venit la <strong>{{ $locationName }}</strong>. Prin utilizarea serviciilor noastre, acceptați în mod expres și necondiționat următorii termeni și condiții.
             </p>
             <p class="text-gray-700">
-                Acești termeni reglementează accesul și utilizarea serviciilor oferite de {{ $tenantName }} de către părinți/tutori legali pentru înregistrarea și gestionarea sesiunilor de joacă ale copiilor minori aflați în îngrijirea lor.
+                Acești termeni reglementează accesul și utilizarea serviciilor oferite de {{ $locationName }} de către părinți/tutori legali pentru înregistrarea și gestionarea sesiunilor de joacă ale copiilor minori aflați în îngrijirea lor.
             </p>
         </section>
 
         <section class="mb-8">
             <h2 class="text-2xl font-semibold text-gray-900 mb-4">2. Definiții</h2>
             <ul class="list-disc list-inside text-gray-700 space-y-2">
-                <li><strong>{{ $tenantName }}</strong> - locul de joacă care oferă servicii de joacă și divertisment pentru copii</li>
+                <li><strong>{{ $locationName }}</strong> - locul de joacă care oferă servicii de joacă și divertisment pentru copii</li>
                 <li><strong>Copil</strong> - minorul aflat în îngrijirea părinților/tutorilor legali</li>
                 <li><strong>Părinte/Tutor</strong> - persoana cu responsabilitate legală pentru copil</li>
                 <li><strong>Brățară RFID</strong> - dispozitiv electronic folosit pentru identificare și urmărire a timpului petrecut</li>
-                <li><strong>Sesiune de joacă</strong> - perioada de timp în care copilul utilizează serviciile {{ $tenantName }}</li>
-                <li><strong>Regulament</strong> - regulile de bună conduită și siguranță aplicabile în {{ $tenantName }}</li>
+                <li><strong>Sesiune de joacă</strong> - perioada de timp în care copilul utilizează serviciile {{ $locationName }}</li>
+                <li><strong>Regulament</strong> - regulile de bună conduită și siguranță aplicabile în {{ $locationName }}</li>
             </ul>
         </section>
 
         <section class="mb-8">
-            <h2 class="text-2xl font-semibold text-gray-900 mb-4">3. Regulamentul {{ $tenantName }}</h2>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">3. Regulamentul {{ $locationName }}</h2>
             <p class="text-gray-700 mb-4">
-                Prin utilizarea serviciilor {{ $tenantName }}, vă angajați să respectați următoarele reguli:
+                Prin utilizarea serviciilor {{ $locationName }}, vă angajați să respectați următoarele reguli:
             </p>
             <ul class="list-disc list-inside text-gray-700 space-y-2 mb-4">
                 <li>Copiii trebuie să fie supravegheați de un adult responsabil în timpul utilizării serviciilor</li>
@@ -47,19 +47,19 @@
                 <li>Copiii cu boli contagioase sau simptome de boală nu pot accesa serviciile</li>
                 <li>Este obligatorie păstrarea liniștii și respectarea celorlalți vizitatori</li>
                 <li>Toate echipamentele trebuie utilizate conform instrucțiunilor și destinației lor</li>
-                <li>Nu este permisă distrugerea sau deteriorarea bunurilor {{ $tenantName }}</li>
-                <li>Este interzis fumatul în interiorul {{ $tenantName }}</li>
-                <li>Personalul {{ $tenantName }} are dreptul să refuze accesul sau să solicite părăsirea spațiului în caz de nerespectare a regulamentului</li>
+                <li>Nu este permisă distrugerea sau deteriorarea bunurilor {{ $locationName }}</li>
+                <li>Este interzis fumatul în interiorul {{ $locationName }}</li>
+                <li>Personalul {{ $locationName }} are dreptul să refuze accesul sau să solicite părăsirea spațiului în caz de nerespectare a regulamentului</li>
             </ul>
             <p class="text-gray-700">
-                {{ $tenantName }} își rezervă dreptul de a modifica regulamentul în orice moment. Modificările vor fi comunicate prin afișare la intrare sau prin alte mijloace de comunicare.
+                {{ $locationName }} își rezervă dreptul de a modifica regulamentul în orice moment. Modificările vor fi comunicate prin afișare la intrare sau prin alte mijloace de comunicare.
             </p>
         </section>
 
         <section class="mb-8">
             <h2 class="text-2xl font-semibold text-gray-900 mb-4">4. Condiții de Acces</h2>
             <p class="text-gray-700 mb-4">
-                Serviciile {{ $tenantName }} sunt destinate exclusiv copiilor minori și părinților/tutorilor lor legali.
+                Serviciile {{ $locationName }} sunt destinate exclusiv copiilor minori și părinților/tutorilor lor legali.
             </p>
             <p class="text-gray-700 mb-4">
                 Pentru a utiliza serviciile, trebuie să:
@@ -69,7 +69,7 @@
                 <li>Furnizați informații corecte și complete despre copil și despre dumneavoastră</li>
                 <li>Acceptați acești termeni și condiții în mod expres</li>
                 <li>Acceptați politica de protecție a datelor cu caracter personal (GDPR)</li>
-                <li>Respectați regulamentul {{ $tenantName }}</li>
+                <li>Respectați regulamentul {{ $locationName }}</li>
             </ul>
         </section>
 
@@ -91,14 +91,14 @@
                 <li>Număr de telefon</li>
             </ul>
             <p class="text-gray-700">
-                Vă angajați că toate informațiile furnizate sunt corecte, complete și actualizate. Orice modificare a informațiilor trebuie comunicată imediat {{ $tenantName }}.
+                Vă angajați că toate informațiile furnizate sunt corecte, complete și actualizate. Orice modificare a informațiilor trebuie comunicată imediat {{ $locationName }}.
             </p>
         </section>
 
         <section class="mb-8">
             <h2 class="text-2xl font-semibold text-gray-900 mb-4">6. Utilizarea Brățării RFID</h2>
             <p class="text-gray-700 mb-4">
-                Brățara RFID este asignată copilului dumneavoastră pentru identificare și urmărire a timpului petrecut în {{ $tenantName }}.
+                Brățara RFID este asignată copilului dumneavoastră pentru identificare și urmărire a timpului petrecut în {{ $locationName }}.
             </p>
             <p class="text-gray-700 mb-4">
                 Sunteți responsabil pentru:
@@ -119,10 +119,10 @@
                 Sesiunea de joacă începe când brățara este scanată și se încheie când este scanată din nou pentru oprire.
             </p>
             <p class="text-gray-700 mb-4">
-                Durata sesiunii este calculată automat, excluzând pauzele. {{ $tenantName }} calculează costul pe baza tarifului stabilit și afișat public.
+                Durata sesiunii este calculată automat, excluzând pauzele. {{ $locationName }} calculează costul pe baza tarifului stabilit și afișat public.
             </p>
             <p class="text-gray-700 mb-4">
-                Sunteți responsabil pentru plata tuturor sesiunilor de joacă efectuate de copilul dumneavoastră. Facturarea se face la finalizarea fiecărei sesiuni sau la sfârșitul perioadei contractuale, conform politicii de facturare a {{ $tenantName }}.
+                Sunteți responsabil pentru plata tuturor sesiunilor de joacă efectuate de copilul dumneavoastră. Facturarea se face la finalizarea fiecărei sesiuni sau la sfârșitul perioadei contractuale, conform politicii de facturare a {{ $locationName }}.
             </p>
         </section>
 
@@ -134,12 +134,12 @@
             <ul class="list-disc list-inside text-gray-700 space-y-2 mb-4">
                 <li>Asigurarea că copilul este supus supervizării corespunzătoare în timpul utilizării serviciilor</li>
                 <li>Comunicarea oricăror alergii, condiții medicale sau restricții speciale ale copilului</li>
-                <li>Respectarea regulamentului și politicilor {{ $tenantName }}</li>
+                <li>Respectarea regulamentului și politicilor {{ $locationName }}</li>
                 <li>Plata la timp a serviciilor utilizate</li>
                 <li>Înțelegerea și acceptarea riscurilor asociate activităților de joacă</li>
             </ul>
             <p class="text-gray-700 mb-4">
-                <strong>Responsabilitățile {{ $tenantName }}:</strong>
+                <strong>Responsabilitățile {{ $locationName }}:</strong>
             </p>
             <ul class="list-disc list-inside text-gray-700 space-y-2 mb-4">
                 <li>Oferirea unui mediu sigur și adecvat pentru joacă, în conformitate cu standardele de siguranță</li>
@@ -152,26 +152,26 @@
         <section class="mb-8">
             <h2 class="text-2xl font-semibold text-gray-900 mb-4">9. Neasumarea Răspunderii</h2>
             <p class="text-gray-700 mb-4">
-                <strong>IMPORTANT:</strong> Prin utilizarea serviciilor {{ $tenantName }}, înțelegeți și acceptați că:
+                <strong>IMPORTANT:</strong> Prin utilizarea serviciilor {{ $locationName }}, înțelegeți și acceptați că:
             </p>
             <ul class="list-disc list-inside text-gray-700 space-y-2 mb-4">
-                <li><strong>{{ $tenantName }} nu își asumă răspunderea</strong> pentru accidente, răniri sau leziuni suferite de copil sau de adult în timpul utilizării serviciilor, indiferent de cauză</li>
-                <li><strong>{{ $tenantName }} nu își asumă răspunderea</strong> pentru pierderi sau deteriorări ale bunurilor personale aduse în spațiile {{ $tenantName }}</li>
-                <li><strong>{{ $tenantName }} nu își asumă răspunderea</strong> pentru accidente sau incidente cauzate de neglijență, utilizare necorespunzătoare a echipamentelor sau nerespectarea regulamentului</li>
-                <li><strong>{{ $tenantName }} nu își asumă răspunderea</strong> pentru accidente sau incidente cauzate de acțiunile altor vizitatori sau circumstanțe independente de controlul {{ $tenantName }}</li>
+                <li><strong>{{ $locationName }} nu își asumă răspunderea</strong> pentru accidente, răniri sau leziuni suferite de copil sau de adult în timpul utilizării serviciilor, indiferent de cauză</li>
+                <li><strong>{{ $locationName }} nu își asumă răspunderea</strong> pentru pierderi sau deteriorări ale bunurilor personale aduse în spațiile {{ $locationName }}</li>
+                <li><strong>{{ $locationName }} nu își asumă răspunderea</strong> pentru accidente sau incidente cauzate de neglijență, utilizare necorespunzătoare a echipamentelor sau nerespectarea regulamentului</li>
+                <li><strong>{{ $locationName }} nu își asumă răspunderea</strong> pentru accidente sau incidente cauzate de acțiunile altor vizitatori sau circumstanțe independente de controlul {{ $locationName }}</li>
             </ul>
             <p class="text-gray-700 mb-4">
-                Utilizarea serviciilor {{ $tenantName }} se face pe propria răspundere. Părinții/tutorii legali sunt singurii responsabili pentru siguranța și bunăstarea copiilor în timpul utilizării serviciilor.
+                Utilizarea serviciilor {{ $locationName }} se face pe propria răspundere. Părinții/tutorii legali sunt singurii responsabili pentru siguranța și bunăstarea copiilor în timpul utilizării serviciilor.
             </p>
             <p class="text-gray-700">
-                Prin acceptarea acestor termeni, renunțați expres la orice pretenții sau cereri de daune față de {{ $tenantName }}, reprezentanții săi, personalul sau partenerii săi, în legătură cu utilizarea serviciilor.
+                Prin acceptarea acestor termeni, renunțați expres la orice pretenții sau cereri de daune față de {{ $locationName }}, reprezentanții săi, personalul sau partenerii săi, în legătură cu utilizarea serviciilor.
             </p>
         </section>
 
         <section class="mb-8">
             <h2 class="text-2xl font-semibold text-gray-900 mb-4">10. Limitarea Răspunderii</h2>
             <p class="text-gray-700 mb-4">
-                În măsura permisă de lege, {{ $tenantName }} nu răspunde pentru:
+                În măsura permisă de lege, {{ $locationName }} nu răspunde pentru:
             </p>
             <ul class="list-disc list-inside text-gray-700 space-y-2 mb-4">
                 <li>Interruperi ale serviciilor din cauza problemelor tehnice sau întreținerii</li>
@@ -184,7 +184,7 @@
         <section class="mb-8">
             <h2 class="text-2xl font-semibold text-gray-900 mb-4">11. Modificarea Termenilor</h2>
             <p class="text-gray-700 mb-4">
-                {{ $tenantName }} își rezervă dreptul de a modifica acești termeni și condiții în orice moment. Modificările vor fi comunicate prin publicarea unei versiuni actualizate sau prin afișare la intrare.
+                {{ $locationName }} își rezervă dreptul de a modifica acești termeni și condiții în orice moment. Modificările vor fi comunicate prin publicarea unei versiuni actualizate sau prin afișare la intrare.
             </p>
             <p class="text-gray-700">
                 Continuarea utilizării serviciilor după modificarea termenilor reprezintă acceptarea noilor termeni.
@@ -194,10 +194,10 @@
         <section class="mb-8">
             <h2 class="text-2xl font-semibold text-gray-900 mb-4">12. Rezilierea</h2>
             <p class="text-gray-700 mb-4">
-                Vă puteți retrage din utilizarea serviciilor {{ $tenantName }} în orice moment, cu condiția să achitați toate datoriile existente.
+                Vă puteți retrage din utilizarea serviciilor {{ $locationName }} în orice moment, cu condiția să achitați toate datoriile existente.
             </p>
             <p class="text-gray-700 mb-4">
-                {{ $tenantName }} își rezervă dreptul de a rezilia accesul la servicii în cazul:
+                {{ $locationName }} își rezervă dreptul de a rezilia accesul la servicii în cazul:
             </p>
             <ul class="list-disc list-inside text-gray-700 space-y-2 mb-4">
                 <li>Neplății facturilor</li>
@@ -217,7 +217,7 @@
         <section class="mb-8">
             <h2 class="text-2xl font-semibold text-gray-900 mb-4">14. Contact</h2>
             <p class="text-gray-700 mb-4">
-                Pentru întrebări sau clarificări privind acești termeni și condiții, vă rugăm să contactați {{ $tenantName }}.
+                Pentru întrebări sau clarificări privind acești termeni și condiții, vă rugăm să contactați {{ $locationName }}.
             </p>
         </section>
 

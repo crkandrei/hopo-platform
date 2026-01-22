@@ -6,7 +6,7 @@ use Illuminate\Support\Collection;
 
 interface AuditLogRepositoryInterface
 {
-    public function latestByTenant(int $tenantId, int $limit = 20): Collection;
+    public function latestByLocation(int $locationId, int $limit = 20): Collection;
 }
 
 

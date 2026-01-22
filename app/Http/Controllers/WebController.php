@@ -12,7 +12,7 @@ class WebController extends Controller
      */
     public function dashboard()
     {
-        $user = Auth::user()->load(['role', 'tenant']);
+        $user = Auth::user()->load(['role', 'location', 'company']);
         
         // STAFF nu are acces la dashboard
         if ($user->isStaff()) {
@@ -23,19 +23,14 @@ class WebController extends Controller
     }
 
     /**
-     * Show landing page or redirect to app
+     * Show landing page
+     * Landing page is always accessible, regardless of authentication status
+     * On production: www.hopo.ro -> landing, app.hopo.ro -> application
      */
     public function index()
     {
-        if (Auth::check()) {
-            // STAFF merge la scan, alții la dashboard
-            if (Auth::user()->isStaff()) {
-                return redirect('/scan');
-            }
-            return redirect('/dashboard');
-        }
-        
-        // Show landing page for non-authenticated users
+        // Always show landing page - no redirect for authenticated users
+        // Users should access the app via app.hopo.ro or /dashboard directly
         return view('landing');
     }
 }

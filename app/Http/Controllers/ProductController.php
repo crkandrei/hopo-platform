@@ -21,13 +21,13 @@ class ProductController extends Controller
         }
         
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return redirect($this->getHomeRoute())->with('error', 'Utilizatorul nu este asociat cu niciun tenant');
+        if (!$location) {
+            return redirect($this->getHomeRoute())->with('error', 'Utilizatorul nu este asociat cu nicio locație');
         }
 
-        $products = Product::where('tenant_id', $tenant->id)
+        $products = Product::where('location_id', $location->id)
             ->orderBy('name')
             ->get();
 
@@ -45,10 +45,10 @@ class ProductController extends Controller
         }
         
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return redirect($this->getHomeRoute())->with('error', 'Utilizatorul nu este asociat cu niciun tenant');
+        if (!$location) {
+            return redirect($this->getHomeRoute())->with('error', 'Utilizatorul nu este asociat cu nicio locație');
         }
 
         return view('products.create');
@@ -65,10 +65,10 @@ class ProductController extends Controller
         }
         
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return ApiResponder::error('Utilizatorul nu este asociat cu niciun tenant', 400);
+        if (!$location) {
+            return ApiResponder::error('Utilizatorul nu este asociat cu nicio locație', 400);
         }
 
         $validated = $request->validate([
@@ -79,7 +79,7 @@ class ProductController extends Controller
 
         try {
             $product = Product::create([
-                'tenant_id' => $tenant->id,
+                'location_id' => $location->id,
                 'name' => $validated['name'],
                 'price' => $validated['price'],
                 'is_active' => $validated['is_active'] ?? true,
@@ -105,14 +105,14 @@ class ProductController extends Controller
         }
         
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return redirect($this->getHomeRoute())->with('error', 'Utilizatorul nu este asociat cu niciun tenant');
+        if (!$location) {
+            return redirect($this->getHomeRoute())->with('error', 'Utilizatorul nu este asociat cu nicio locație');
         }
 
         $product = Product::where('id', $id)
-            ->where('tenant_id', $tenant->id)
+            ->where('location_id', $location->id)
             ->firstOrFail();
 
         return view('products.show', compact('product'));
@@ -129,14 +129,14 @@ class ProductController extends Controller
         }
         
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return redirect($this->getHomeRoute())->with('error', 'Utilizatorul nu este asociat cu niciun tenant');
+        if (!$location) {
+            return redirect($this->getHomeRoute())->with('error', 'Utilizatorul nu este asociat cu nicio locație');
         }
 
         $product = Product::where('id', $id)
-            ->where('tenant_id', $tenant->id)
+            ->where('location_id', $location->id)
             ->firstOrFail();
 
         return view('products.edit', compact('product'));
@@ -153,14 +153,14 @@ class ProductController extends Controller
         }
         
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return ApiResponder::error('Utilizatorul nu este asociat cu niciun tenant', 400);
+        if (!$location) {
+            return ApiResponder::error('Utilizatorul nu este asociat cu nicio locație', 400);
         }
 
         $product = Product::where('id', $id)
-            ->where('tenant_id', $tenant->id)
+            ->where('location_id', $location->id)
             ->firstOrFail();
 
         $validated = $request->validate([
@@ -196,14 +196,14 @@ class ProductController extends Controller
         }
         
         $user = Auth::user();
-        $tenant = $user->tenant;
+        $location = $user->location;
         
-        if (!$tenant) {
-            return ApiResponder::error('Utilizatorul nu este asociat cu niciun tenant', 400);
+        if (!$location) {
+            return ApiResponder::error('Utilizatorul nu este asociat cu nicio locație', 400);
         }
 
         $product = Product::where('id', $id)
-            ->where('tenant_id', $tenant->id)
+            ->where('location_id', $location->id)
             ->firstOrFail();
 
         try {

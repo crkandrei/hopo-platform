@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 
 abstract class Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Get the home route for the authenticated user based on their role
      */

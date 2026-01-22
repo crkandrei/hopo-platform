@@ -3,9 +3,8 @@
 namespace App\Services;
 
 use App\Models\PlaySession;
-use App\Models\Tenant;
+use App\Models\Location;
 use App\Models\SpecialPeriodRate;
-use App\Models\TenantConfiguration;
 use Carbon\Carbon;
 
 class PricingService
@@ -18,17 +17,12 @@ class PricingService
      */
     public function calculateSessionPrice(PlaySession $session): float
     {
-        // Birthday and Jungle sessions are free
-        if ($session->is_birthday || $session->is_jungle) {
+        $location = $session->location;
+        if (!$location) {
             return 0.00;
         }
 
-        $tenant = $session->tenant;
-        if (!$tenant) {
-            return 0.00;
-        }
-
-        $hourlyRate = $this->getHourlyRate($tenant, $session->started_at);
+        $hourlyRate = $this->getHourlyRate($location, $session->started_at);
         if ($hourlyRate <= 0) {
             return 0.00;
         }
@@ -40,19 +34,19 @@ class PricingService
     }
 
     /**
-     * Get the hourly rate for a tenant
+     * Get the hourly rate for a location
      * Priority: Special Period Rate > Weekly Rate > Default price_per_hour
      * 
-     * @param Tenant $tenant
+     * @param Location $location
      * @param Carbon|null $date Date to check for special period and day of week. If null, uses current date.
      * @return float The hourly rate in RON
      */
-    public function getHourlyRate(Tenant $tenant, $date = null): float
+    public function getHourlyRate(Location $location, $date = null): float
     {
         $checkDate = $date ? Carbon::parse($date) : Carbon::now();
 
         // 1. Check for special period rate first
-        $specialPeriodRate = SpecialPeriodRate::where('tenant_id', $tenant->id)
+        $specialPeriodRate = SpecialPeriodRate::where('location_id', $location->id)
             ->where('start_date', '<=', $checkDate->format('Y-m-d'))
             ->where('end_date', '>=', $checkDate->format('Y-m-d'))
             ->orderBy('created_at', 'desc')
@@ -68,7 +62,7 @@ class PricingService
         $dayOfWeek = $checkDate->dayOfWeek; // Carbon: 0=Sunday, 6=Saturday
         $systemDayOfWeek = $dayOfWeek === 0 ? 6 : $dayOfWeek - 1; // Convert to our system (0=Monday)
 
-        $weeklyRate = $tenant->weeklyRates()
+        $weeklyRate = $location->weeklyRates()
             ->where('day_of_week', $systemDayOfWeek)
             ->first();
 
@@ -77,7 +71,7 @@ class PricingService
         }
 
         // 3. Fallback to default price_per_hour
-        return (float) $tenant->price_per_hour ?? 0.00;
+        return (float) $location->price_per_hour ?? 0.00;
     }
 
     /**
@@ -184,21 +178,12 @@ class PricingService
      */
     public function calculateAndSavePrice(PlaySession $session): PlaySession
     {
-        // Birthday and Jungle sessions are free
-        if ($session->is_birthday || $session->is_jungle) {
-            $session->update([
-                'calculated_price' => 0.00,
-                'price_per_hour_at_calculation' => 0.00,
-            ]);
+        $location = $session->location;
+        if (!$location) {
             return $session;
         }
 
-        $tenant = $session->tenant;
-        if (!$tenant) {
-            return $session;
-        }
-
-        $hourlyRate = $this->getHourlyRate($tenant, $session->started_at);
+        $hourlyRate = $this->getHourlyRate($location, $session->started_at);
         $calculatedPrice = $this->calculateSessionPrice($session);
 
         $session->update([
@@ -207,35 +192,6 @@ class PricingService
         ]);
 
         return $session;
-    }
-
-    /**
-     * Check if Jungle session is allowed for a tenant on a specific date
-     * 
-     * @param Tenant $tenant
-     * @param Carbon|string|null $date Date to check. If null, uses current date.
-     * @return bool True if Jungle session is allowed on the specified date
-     */
-    public function isJungleSessionAllowed(Tenant $tenant, $date = null): bool
-    {
-        $checkDate = $date ? Carbon::parse($date) : Carbon::now();
-        
-        // Get allowed days from configuration
-        $allowedDays = TenantConfiguration::getJungleSessionDays($tenant->id);
-        
-        // If no configuration exists, default to not allowed
-        if (empty($allowedDays)) {
-            return false;
-        }
-
-        // Convert Carbon dayOfWeek to our system dayOfWeek
-        // Carbon: 0=Sunday, 1=Monday, ..., 6=Saturday
-        // Our system: 0=Monday, 1=Tuesday, ..., 6=Sunday
-        $carbonDayOfWeek = $checkDate->dayOfWeek; // Carbon: 0=Sunday, 6=Saturday
-        $systemDayOfWeek = $carbonDayOfWeek === 0 ? 6 : $carbonDayOfWeek - 1; // Convert to our system (0=Monday)
-
-        // Check if current day is in allowed days
-        return in_array($systemDayOfWeek, $allowedDays);
     }
 }
 
