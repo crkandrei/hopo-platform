@@ -11,6 +11,12 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Location context routes (for COMPANY_ADMIN)
+Route::middleware('auth')->group(function () {
+    Route::post('/location-context/set', [App\Http\Controllers\LocationContextController::class, 'setLocation'])->name('location-context.set');
+    Route::get('/location-context/locations', [App\Http\Controllers\LocationContextController::class, 'getLocations'])->name('location-context.locations');
+});
+
 // Protected routes
 Route::middleware('auth')->group(function () {
     // Dashboard - doar pentru SUPER_ADMIN și COMPANY_ADMIN (verificarea se face în controller)

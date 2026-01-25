@@ -368,6 +368,34 @@
                     </div>
                     
                     <div class="flex items-center space-x-2 md:space-x-4">
+                        @if($currentUser && $currentUser->isCompanyAdmin() && $currentUser->company_id)
+                        <!-- Location Selector for Company Admin -->
+                        <div class="relative">
+                            @php
+                                $locations = \App\Models\Location::where('company_id', $currentUser->company_id)
+                                    ->where('is_active', true)
+                                    ->orderBy('name')
+                                    ->get();
+                                // Use location_id from user (updated when switching)
+                                $selectedLocationId = $currentUser->location_id ?? $locations->first()?->id;
+                            @endphp
+                            @if($locations->count() > 1)
+                            <select id="location-selector" 
+                                    class="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                                @foreach($locations as $location)
+                                    <option value="{{ $location->id }}" {{ $selectedLocationId == $location->id ? 'selected' : '' }}>
+                                        {{ $location->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @elseif($locations->count() == 1)
+                            <div class="px-3 py-2 text-sm text-gray-700 bg-gray-50 rounded-md border border-gray-200">
+                                <i class="fas fa-map-marker-alt mr-2"></i>{{ $locations->first()->name }}
+                            </div>
+                            @endif
+                        </div>
+                        @endif
+                        
                         <!-- User Menu -->
                         <div class="relative">
                             <button id="user-menu-button" class="flex items-center space-x-2 md:space-x-3 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">
@@ -440,6 +468,53 @@
     @yield('scripts')
 
     <script>
+        // Location selector functionality for COMPANY_ADMIN
+        const locationSelector = document.getElementById('location-selector');
+        if (locationSelector) {
+            locationSelector.addEventListener('change', function() {
+                const locationId = this.value;
+                
+                // Show loading state
+                const originalValue = this.value;
+                this.disabled = true;
+                this.style.opacity = '0.6';
+                this.style.cursor = 'wait';
+                
+                // Send request to update location_id on user in database
+                fetch('{{ route("location-context.set") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ location_id: locationId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Reload page to apply new location context (user's location_id is now updated in DB)
+                        window.location.reload();
+                    } else {
+                        // Revert on error
+                        this.value = originalValue;
+                        alert('Eroare la schimbarea locației: ' + (data.error || 'Eroare necunoscută'));
+                        this.disabled = false;
+                        this.style.opacity = '1';
+                        this.style.cursor = 'pointer';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    this.value = originalValue;
+                    alert('Eroare la schimbarea locației. Te rugăm să încerci din nou.');
+                    this.disabled = false;
+                    this.style.opacity = '1';
+                    this.style.cursor = 'pointer';
+                });
+            });
+        }
+        
         // Sidebar collapse/expand functionality
         const sidebar = document.getElementById('sidebar');
         const collapseBtn = document.getElementById('sidebar-collapse-btn');

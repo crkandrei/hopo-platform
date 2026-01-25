@@ -13,7 +13,36 @@ trait BelongsToLocation
         // Auto-fill location_id la creare
         static::creating(function ($model) {
             if (empty($model->location_id) && auth()->check()) {
-                $model->location_id = auth()->user()->location_id;
+                $user = auth()->user();
+                
+                // For COMPANY_ADMIN, use location_id from user (set when switching locations)
+                if ($user->isCompanyAdmin() && $user->company_id) {
+                    if ($user->location_id) {
+                        // Verify location belongs to company
+                        $location = Location::where('id', $user->location_id)
+                            ->where('company_id', $user->company_id)
+                            ->where('is_active', true)
+                            ->first();
+                        if ($location) {
+                            $model->location_id = $user->location_id;
+                            return;
+                        }
+                    }
+                    // Fallback: use first location from company
+                    $firstLocation = Location::where('company_id', $user->company_id)
+                        ->where('is_active', true)
+                        ->orderBy('name')
+                        ->first();
+                    if ($firstLocation) {
+                        $model->location_id = $firstLocation->id;
+                        return;
+                    }
+                }
+                
+                // For STAFF, use their assigned location
+                if ($user->location_id) {
+                    $model->location_id = $user->location_id;
+                }
             }
         });
 
@@ -30,9 +59,26 @@ trait BelongsToLocation
                 return;
             }
             
-            // COMPANY_ADMIN vede toate locațiile companiei
+            // COMPANY_ADMIN vede locația setată pe user (location_id)
             if ($user->isCompanyAdmin() && $user->company_id) {
+                // Use location_id from user (updated when switching locations)
+                if ($user->location_id) {
+                    // Verify location belongs to company
+                    $location = Location::where('id', $user->location_id)
+                        ->where('company_id', $user->company_id)
+                        ->where('is_active', true)
+                        ->first();
+                    
+                    if ($location) {
+                        // Filter by user's location_id
+                        $builder->where($builder->getModel()->getTable() . '.location_id', $user->location_id);
+                        return;
+                    }
+                }
+                
+                // Fallback: show all locations from company if no location_id set
                 $locationIds = Location::where('company_id', $user->company_id)
+                    ->where('is_active', true)
                     ->pluck('id');
                 $builder->whereIn($builder->getModel()->getTable() . '.location_id', $locationIds);
                 return;
