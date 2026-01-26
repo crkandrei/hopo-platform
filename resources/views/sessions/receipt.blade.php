@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bon Nefiscal - Sesiune #{{ $session->id }}</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}?v=3">
+    <link rel="shortcut icon" href="{{ asset('favicon-32x32.png') }}?v=3">
     <style>
         @media print {
             body {

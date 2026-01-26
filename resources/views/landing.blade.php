@@ -3,8 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Hopo - Software de gestiune pentru locuri de joacă. Sesiuni, brățări RFID, bonuri fiscale, rapoarte.">
-    <title>Hopo - Software pentru locuri de joacă</title>
+    <meta name="description" content="Hopo este soft-ul complet pentru gestiunea locului tău de joacă. Cronometrare sesiuni, brățări RFID, calcul automat tarife, bonuri fiscale conforme ANAF și rapoarte zilnice. Solicită demo gratuit!">
+    <title>Hopo – Soft gestiune loc de joacă | Sesiuni, brățări RFID, bonuri fiscale</title>
+    <link rel="canonical" href="https://hopo.ro/">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://hopo.ro/">
+    <meta property="og:title" content="Hopo – Soft gestiune loc de joacă | Sesiuni, brățări RFID, bonuri fiscale">
+    <meta property="og:description" content="Hopo este soft-ul complet pentru gestiunea locului tău de joacă. Cronometrare sesiuni, brățări RFID, calcul automat tarife și bonuri fiscale conforme ANAF.">
+    <meta property="og:image" content="https://hopo.ro/images/hopo-og-image.png">
+    <meta property="og:locale" content="ro_RO">
+    <meta property="og:site_name" content="Hopo">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://hopo.ro/">
+    <meta name="twitter:title" content="Hopo – Soft gestiune loc de joacă">
+    <meta name="twitter:description" content="Cronometrare sesiuni, brățări RFID, calcul automat tarife și bonuri fiscale conforme ANAF.">
+    <meta name="twitter:image" content="https://hopo.ro/images/hopo-og-image.png">
+    
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}?v=3">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}?v=3">
+    <link rel="icon" type="image/png" sizes="96x96" href="{{ asset('favicon-96x96.png') }}?v=3">
+    <link rel="shortcut icon" href="{{ asset('favicon-32x32.png') }}?v=3">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('favicon-96x96.png') }}?v=3">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -34,6 +57,109 @@
             background-clip: text;
         }
     </style>
+    <script type="application/ld+json">
+    @verbatim
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "Organization",
+                "@id": "https://hopo.ro/#organization",
+                "name": "Hopo",
+                "url": "https://hopo.ro",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "https://hopo.ro/images/hopo-logo.png",
+                    "width": 200,
+                    "height": 60
+                },
+                "contactPoint": {
+                    "@type": "ContactPoint",
+                    "telephone": "+40770123456",
+                    "contactType": "sales",
+                    "email": "contact@hopo.ro",
+                    "availableLanguage": "Romanian"
+                },
+                "sameAs": []
+            },
+            {
+                "@type": "SoftwareApplication",
+                "@id": "https://hopo.ro/#software",
+                "name": "Hopo",
+                "applicationCategory": "BusinessApplication",
+                "operatingSystem": "Web",
+                "description": "Soft de gestiune pentru locuri de joacă indoor. Cronometrare sesiuni, brățări RFID, calcul automat tarife și bonuri fiscale.",
+                "url": "https://hopo.ro",
+                "provider": {
+                    "@id": "https://hopo.ro/#organization"
+                },
+                "offers": [
+                    {
+                        "@type": "Offer",
+                        "name": "Plan START",
+                        "price": "39",
+                        "priceCurrency": "EUR",
+                        "priceValidUntil": "2026-12-31",
+                        "availability": "https://schema.org/InStock"
+                    },
+                    {
+                        "@type": "Offer",
+                        "name": "Plan STANDARD",
+                        "price": "69",
+                        "priceCurrency": "EUR",
+                        "priceValidUntil": "2026-12-31",
+                        "availability": "https://schema.org/InStock"
+                    },
+                    {
+                        "@type": "Offer",
+                        "name": "Plan PRO",
+                        "price": "99",
+                        "priceCurrency": "EUR",
+                        "priceValidUntil": "2026-12-31",
+                        "availability": "https://schema.org/InStock"
+                    }
+                ],
+                "featureList": [
+                    "Cronometrare sesiuni de joacă",
+                    "Brățări RFID pentru identificare",
+                    "Calcul automat preț pe oră",
+                    "Tarife diferențiate pe zile și sărbători",
+                    "Emitere bonuri fiscale conform ANAF",
+                    "Rapoarte zilnice de încasări",
+                    "Evidență copii și părinți",
+                    "Dashboard live cu sesiuni active",
+                    "Integrare case de marcat Datecs"
+                ],
+                "screenshot": "https://hopo.ro/images/screenshot-dashboard.png"
+            },
+            {
+                "@type": "WebSite",
+                "@id": "https://hopo.ro/#website",
+                "url": "https://hopo.ro",
+                "name": "Hopo - Soft gestiune loc de joacă",
+                "publisher": {
+                    "@id": "https://hopo.ro/#organization"
+                },
+                "inLanguage": "ro-RO"
+            },
+            {
+                "@type": "WebPage",
+                "@id": "https://hopo.ro/#webpage",
+                "url": "https://hopo.ro",
+                "name": "Hopo – Soft gestiune loc de joacă | Sesiuni, brățări RFID, bonuri fiscale",
+                "description": "Hopo este soft-ul complet pentru gestiunea locului tău de joacă. Cronometrare sesiuni, brățări RFID, calcul automat tarife și bonuri fiscale conforme ANAF.",
+                "isPartOf": {
+                    "@id": "https://hopo.ro/#website"
+                },
+                "about": {
+                    "@id": "https://hopo.ro/#software"
+                },
+                "inLanguage": "ro-RO"
+            }
+        ]
+    }
+    @endverbatim
+    </script>
 </head>
 <body class="font-sans antialiased bg-white text-gray-900">
     
@@ -43,7 +169,7 @@
             <div class="flex items-center justify-between">
                 <!-- Logo -->
                 <div class="flex items-center">
-                    <img src="{{ asset('images/hopo-logo.png') }}" alt="Hopo" class="h-16">
+                    <img src="{{ asset('images/hopo-logo.png') }}" alt="Hopo - Logo soft gestiune locuri de joacă" class="h-16">
                 </div>
                 
                 <!-- Nav Links -->
@@ -71,9 +197,9 @@
                 <!-- Left: Text -->
                 <div>
                     <h1 class="text-4xl md:text-5xl font-bold leading-tight mb-6">
-                        Tot ce ai nevoie pentru un 
-                        <span class="gradient-text">loc de joacă</span>
-                        <span class="block text-2xl md:text-3xl font-normal text-gray-600 mt-3">fără caiete, fără greșeli, fără stres</span>
+                        Soft de gestiune pentru 
+                        <span class="gradient-text">locuri de joacă</span>
+                        <span class="block text-2xl md:text-3xl font-normal text-gray-600 mt-3">Fără caiete, fără greșeli, fără stres</span>
                     </h1>
                     <p class="text-xl text-gray-600 mb-8 leading-relaxed">
                         Gestionează sesiunile de joacă, calculează automat prețurile și emite bonuri fiscale. 
@@ -109,7 +235,7 @@
                         <!-- Screenshot placeholder - replace with actual screenshot -->
                         <div class="bg-gradient-to-br from-gray-100 to-gray-200 aspect-[4/3] flex items-center justify-center">
                             @if(file_exists(public_path('images/screenshot-dashboard.png')))
-                                <img src="{{ asset('images/screenshot-dashboard.png') }}" alt="Hopo Dashboard" class="w-full h-full object-cover object-top">
+                                <img src="{{ asset('images/screenshot-dashboard.png') }}" alt="Dashboard Hopo - sesiuni active, încasări și statistici loc de joacă" class="w-full h-full object-cover object-top">
                             @else
                                 <!-- Faithful Dashboard Mockup -->
                                 <div class="w-full h-full bg-gray-100 p-3 overflow-hidden">
@@ -276,7 +402,7 @@
         
         <div class="max-w-6xl mx-auto relative">
             <div class="text-center mb-12">
-                <h2 class="text-xl md:text-2xl font-bold text-white/90 uppercase tracking-wider mb-2">De ce Hopo?</h2>
+                <h2 class="text-xl md:text-2xl font-bold text-white/90 uppercase tracking-wider mb-2">De ce ai nevoie de un soft pentru locul de joacă?</h2>
                 <p class="text-white/70 text-lg">Probleme rezolvate din prima zi</p>
             </div>
             
@@ -365,6 +491,14 @@
                     <span class="text-sm">Suport rapid</span>
                 </div>
             </div>
+            
+            <!-- Social proof text -->
+            <div class="mt-6 text-center">
+                <p class="text-white/60 text-sm">
+                    <!-- PLACEHOLDER: Actualizează cu date reale -->
+                    ✓ Folosit în locații reale din România · ✓ Setup în sub 24h · ✓ Suport în limba română
+                </p>
+            </div>
         </div>
     </section>
 
@@ -372,7 +506,7 @@
     <section id="features" class="py-20 px-6">
         <div class="max-w-6xl mx-auto">
             <div class="text-center mb-16">
-                <h2 class="text-3xl font-bold mb-4">Tot ce ai nevoie</h2>
+                <h2 class="text-3xl font-bold mb-4">Funcționalități pentru gestiunea locului de joacă</h2>
                 <p class="text-gray-600 max-w-2xl mx-auto">
                     De la intrarea copilului până la închiderea zilei - o soluție completă.
                 </p>
@@ -464,7 +598,7 @@
     <section class="py-20 px-6 bg-gray-50">
         <div class="max-w-6xl mx-auto">
             <div class="text-center mb-16">
-                <h2 class="text-3xl font-bold mb-4">Simplu de folosit</h2>
+                <h2 class="text-3xl font-bold mb-4">Cum funcționează Hopo în 3 pași</h2>
                 <p class="text-gray-600">Trei pași și gata.</p>
             </div>
             
@@ -492,7 +626,7 @@
     <section id="pricing" class="py-20 px-6">
         <div class="max-w-6xl mx-auto">
             <div class="text-center mb-16">
-                <h2 class="text-3xl font-bold mb-4">Prețuri simple</h2>
+                <h2 class="text-3xl font-bold mb-4">Prețuri transparente pentru gestiunea locului de joacă</h2>
                 <p class="text-gray-600">Fără costuri ascunse. Plătești lunar.</p>
             </div>
             
@@ -672,7 +806,7 @@
     <!-- CTA Section -->
     <section class="py-20 px-6 bg-hopo-purple">
         <div class="max-w-4xl mx-auto text-center">
-            <h2 class="text-3xl font-bold text-white mb-4">Gata să simplifici gestiunea?</h2>
+            <h2 class="text-3xl font-bold text-white mb-4">Simplifică gestiunea locului tău de joacă</h2>
             <p class="text-white/80 mb-8">
                 Programează un demo gratuit și vezi cum funcționează Hopo pentru locul tău de joacă.
             </p>
@@ -687,7 +821,7 @@
         <div class="max-w-6xl mx-auto">
             <div class="grid md:grid-cols-2 gap-12">
                 <div>
-                    <h2 class="text-3xl font-bold mb-4">Hai să vorbim</h2>
+                    <h2 class="text-3xl font-bold mb-4">Solicită un demo gratuit</h2>
                     <p class="text-gray-600 mb-8">
                         Completează formularul și te contactăm în maxim 24 de ore pentru a programa un demo.
                     </p>
@@ -707,25 +841,52 @@
                     </div>
                 </div>
                 <div>
-                    <form class="space-y-4">
+                    <form id="contact-form" class="space-y-4" method="POST" action="{{ route('contact.store') }}">
+                        @csrf
+                        
+                        <!-- Success message -->
+                        <div id="contact-success" class="hidden p-4 bg-green-50 border border-green-200 rounded-lg text-green-800 mb-4">
+                            <p class="font-medium">Mulțumim pentru mesaj!</p>
+                            <p class="text-sm">Te vom contacta în cel mai scurt timp.</p>
+                        </div>
+                        
+                        <!-- Error message -->
+                        <div id="contact-error" class="hidden p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 mb-4">
+                            <p class="font-medium">Eroare</p>
+                            <p id="contact-error-message" class="text-sm"></p>
+                        </div>
+                        
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nume complet</label>
-                            <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hopo-purple focus:border-transparent outline-none" placeholder="Ion Popescu">
+                            <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nume complet</label>
+                            <input type="text" id="name" name="name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hopo-purple focus:border-transparent outline-none" placeholder="Ion Popescu" value="{{ old('name') }}">
+                            @error('name')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                            <input type="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hopo-purple focus:border-transparent outline-none" placeholder="ion@locjoacă.ro">
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <input type="email" id="email" name="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hopo-purple focus:border-transparent outline-none" placeholder="ion@locjoacă.ro" value="{{ old('email') }}">
+                            @error('email')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
-                            <input type="tel" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hopo-purple focus:border-transparent outline-none" placeholder="0770 123 456">
+                            <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
+                            <input type="tel" id="phone" name="phone" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hopo-purple focus:border-transparent outline-none" placeholder="0770 123 456" value="{{ old('phone') }}">
+                            @error('phone')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Numele locului de joacă</label>
-                            <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hopo-purple focus:border-transparent outline-none" placeholder="FunPark">
+                            <label for="playground_name" class="block text-sm font-medium text-gray-700 mb-1">Numele locului de joacă</label>
+                            <input type="text" id="playground_name" name="playground_name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hopo-purple focus:border-transparent outline-none" placeholder="FunPark" value="{{ old('playground_name') }}">
+                            @error('playground_name')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
-                        <button type="submit" class="w-full bg-hopo-purple hover:bg-hopo-purple-dark text-white py-3 rounded-lg font-medium transition-colors">
-                            Trimite cererea
+                        <button type="submit" id="contact-submit" class="w-full bg-hopo-purple hover:bg-hopo-purple-dark text-white py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span id="contact-submit-text">Trimite cererea</span>
+                            <span id="contact-submit-loading" class="hidden">Se trimite...</span>
                         </button>
                     </form>
                 </div>
@@ -736,16 +897,106 @@
     <!-- Footer -->
     <footer class="py-12 px-6 bg-gray-900 text-gray-400">
         <div class="max-w-6xl mx-auto">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="mb-4 md:mb-0">
-                    <img src="{{ asset('images/hopo-logo.png') }}" alt="Hopo" class="h-6 brightness-0 invert opacity-70">
+            <div class="grid md:grid-cols-3 gap-8 mb-8">
+                <div>
+                    <img src="{{ asset('images/hopo-logo.png') }}" alt="Hopo - Logo soft gestiune locuri de joacă" class="h-8 brightness-0 invert opacity-70 mb-4">
+                    <p class="text-sm">Soft de gestiune pentru locuri de joacă indoor. Sesiuni, brățări RFID, bonuri fiscale.</p>
                 </div>
-                <div class="text-sm">
+                <div>
+                    <h4 class="text-white font-semibold mb-4">Contact</h4>
+                    <p class="text-sm mb-2">📧 contact@hopo.ro</p>
+                    <p class="text-sm mb-2">📞 0770 123 456</p>
+                    <p class="text-sm">📍 București, România</p>
+                </div>
+                <div>
+                    <h4 class="text-white font-semibold mb-4">Legal</h4>
+                    <p class="text-sm mb-2"><a href="/legal/terms" class="hover:text-white">Termeni și condiții</a></p>
+                    <p class="text-sm"><a href="/legal/gdpr" class="hover:text-white">Politica GDPR</a></p>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <div class="text-sm mb-4 md:mb-0">
                     © {{ date('Y') }} Hopo. Toate drepturile rezervate.
+                </div>
+                <div class="text-sm text-gray-500">
+                    <!-- PLACEHOLDER: Adaugă CUI și numele firmei când sunt disponibile -->
+                    <!-- Exemplu: SC HOPO TECH SRL | CUI: RO12345678 -->
                 </div>
             </div>
         </div>
     </footer>
+
+    <script>
+        // Contact form handling
+        document.addEventListener('DOMContentLoaded', function() {
+            const contactForm = document.getElementById('contact-form');
+            const successMessage = document.getElementById('contact-success');
+            const errorMessage = document.getElementById('contact-error');
+            const errorMessageText = document.getElementById('contact-error-message');
+            const submitButton = document.getElementById('contact-submit');
+            const submitText = document.getElementById('contact-submit-text');
+            const submitLoading = document.getElementById('contact-submit-loading');
+
+            if (contactForm) {
+                contactForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    // Hide previous messages
+                    successMessage.classList.add('hidden');
+                    errorMessage.classList.add('hidden');
+                    
+                    // Disable submit button
+                    submitButton.disabled = true;
+                    submitText.classList.add('hidden');
+                    submitLoading.classList.remove('hidden');
+                    
+                    // Get form data
+                    const formData = new FormData(contactForm);
+                    
+                    try {
+                        const response = await fetch(contactForm.action, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            }
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (response.ok && data.success) {
+                            // Show success message
+                            successMessage.classList.remove('hidden');
+                            
+                            // Reset form
+                            contactForm.reset();
+                            
+                            // Scroll to success message
+                            successMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        } else {
+                            // Show error message
+                            errorMessageText.textContent = data.message || 'A apărut o eroare. Te rugăm să încerci din nou.';
+                            errorMessage.classList.remove('hidden');
+                            
+                            // Scroll to error message
+                            errorMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }
+                    } catch (error) {
+                        // Show error message
+                        errorMessageText.textContent = 'A apărut o eroare la trimiterea mesajului. Te rugăm să încerci din nou sau să ne contactezi direct la contact@hopo.ro';
+                        errorMessage.classList.remove('hidden');
+                        errorMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    } finally {
+                        // Re-enable submit button
+                        submitButton.disabled = false;
+                        submitText.classList.remove('hidden');
+                        submitLoading.classList.add('hidden');
+                    }
+                });
+            }
+        });
+    </script>
 
 </body>
 </html>

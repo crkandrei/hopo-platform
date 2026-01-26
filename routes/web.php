@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\WebController;
 use Illuminate\Support\Facades\Route;
 
@@ -40,6 +41,9 @@ Route::get('/', function () {
     // Altfel, arată landing page
     return app(WebController::class)->index();
 });
+
+// Contact form route (accessible from all domains)
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 
 // Auth routes
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');

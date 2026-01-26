@@ -1,2 +1,22 @@
 User-agent: *
-Disallow:
+Allow: /
+
+# Disallow app routes
+Disallow: /login
+Disallow: /dashboard
+Disallow: /scan
+Disallow: /children
+Disallow: /guardians
+Disallow: /sessions
+Disallow: /companies
+Disallow: /locations
+Disallow: /users
+Disallow: /pricing
+Disallow: /reports
+Disallow: /end-of-day
+Disallow: /fiscal-receipts
+Disallow: /fiscal-receipt-logs
+Disallow: /anomalies
+
+# Sitemap
+Sitemap: https://hopo.ro/sitemap.xml
