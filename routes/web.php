@@ -18,10 +18,12 @@ Route::domain('app.hopo.ro')->group(function () {
 // Landing page routes - pentru www.hopo.ro sau hopo.ro (fără subdomain)
 Route::domain('www.hopo.ro')->group(function () {
     Route::get('/', [WebController::class, 'index']);
+    Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 });
 
 Route::domain('hopo.ro')->group(function () {
     Route::get('/', [WebController::class, 'index']);
+    Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 });
 
 // Landing page default (pentru local development sau când nu există subdomain)
@@ -42,7 +44,7 @@ Route::get('/', function () {
     return app(WebController::class)->index();
 });
 
-// Contact form route (accessible from all domains)
+// Contact form route (accessible from default domain - local development)
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 
 // Auth routes
