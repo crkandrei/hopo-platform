@@ -4,7 +4,42 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\WebController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [WebController::class, 'index']);
+// Rute pentru app.hopo.ro - aplicația (dashboard și restul)
+Route::domain('app.hopo.ro')->group(function () {
+    Route::get('/', function () {
+        if (auth()->check()) {
+            return redirect('/dashboard');
+        }
+        return redirect('/login');
+    });
+});
+
+// Landing page routes - pentru www.hopo.ro sau hopo.ro (fără subdomain)
+Route::domain('www.hopo.ro')->group(function () {
+    Route::get('/', [WebController::class, 'index']);
+});
+
+Route::domain('hopo.ro')->group(function () {
+    Route::get('/', [WebController::class, 'index']);
+});
+
+// Landing page default (pentru local development sau când nu există subdomain)
+Route::get('/', function () {
+    $host = request()->getHost();
+    $parts = explode('.', $host);
+    $subdomain = count($parts) > 2 ? $parts[0] : null;
+    
+    // Dacă subdomain-ul este 'app' și nu suntem în local, redirecționează la dashboard
+    if ($subdomain === 'app' && !in_array($host, ['localhost', '127.0.0.1']) && !str_contains($host, 'localhost') && !str_contains($host, '127.0.0.1')) {
+        if (auth()->check()) {
+            return redirect('/dashboard');
+        }
+        return redirect('/login');
+    }
+    
+    // Altfel, arată landing page
+    return app(WebController::class)->index();
+});
 
 // Auth routes
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
