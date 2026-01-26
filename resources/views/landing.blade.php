@@ -841,7 +841,7 @@
                     </div>
                 </div>
                 <div>
-                    <form id="contact-form" class="space-y-4" method="POST" action="{{ route('contact.store') }}">
+                    <form id="contact-form" class="space-y-4" method="POST" action="/contact">
                         @csrf
                         
                         <!-- Success message -->
