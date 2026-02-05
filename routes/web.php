@@ -5,6 +5,9 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\WebController;
 use Illuminate\Support\Facades\Route;
 
+// Contact form route - trebuie să fie accesibilă de oriunde (mutată înainte de rutele cu domeniu)
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+
 // Rute pentru app.hopo.ro - aplicația (dashboard și restul)
 Route::domain('app.hopo.ro')->group(function () {
     Route::get('/', function () {
@@ -44,8 +47,7 @@ Route::get('/', function () {
     return app(WebController::class)->index();
 });
 
-// Contact form route (accessible from default domain - local development)
-Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+// Contact form route deja definită mai sus pentru toate domeniile
 
 // Auth routes
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
