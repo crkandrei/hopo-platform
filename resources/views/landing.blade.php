@@ -76,7 +76,7 @@
                 },
                 "contactPoint": {
                     "@type": "ContactPoint",
-                    "telephone": "+40770123456",
+                    "telephone": "+40752620694",
                     "contactType": "sales",
                     "email": "contact@hopo.ro",
                     "availableLanguage": "Romanian"
@@ -837,7 +837,7 @@
                             <svg class="w-5 h-5 text-hopo-purple mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
                             </svg>
-                            <span class="text-gray-600">0770 123 456</span>
+                            <span class="text-gray-600">0752 620 694</span>
                         </div>
                     </div>
                 </div>
@@ -873,7 +873,7 @@
                         </div>
                         <div>
                             <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
-                            <input type="tel" id="phone" name="phone" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hopo-purple focus:border-transparent outline-none" placeholder="0770 123 456" value="{{ old('phone') }}">
+                            <input type="tel" id="phone" name="phone" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hopo-purple focus:border-transparent outline-none" placeholder="0752 620 694" value="{{ old('phone') }}">
                             @error('phone')
                                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -906,7 +906,7 @@
                 <div>
                     <h4 class="text-white font-semibold mb-4">Contact</h4>
                     <p class="text-sm mb-2">📧 contact@hopo.ro</p>
-                    <p class="text-sm mb-2">📞 0770 123 456</p>
+                    <p class="text-sm mb-2">📞 0752 620 694</p>
                     <p class="text-sm">📍 București, România</p>
                 </div>
                 <div>
