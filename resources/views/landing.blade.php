@@ -45,6 +45,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -69,6 +71,7 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
+        [x-cloak] { display: none !important; }
     </style>
     <script type="application/ld+json">
     @verbatim
@@ -168,6 +171,76 @@
                     "@id": "https://hopo.ro/#software"
                 },
                 "inLanguage": "ro-RO"
+            },
+            {
+                "@type": "FAQPage",
+                "@id": "https://hopo.ro/#faq",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "Ce este HOPO și la ce folosește?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "HOPO este un software pentru locuri de joacă care automatizează accesul copiilor, calculează timpul petrecut în locație și generează automat plata la ieșire. Sistemul elimină calculele manuale și reduce erorile de facturare."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Cum funcționează sistemul HOPO?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Procesul este simplu: 1) Copilul primește o brățară sau un card. 2) La intrare se scanează codul și începe cronometrul. 3) La ieșire, sistemul calculează automat durata și prețul. 4) Totul este vizibil în timp real în dashboard."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Pentru ce tipuri de locuri de joacă este potrivit HOPO?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "HOPO este potrivit pentru: locuri de joacă indoor, centre de distracții pentru copii, spații de joacă din restaurante sau malluri, parcuri tematice, săli de evenimente pentru copii."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "HOPO calculează automat tarifele și timpul?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Da. Sistemul calculează automat: durata vizitei, tarife pe oră sau pe intervale, oferte speciale sau pachete. Nu mai este nevoie de calcule manuale la recepție."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Se poate integra HOPO cu casa de marcat fiscală?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Da. HOPO se poate integra cu casa de marcat, astfel încât bonul fiscal să fie emis automat la finalul vizitei, fără introducere manuală."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Pot vedea în timp real câți copii sunt în locul de joacă?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Da. Dashboard-ul HOPO arată în timp real: numărul de copii prezenți, durata vizitelor, încasările din ziua curentă."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Ce echipamente sunt necesare pentru HOPO?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "În mod normal ai nevoie de: un calculator sau tabletă la recepție, scanner de coduri de bare sau cititor RFID, imprimantă fiscală (opțional)."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Pot testa HOPO înainte de a cumpăra?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Da. Oferim demo gratuit, astfel încât să vezi cum funcționează sistemul în locația ta înainte de a lua o decizie."
+                        }
+                    }
+                ]
             }
         ]
     }
@@ -189,6 +262,7 @@
                 <div class="hidden md:flex items-center space-x-8">
                     <a href="#features" class="text-gray-600 hover:text-hopo-purple transition-colors text-sm font-medium">Funcționalități</a>
                     <a href="#pricing" class="text-gray-600 hover:text-hopo-purple transition-colors text-sm font-medium">Prețuri</a>
+                    <a href="#faq" class="text-gray-600 hover:text-hopo-purple transition-colors text-sm font-medium">FAQ</a>
                     <a href="#contact" class="text-gray-600 hover:text-hopo-purple transition-colors text-sm font-medium">Contact</a>
                 </div>
                 
@@ -813,6 +887,372 @@
             <p class="text-center text-gray-600 text-sm">
                 🎁 <strong>Ofertă de lansare:</strong> Primele 3 luni la 39 € pentru pachetele STANDARD și PRO.
             </p>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="py-20 px-6 bg-gradient-to-br from-gray-50 to-white relative overflow-hidden">
+        <!-- Decorative elements -->
+        <div class="absolute top-20 left-0 w-72 h-72 bg-hopo-purple/5 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-20 right-0 w-64 h-64 bg-hopo-coral/5 rounded-full blur-3xl"></div>
+        
+        <div class="max-w-4xl mx-auto relative">
+            <div class="text-center mb-12">
+                <span class="inline-block px-4 py-1.5 bg-hopo-purple/10 text-hopo-purple text-sm font-medium rounded-full mb-4">Întrebări frecvente</span>
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">
+                    Află mai multe despre 
+                    <span class="gradient-text">HOPO</span>
+                </h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">
+                    Răspunsuri la cele mai frecvente întrebări despre software-ul pentru locuri de joacă
+                </p>
+            </div>
+            
+            <!-- FAQ Accordion -->
+            <div class="space-y-4" x-data="{ activeAccordion: null }">
+                <!-- FAQ Item 1 -->
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                    <button 
+                        @click="activeAccordion = activeAccordion === 1 ? null : 1"
+                        class="w-full px-6 py-5 flex items-center justify-between text-left"
+                    >
+                        <span class="font-semibold text-gray-900 pr-4">Ce este HOPO și la ce folosește?</span>
+                        <div class="flex-shrink-0 w-8 h-8 bg-hopo-purple/10 rounded-full flex items-center justify-center transition-transform duration-300" :class="{ 'rotate-180': activeAccordion === 1 }">
+                            <svg class="w-4 h-4 text-hopo-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </button>
+                    <div 
+                        x-show="activeAccordion === 1" 
+                        x-collapse
+                        x-cloak
+                    >
+                        <div class="px-6 pb-5 text-gray-600 border-t border-gray-50 pt-4">
+                            HOPO este un software pentru locuri de joacă care automatizează accesul copiilor, calculează timpul petrecut în locație și generează automat plata la ieșire. Sistemul elimină calculele manuale și reduce erorile de facturare.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 2 -->
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                    <button 
+                        @click="activeAccordion = activeAccordion === 2 ? null : 2"
+                        class="w-full px-6 py-5 flex items-center justify-between text-left"
+                    >
+                        <span class="font-semibold text-gray-900 pr-4">Cum funcționează sistemul HOPO?</span>
+                        <div class="flex-shrink-0 w-8 h-8 bg-hopo-purple/10 rounded-full flex items-center justify-center transition-transform duration-300" :class="{ 'rotate-180': activeAccordion === 2 }">
+                            <svg class="w-4 h-4 text-hopo-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </button>
+                    <div 
+                        x-show="activeAccordion === 2" 
+                        x-collapse
+                        x-cloak
+                    >
+                        <div class="px-6 pb-5 text-gray-600 border-t border-gray-50 pt-4">
+                            <p class="mb-3">Procesul este simplu:</p>
+                            <ul class="space-y-2">
+                                <li class="flex items-start">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 bg-hopo-purple/10 text-hopo-purple text-xs font-bold rounded-full mr-3 flex-shrink-0">1</span>
+                                    <span>Copilul primește o brățară sau un card.</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 bg-hopo-purple/10 text-hopo-purple text-xs font-bold rounded-full mr-3 flex-shrink-0">2</span>
+                                    <span>La intrare se scanează codul și începe cronometrul.</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 bg-hopo-purple/10 text-hopo-purple text-xs font-bold rounded-full mr-3 flex-shrink-0">3</span>
+                                    <span>La ieșire, sistemul calculează automat durata și prețul.</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 bg-hopo-purple/10 text-hopo-purple text-xs font-bold rounded-full mr-3 flex-shrink-0">4</span>
+                                    <span>Totul este vizibil în timp real în dashboard.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 3 -->
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                    <button 
+                        @click="activeAccordion = activeAccordion === 3 ? null : 3"
+                        class="w-full px-6 py-5 flex items-center justify-between text-left"
+                    >
+                        <span class="font-semibold text-gray-900 pr-4">Pentru ce tipuri de locuri de joacă este potrivit HOPO?</span>
+                        <div class="flex-shrink-0 w-8 h-8 bg-hopo-purple/10 rounded-full flex items-center justify-center transition-transform duration-300" :class="{ 'rotate-180': activeAccordion === 3 }">
+                            <svg class="w-4 h-4 text-hopo-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </button>
+                    <div 
+                        x-show="activeAccordion === 3" 
+                        x-collapse
+                        x-cloak
+                    >
+                        <div class="px-6 pb-5 text-gray-600 border-t border-gray-50 pt-4">
+                            <p class="mb-3">HOPO este potrivit pentru:</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span>Locuri de joacă indoor</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span>Centre de distracții pentru copii</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span>Spații de joacă din restaurante sau malluri</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span>Parcuri tematice</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span>Săli de evenimente pentru copii</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 4 -->
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                    <button 
+                        @click="activeAccordion = activeAccordion === 4 ? null : 4"
+                        class="w-full px-6 py-5 flex items-center justify-between text-left"
+                    >
+                        <span class="font-semibold text-gray-900 pr-4">HOPO calculează automat tarifele și timpul?</span>
+                        <div class="flex-shrink-0 w-8 h-8 bg-hopo-purple/10 rounded-full flex items-center justify-center transition-transform duration-300" :class="{ 'rotate-180': activeAccordion === 4 }">
+                            <svg class="w-4 h-4 text-hopo-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </button>
+                    <div 
+                        x-show="activeAccordion === 4" 
+                        x-collapse
+                        x-cloak
+                    >
+                        <div class="px-6 pb-5 text-gray-600 border-t border-gray-50 pt-4">
+                            <p class="mb-3"><strong class="text-gray-900">Da.</strong> Sistemul calculează automat:</p>
+                            <ul class="space-y-2">
+                                <li class="flex items-center">
+                                    <div class="w-2 h-2 bg-hopo-purple rounded-full mr-3"></div>
+                                    <span>Durata vizitei</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <div class="w-2 h-2 bg-hopo-purple rounded-full mr-3"></div>
+                                    <span>Tarife pe oră sau pe intervale</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <div class="w-2 h-2 bg-hopo-purple rounded-full mr-3"></div>
+                                    <span>Oferte speciale sau pachete</span>
+                                </li>
+                            </ul>
+                            <p class="mt-3 text-sm bg-green-50 text-green-700 px-3 py-2 rounded-lg">
+                                ✓ Nu mai este nevoie de calcule manuale la recepție.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 5 -->
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                    <button 
+                        @click="activeAccordion = activeAccordion === 5 ? null : 5"
+                        class="w-full px-6 py-5 flex items-center justify-between text-left"
+                    >
+                        <span class="font-semibold text-gray-900 pr-4">Se poate integra HOPO cu casa de marcat fiscală?</span>
+                        <div class="flex-shrink-0 w-8 h-8 bg-hopo-purple/10 rounded-full flex items-center justify-center transition-transform duration-300" :class="{ 'rotate-180': activeAccordion === 5 }">
+                            <svg class="w-4 h-4 text-hopo-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </button>
+                    <div 
+                        x-show="activeAccordion === 5" 
+                        x-collapse
+                        x-cloak
+                    >
+                        <div class="px-6 pb-5 text-gray-600 border-t border-gray-50 pt-4">
+                            <strong class="text-gray-900">Da.</strong> HOPO se poate integra cu casa de marcat, astfel încât bonul fiscal să fie emis automat la finalul vizitei, fără introducere manuală.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 6 -->
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                    <button 
+                        @click="activeAccordion = activeAccordion === 6 ? null : 6"
+                        class="w-full px-6 py-5 flex items-center justify-between text-left"
+                    >
+                        <span class="font-semibold text-gray-900 pr-4">Pot vedea în timp real câți copii sunt în locul de joacă?</span>
+                        <div class="flex-shrink-0 w-8 h-8 bg-hopo-purple/10 rounded-full flex items-center justify-center transition-transform duration-300" :class="{ 'rotate-180': activeAccordion === 6 }">
+                            <svg class="w-4 h-4 text-hopo-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </button>
+                    <div 
+                        x-show="activeAccordion === 6" 
+                        x-collapse
+                        x-cloak
+                    >
+                        <div class="px-6 pb-5 text-gray-600 border-t border-gray-50 pt-4">
+                            <p class="mb-3"><strong class="text-gray-900">Da.</strong> Dashboard-ul HOPO arată în timp real:</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-3 text-center">
+                                    <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <span class="text-sm text-yellow-800 font-medium">Numărul de copii prezenți</span>
+                                </div>
+                                <div class="bg-purple-50 border border-purple-200 rounded-xl p-3 text-center">
+                                    <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <span class="text-sm text-purple-800 font-medium">Durata vizitelor</span>
+                                </div>
+                                <div class="bg-green-50 border border-green-200 rounded-xl p-3 text-center">
+                                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <span class="text-sm text-green-800 font-medium">Încasările din ziua curentă</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 7 -->
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                    <button 
+                        @click="activeAccordion = activeAccordion === 7 ? null : 7"
+                        class="w-full px-6 py-5 flex items-center justify-between text-left"
+                    >
+                        <span class="font-semibold text-gray-900 pr-4">Ce echipamente sunt necesare pentru HOPO?</span>
+                        <div class="flex-shrink-0 w-8 h-8 bg-hopo-purple/10 rounded-full flex items-center justify-center transition-transform duration-300" :class="{ 'rotate-180': activeAccordion === 7 }">
+                            <svg class="w-4 h-4 text-hopo-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </button>
+                    <div 
+                        x-show="activeAccordion === 7" 
+                        x-collapse
+                        x-cloak
+                    >
+                        <div class="px-6 pb-5 text-gray-600 border-t border-gray-50 pt-4">
+                            <p class="mb-3">În mod normal ai nevoie de:</p>
+                            <div class="space-y-3">
+                                <div class="flex items-center p-3 bg-gray-50 rounded-xl">
+                                    <div class="w-10 h-10 bg-hopo-purple/10 rounded-lg flex items-center justify-center mr-3">
+                                        <svg class="w-5 h-5 text-hopo-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <span>Un calculator sau tabletă la recepție</span>
+                                </div>
+                                <div class="flex items-center p-3 bg-gray-50 rounded-xl">
+                                    <div class="w-10 h-10 bg-hopo-purple/10 rounded-lg flex items-center justify-center mr-3">
+                                        <svg class="w-5 h-5 text-hopo-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                                        </svg>
+                                    </div>
+                                    <span>Scanner de coduri de bare sau cititor RFID</span>
+                                </div>
+                                <div class="flex items-center p-3 bg-gray-50 rounded-xl">
+                                    <div class="w-10 h-10 bg-hopo-coral/10 rounded-lg flex items-center justify-center mr-3">
+                                        <svg class="w-5 h-5 text-hopo-coral" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <span>Imprimantă fiscală</span>
+                                        <span class="ml-2 text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">opțional</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 8 -->
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                    <button 
+                        @click="activeAccordion = activeAccordion === 8 ? null : 8"
+                        class="w-full px-6 py-5 flex items-center justify-between text-left"
+                    >
+                        <span class="font-semibold text-gray-900 pr-4">Pot testa HOPO înainte de a cumpăra?</span>
+                        <div class="flex-shrink-0 w-8 h-8 bg-hopo-purple/10 rounded-full flex items-center justify-center transition-transform duration-300" :class="{ 'rotate-180': activeAccordion === 8 }">
+                            <svg class="w-4 h-4 text-hopo-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </button>
+                    <div 
+                        x-show="activeAccordion === 8" 
+                        x-collapse
+                        x-cloak
+                    >
+                        <div class="px-6 pb-5 text-gray-600 border-t border-gray-50 pt-4">
+                            <div class="bg-gradient-to-r from-hopo-purple/10 to-hopo-coral/10 rounded-xl p-4 border border-hopo-purple/20">
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0 w-10 h-10 bg-white rounded-full flex items-center justify-center mr-4 shadow-sm">
+                                        <svg class="w-5 h-5 text-hopo-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-gray-900 mb-1">Da! Oferim demo gratuit.</p>
+                                        <p class="text-gray-600">Astfel poți vedea cum funcționează sistemul în locația ta înainte de a lua o decizie.</p>
+                                    </div>
+                                </div>
+                                <a href="#contact" class="mt-4 inline-flex items-center text-hopo-purple font-medium hover:text-hopo-purple-dark transition-colors">
+                                    Solicită demo gratuit
+                                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bottom CTA -->
+            <div class="mt-12 text-center">
+                <p class="text-gray-600 mb-4">Nu ai găsit răspunsul căutat?</p>
+                <a href="#contact" class="inline-flex items-center bg-hopo-purple hover:bg-hopo-purple-dark text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                    </svg>
+                    Contactează-ne
+                </a>
+            </div>
         </div>
     </section>
 
