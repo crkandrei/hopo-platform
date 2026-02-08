@@ -30,6 +30,8 @@
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('favicon-96x96.png') }}?v=3">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
     @if(env('GOOGLE_ANALYTICS_ID'))
     <!-- Google Analytics 4 -->
     <script async src="https://www.googletagmanager.com/gtag/js?id={{ env('GOOGLE_ANALYTICS_ID') }}"></script>
@@ -44,26 +46,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'hopo-purple': '#6366F1',
-                        'hopo-purple-dark': '#4F46E5',
-                        'hopo-coral': '#F87171',
-                        'hopo-coral-dark': '#EF4444',
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
     <style>
         .gradient-text {
             background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
@@ -113,14 +97,6 @@
                     {
                         "@type": "Offer",
                         "name": "Plan START",
-                        "price": "39",
-                        "priceCurrency": "EUR",
-                        "priceValidUntil": "2026-12-31",
-                        "availability": "https://schema.org/InStock"
-                    },
-                    {
-                        "@type": "Offer",
-                        "name": "Plan STANDARD",
                         "price": "69",
                         "priceCurrency": "EUR",
                         "priceValidUntil": "2026-12-31",
@@ -128,8 +104,16 @@
                     },
                     {
                         "@type": "Offer",
-                        "name": "Plan PRO",
+                        "name": "Plan STANDARD",
                         "price": "99",
+                        "priceCurrency": "EUR",
+                        "priceValidUntil": "2026-12-31",
+                        "availability": "https://schema.org/InStock"
+                    },
+                    {
+                        "@type": "Offer",
+                        "name": "Plan PRO",
+                        "price": "129",
                         "priceCurrency": "EUR",
                         "priceValidUntil": "2026-12-31",
                         "availability": "https://schema.org/InStock"
@@ -289,6 +273,7 @@
                         <span class="block text-2xl md:text-3xl font-normal text-gray-600 mt-3">Fără caiete, fără greșeli, fără stres</span>
                     </h1>
                     <p class="text-xl text-gray-600 mb-8 leading-relaxed">
+                        HOPO este un <strong>program de gestiune</strong> creat special pentru locuri de joacă. 
                         Gestionează sesiunile de joacă, calculează automat prețurile și emite bonuri fiscale. 
                         Totul într-o singură aplicație.
                     </p>
@@ -723,8 +708,11 @@
                     <div class="text-center">
                         <h3 class="text-xl font-semibold mb-2">START</h3>
                         <div class="mb-6">
-                            <span class="text-4xl font-bold">39</span>
-                            <span class="text-gray-600">€ / lună</span>
+                            <div class="flex items-center justify-center gap-2">
+                                <span class="text-2xl font-bold text-gray-400 line-through">99 €</span>
+                                <span class="text-4xl font-bold text-green-600">69</span>
+                                <span class="text-gray-600">€ / lună</span>
+                            </div>
                         </div>
                         <ul class="text-left space-y-3 mb-8">
                             <li class="flex items-start">
@@ -778,8 +766,11 @@
                     <div class="text-center">
                         <h3 class="text-xl font-semibold mb-2">STANDARD</h3>
                         <div class="mb-6">
-                            <span class="text-4xl font-bold">69</span>
-                            <span class="text-gray-600">€ / lună</span>
+                            <div class="flex items-center justify-center gap-2">
+                                <span class="text-2xl font-bold text-gray-400 line-through">129 €</span>
+                                <span class="text-4xl font-bold text-green-600">99</span>
+                                <span class="text-gray-600">€ / lună</span>
+                            </div>
                         </div>
                         <ul class="text-left space-y-3 mb-8">
                             <li class="flex items-start">
@@ -830,8 +821,11 @@
                     <div class="text-center">
                         <h3 class="text-xl font-semibold mb-2">PRO</h3>
                         <div class="mb-6">
-                            <span class="text-4xl font-bold">99</span>
-                            <span class="text-gray-600">€ / lună</span>
+                            <div class="flex items-center justify-center gap-2">
+                                <span class="text-2xl font-bold text-gray-400 line-through">159 €</span>
+                                <span class="text-4xl font-bold text-green-600">129</span>
+                                <span class="text-gray-600">€ / lună</span>
+                            </div>
                         </div>
                         <ul class="text-left space-y-3 mb-8">
                             <li class="flex items-start">
