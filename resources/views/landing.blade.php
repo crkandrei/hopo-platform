@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Hopo este soft-ul complet pentru gestiunea locului tău de joacă. Cronometrare sesiuni, brățări RFID, calcul automat tarife, bonuri fiscale conforme ANAF și rapoarte zilnice. Solicită demo gratuit!">
-    <title>Hopo – Soft gestiune loc de joacă | Sesiuni, brățări RFID, bonuri fiscale</title>
+    <meta name="description" content="Hopo – program de gestiune pentru locuri de joacă: cronometrare automată, brățări RFID, bonuri fiscale ANAF și rapoarte zilnice. Demo gratuit!">
+    <title>Program gestiune loc de joacă – Bonuri fiscale & RFID | Hopo</title>
     <link rel="canonical" href="https://hopo.ro/">
     
     <!-- Open Graph / Facebook -->
@@ -239,7 +239,7 @@
             <div class="flex items-center justify-between">
                 <!-- Logo -->
                 <div class="flex items-center">
-                    <img src="{{ asset('images/hopo-logo.png') }}" alt="Hopo - Logo soft gestiune locuri de joacă" class="h-16">
+                    <img src="{{ asset('images/hopo-logo.png') }}" alt="Hopo - Logo soft gestiune locuri de joacă" width="200" height="60" loading="lazy" class="h-16">
                 </div>
                 
                 <!-- Nav Links -->
@@ -267,11 +267,11 @@
             <div class="grid lg:grid-cols-2 gap-12 items-center">
                 <!-- Left: Text -->
                 <div>
-                    <h1 class="text-4xl md:text-5xl font-bold leading-tight mb-6">
+                    <h1 class="text-4xl md:text-5xl font-bold leading-tight mb-3">
                         Soft de gestiune pentru 
                         <span class="gradient-text">locuri de joacă</span>
-                        <span class="block text-2xl md:text-3xl font-normal text-gray-600 mt-3">Fără caiete, fără greșeli, fără stres</span>
                     </h1>
+                    <p class="text-2xl md:text-3xl font-normal text-gray-600 mb-4">Fără caiete, fără greșeli, fără stres</p>
                     <p class="text-xl text-gray-600 mb-8 leading-relaxed">
                         HOPO este un <strong>program de gestiune</strong> creat special pentru locuri de joacă. 
                         Gestionează sesiunile de joacă, calculează automat prețurile și emite bonuri fiscale. 
@@ -307,7 +307,7 @@
                         <!-- Screenshot placeholder - replace with actual screenshot -->
                         <div class="bg-gradient-to-br from-gray-100 to-gray-200 aspect-[4/3] flex items-center justify-center">
                             @if(file_exists(public_path('images/screenshot-dashboard.png')))
-                                <img src="{{ asset('images/screenshot-dashboard.png') }}" alt="Dashboard Hopo - sesiuni active, încasări și statistici loc de joacă" class="w-full h-full object-cover object-top">
+                                <img src="{{ asset('images/screenshot-dashboard.png') }}" alt="Dashboard Hopo - sesiuni active, încasări și statistici loc de joacă" width="800" height="600" loading="lazy" class="w-full h-full object-cover object-top">
                             @else
                                 <!-- Faithful Dashboard Mockup -->
                                 <div class="w-full h-full bg-gray-100 p-3 overflow-hidden">
@@ -1346,7 +1346,7 @@
         <div class="max-w-6xl mx-auto">
             <div class="grid md:grid-cols-3 gap-8 mb-8">
                 <div>
-                    <img src="{{ asset('images/hopo-logo.png') }}" alt="Hopo - Logo soft gestiune locuri de joacă" class="h-8 brightness-0 invert opacity-70 mb-4">
+                    <img src="{{ asset('images/hopo-logo.png') }}" alt="Hopo - Logo soft gestiune locuri de joacă" width="200" height="60" loading="lazy" class="h-8 brightness-0 invert opacity-70 mb-4">
                     <p class="text-sm">Soft de gestiune pentru locuri de joacă indoor. Sesiuni, brățări RFID, bonuri fiscale.</p>
                 </div>
                 <div>
