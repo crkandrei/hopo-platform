@@ -232,7 +232,7 @@ class PlaySession extends Model
     /**
      * Start a new play session
      */
-    public static function startSession(Location $location, Child $child, string $braceletCode): self
+    public static function startSession(Location $location, Child $child, ?string $braceletCode): self
     {
         $session = self::create([
             'location_id' => $location->id,

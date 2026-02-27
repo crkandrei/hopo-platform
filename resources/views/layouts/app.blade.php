@@ -208,12 +208,21 @@
                     </a>
                     @endif
                     
-                    <a href="{{ route('scan') }}" 
+                    @if($currentUser && $currentUser->location && !$currentUser->location->bracelet_required)
+                    <a href="{{ route('start-session') }}"
+                       data-title="Start Sesiune"
+                       class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('start-session') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                        <i class="fas fa-play-circle sidebar-icon mr-3"></i>
+                        <span class="sidebar-text">Start Sesiune</span>
+                    </a>
+                    @else
+                    <a href="{{ route('scan') }}"
                        data-title="Scanare Brățară"
                        class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('scan') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                         <i class="fas fa-qrcode sidebar-icon mr-3"></i>
                         <span class="sidebar-text">Scanare Brățară</span>
                     </a>
+                    @endif
 
                     <a href="{{ route('end-of-day.index') }}" 
                        data-title="Final de Zi"

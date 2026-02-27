@@ -79,6 +79,7 @@ Route::middleware('auth')->group(function () {
     
     // Scan page
     Route::get('/scan', [App\Http\Controllers\ScanPageController::class, 'index'])->name('scan');
+    Route::get('/start-session', [App\Http\Controllers\ScanPageController::class, 'startSessionIndex'])->name('start-session');
 
     // End of day page (accessible to all authenticated users)
     Route::get('/end-of-day', [App\Http\Controllers\EndOfDayController::class, 'index'])->name('end-of-day.index');

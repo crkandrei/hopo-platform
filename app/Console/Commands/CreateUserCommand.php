@@ -102,67 +102,47 @@ class CreateUserCommand extends Command
         $selectedRoleIndex = array_search($selectedRoleOption, $roleOptions);
         $selectedRole = $roles[$selectedRoleIndex];
 
-        // 5. Company și Location (doar dacă nu e SUPER_ADMIN)
+        // 5. Company și Location (diferențiat per rol)
         $companyId = null;
         $locationId = null;
         $locationName = null;
 
-        if ($selectedRole->name !== 'SUPER_ADMIN') {
-            // Select Company first
-            $companies = Company::all(['id', 'name']);
-            
+        if ($selectedRole->name === 'COMPANY_ADMIN') {
+            $companies = Company::where('is_active', true)->get(['id', 'name']);
             if ($companies->isEmpty()) {
-                $this->error('Nu există companii în sistem! Creează mai întâi o companie.');
+                $this->error('Nu există companii active!');
                 return Command::FAILURE;
             }
+            $companyNames = $companies->pluck('name')->toArray();
+            $chosen = $this->choice('Selectează compania', $companyNames);
+            $companyId = $companies->firstWhere('name', $chosen)->id;
+            // location_id rămâne null
 
-            $companyOptions = $companies->map(function ($company) {
-                return $company->name;
-            })->toArray();
-
-            $defaultCompanyIndex = null;
-            if ($existingUser && $existingUser->company) {
-                $defaultCompanyIndex = array_search($existingUser->company->name, $companyOptions);
+        } elseif ($selectedRole->name === 'STAFF') {
+            $companies = Company::where('is_active', true)->get(['id', 'name']);
+            if ($companies->isEmpty()) {
+                $this->error('Nu există companii active!');
+                return Command::FAILURE;
             }
+            $companyNames = $companies->pluck('name')->toArray();
+            $chosenCompany = $this->choice('Selectează compania', $companyNames);
+            $company = $companies->firstWhere('name', $chosenCompany);
 
-            $selectedCompanyOption = $this->choice(
-                'Selectează compania',
-                $companyOptions,
-                $defaultCompanyIndex !== false ? $defaultCompanyIndex : null
-            );
-
-            $selectedCompanyIndex = array_search($selectedCompanyOption, $companyOptions);
-            $selectedCompany = $companies[$selectedCompanyIndex];
-            $companyId = $selectedCompany->id;
-
-            // Select Location
-            $locations = Location::where('company_id', $companyId)->get(['id', 'name']);
-            
+            $locations = Location::where('company_id', $company->id)
+                                 ->where('is_active', true)
+                                 ->get(['id', 'name']);
             if ($locations->isEmpty()) {
-                $this->error('Nu există locații pentru această companie! Creează mai întâi o locație.');
+                $this->error("Compania '{$company->name}' nu are locații active!");
                 return Command::FAILURE;
             }
-
-            $locationOptions = $locations->map(function ($location) {
-                return $location->name;
-            })->toArray();
-
-            $defaultLocationIndex = null;
-            if ($existingUser && $existingUser->location) {
-                $defaultLocationIndex = array_search($existingUser->location->name, $locationOptions);
-            }
-
-            $selectedLocationOption = $this->choice(
-                'Selectează locația',
-                $locationOptions,
-                $defaultLocationIndex !== false ? $defaultLocationIndex : null
-            );
-
-            $selectedLocationIndex = array_search($selectedLocationOption, $locationOptions);
-            $selectedLocation = $locations[$selectedLocationIndex];
+            $locationNames = $locations->pluck('name')->toArray();
+            $chosenLocation = $this->choice('Selectează locația', $locationNames);
+            $selectedLocation = $locations->firstWhere('name', $chosenLocation);
             $locationId = $selectedLocation->id;
             $locationName = $selectedLocation->name;
+            // company_id rămâne null (derivat via relație)
         }
+        // SUPER_ADMIN: ambele rămân null
 
         // 6. Parolă
         $password = $this->secret('Parolă (minim 8 caractere)');
@@ -198,8 +178,8 @@ class CreateUserCommand extends Command
                 ['Nume', $name],
                 ['Email', $email ?: 'N/A'],
                 ['Rol', $selectedRole->display_name . ' (' . $selectedRole->name . ')'],
-                ['Companie', $companyId ? Company::find($companyId)->name : 'N/A (Super Admin)'],
-                ['Locație', $locationName ?: 'N/A (Super Admin)'],
+                ['Companie', $companyId ? Company::find($companyId)->name : 'N/A'],
+                ['Locație', $locationName ?: 'N/A'],
                 ['Status', $status],
             ]
         );

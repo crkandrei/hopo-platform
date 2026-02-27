@@ -250,14 +250,15 @@ class ScanService
     }
 
     /**
-     * Începe o sesiune de joacă pentru un copil cu un cod de bare
+     * Începe o sesiune de joacă pentru un copil cu un cod de bare (opțional)
      */
-    public function startPlaySession(Location $location, Child $child, string $braceletCode): PlaySession
+    public function startPlaySession(Location $location, Child $child, ?string $braceletCode): PlaySession
     {
         // Trim only (no normalization - code should already be correct from frontend)
-        $braceletCode = trim($braceletCode);
-        
-        if (empty($braceletCode)) {
+        $braceletCode = $braceletCode !== null ? trim($braceletCode) : null;
+
+        // Dacă locația necesită brățară, codul nu poate fi gol
+        if ($location->bracelet_required && empty($braceletCode)) {
             throw new \Exception('Codul nu poate fi gol');
         }
 
@@ -271,14 +272,16 @@ class ScanService
         }
 
         // Permite reutilizarea codurilor după închiderea sesiunii
-        // Verifică doar dacă există o sesiune activă cu acest cod
-        $activeSessionWithCode = PlaySession::where('bracelet_code', $braceletCode)
-            ->where('location_id', $location->id)
-            ->whereNull('ended_at')
-            ->first();
+        // Verifică doar dacă există o sesiune activă cu acest cod (doar dacă există un cod)
+        if (!empty($braceletCode)) {
+            $activeSessionWithCode = PlaySession::where('bracelet_code', $braceletCode)
+                ->where('location_id', $location->id)
+                ->whereNull('ended_at')
+                ->first();
 
-        if ($activeSessionWithCode) {
-            throw new \Exception('Codul este deja folosit într-o sesiune activă. Te rog oprește sesiunea existentă înainte.');
+            if ($activeSessionWithCode) {
+                throw new \Exception('Codul este deja folosit într-o sesiune activă. Te rog oprește sesiunea existentă înainte.');
+            }
         }
 
         $session = PlaySession::startSession($location, $child, $braceletCode);

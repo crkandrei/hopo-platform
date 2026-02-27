@@ -34,10 +34,10 @@ class ScanPageController extends Controller
     {
         $user = Auth::user();
         $location = $user->location;
-        
+
         // Get available children for the location
         $children = [];
-        
+
         if ($location) {
             $children = Child::where('location_id', $location->id)
                 ->with('guardian')
@@ -45,6 +45,26 @@ class ScanPageController extends Controller
         }
 
         return view('scan.index', compact('children'));
+    }
+
+    /**
+     * Show start session page (for locations without bracelet requirement)
+     */
+    public function startSessionIndex()
+    {
+        $user = Auth::user();
+        $location = $user->location;
+
+        // If bracelet is required for this location, redirect to scan page
+        if (!$location || $location->bracelet_required) {
+            return redirect()->route('scan');
+        }
+
+        $children = Child::where('location_id', $location->id)
+            ->with('guardian')
+            ->get();
+
+        return view('scan.start-session', compact('location', 'children'));
     }
 
     /**
@@ -116,7 +136,7 @@ class ScanPageController extends Controller
             return ApiResponder::error('Nu există nicio locație în sistem', 400);
         }
 
-        $braceletCode = trim($request->bracelet_code);
+        $braceletCode = $request->bracelet_code !== null ? trim($request->bracelet_code) : null;
         $child = Child::where('id', $request->child_id)
             ->where('location_id', $location->id)
             ->first();
@@ -171,7 +191,7 @@ class ScanPageController extends Controller
             return ApiResponder::error('Nu există nicio locație în sistem', 400);
         }
 
-        $braceletCode = trim($request->bracelet_code);
+        $braceletCode = $request->bracelet_code !== null ? trim($request->bracelet_code) : null;
 
         try {
             $data = DB::transaction(function () use ($request, $location, $braceletCode) {
@@ -359,7 +379,7 @@ class ScanPageController extends Controller
                 return ApiResponder::error('Copil nu a fost găsit', 404);
             }
 
-            $braceletCode = trim($request->bracelet_code);
+            $braceletCode = $request->bracelet_code !== null ? trim($request->bracelet_code) : null;
             $session = $this->scanService->startPlaySession($location, $child, $braceletCode);
 
             return ApiResponder::success([

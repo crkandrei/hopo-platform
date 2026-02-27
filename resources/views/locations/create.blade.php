@@ -130,12 +130,24 @@
                 <!-- Is Active -->
                 <div>
                     <label class="flex items-center">
-                        <input type="checkbox" 
-                               name="is_active" 
+                        <input type="checkbox"
+                               name="is_active"
                                value="1"
                                {{ old('is_active', true) ? 'checked' : '' }}
                                class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
                         <span class="ml-2 text-sm text-gray-700">Locație activă</span>
+                    </label>
+                </div>
+
+                <!-- Bracelet Required -->
+                <div>
+                    <label class="flex items-center">
+                        <input type="checkbox"
+                               name="bracelet_required"
+                               value="1"
+                               {{ old('bracelet_required', true) ? 'checked' : '' }}
+                               class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <span class="ml-2 text-sm text-gray-700">Sesiunile necesită brățară</span>
                     </label>
                 </div>
 

@@ -16,7 +16,7 @@ class StartSessionRequest extends FormRequest
         return [
             'child_id' => ['required', 'exists:children,id'],
             'bracelet_code' => [
-                'required',
+                'nullable',
                 'string',
                 'min:1',
                 'max:50',

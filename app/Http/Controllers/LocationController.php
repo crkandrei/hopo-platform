@@ -64,16 +64,18 @@ class LocationController extends Controller
             'email' => 'nullable|email|max:255',
             'price_per_hour' => 'required|numeric|min:0',
             'is_active' => 'boolean',
+            'bracelet_required' => 'boolean',
             'bridge_config' => 'nullable|array',
         ]);
-        
+
         // Set company_id for COMPANY_ADMIN
         if ($user->isCompanyAdmin() && $user->company_id) {
             $validated['company_id'] = $user->company_id;
         }
-        
+
         $validated['slug'] = Str::slug($validated['name']);
-        $validated['is_active'] = $validated['is_active'] ?? true;
+        $validated['is_active'] = $request->boolean('is_active', true);
+        $validated['bracelet_required'] = $request->boolean('bracelet_required', true);
         
         // Ensure unique slug within company
         $baseSlug = $validated['slug'];
@@ -136,14 +138,19 @@ class LocationController extends Controller
             'email' => 'nullable|email|max:255',
             'price_per_hour' => 'required|numeric|min:0',
             'is_active' => 'boolean',
+            'bracelet_required' => 'boolean',
             'bridge_config' => 'nullable|array',
         ]);
-        
+
         // COMPANY_ADMIN cannot change company_id
         if ($user->isCompanyAdmin() && $user->company_id) {
             $validated['company_id'] = $location->company_id;
         }
-        
+
+        // Explicitly handle checkboxes (unchecked = absent from request = false)
+        $validated['is_active'] = $request->boolean('is_active');
+        $validated['bracelet_required'] = $request->boolean('bracelet_required');
+
         // Update slug if name changed
         if ($location->name !== $validated['name']) {
             $newSlug = Str::slug($validated['name']);

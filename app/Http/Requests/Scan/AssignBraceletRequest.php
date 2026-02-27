@@ -15,7 +15,7 @@ class AssignBraceletRequest extends FormRequest
     {
         return [
             'bracelet_code' => [
-                'required',
+                'nullable',
                 'string',
                 'min:1',
                 'max:50',

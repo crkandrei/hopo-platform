@@ -19,11 +19,13 @@ class Location extends Model
         'email',
         'price_per_hour',
         'is_active',
+        'bracelet_required',
         'bridge_config',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'bracelet_required' => 'boolean',
         'price_per_hour' => 'decimal:2',
         'bridge_config' => 'array',
     ];
