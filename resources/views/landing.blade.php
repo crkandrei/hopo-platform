@@ -239,7 +239,7 @@
             <div class="flex items-center justify-between">
                 <!-- Logo -->
                 <div class="flex items-center">
-                    <img src="{{ asset('images/hopo-logo.png') }}" alt="Hopo - Logo soft gestiune locuri de joacă" width="200" height="60" loading="lazy" class="h-16">
+                    <img src="{{ asset('images/hopo-logo.png') }}" alt="Hopo - Logo soft gestiune locuri de joacă" loading="eager" class="h-16 w-auto">
                 </div>
                 
                 <!-- Nav Links -->
