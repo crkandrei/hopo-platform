@@ -56,7 +56,7 @@
         <div class="flex items-center gap-3">
             <div class="text-sm text-gray-600" id="resultsInfo"></div>
             <button id="combinedReceiptBtn" class="hidden px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm transition-colors" onclick="openCombinedFiscalModal()">
-                <i class="fas fa-receipt mr-2"></i>Generează bon combinat (<span id="selectedCount">0</span>)
+                <i class="fas fa-receipt mr-2"></i><span id="combinedReceiptLabel">Generează bon combinat</span> (<span id="selectedCount">0</span>)
             </button>
         </div>
         <div class="flex items-center gap-2">
@@ -575,10 +575,20 @@
         clearAllTimers();
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
-        
+
+        // Update location-level fiscal flag (all rows belong to same location)
+        if (rows.length > 0) {
+            fiscalEnabled = rows[0].fiscal_enabled !== false;
+        }
+        // Update combined receipt button label based on fiscal setting
+        const combinedReceiptLabel = document.getElementById('combinedReceiptLabel');
+        if (combinedReceiptLabel) {
+            combinedReceiptLabel.textContent = fiscalEnabled ? 'Generează bon combinat' : 'Plată combinată';
+        }
+
         // Check if there's a just-stopped session to highlight
         const justStoppedSessionId = sessionStorage.getItem('justStoppedSessionId');
-        
+
         rows.forEach(row => {
             const tr = document.createElement('tr');
             tr.setAttribute('data-session-id', row.id);
@@ -643,8 +653,8 @@
                             <i class="fas fa-eye mr-1"></i>Detalii
                         </a>
                         ${row.ended_at && !row.is_paid ? `
-                            <button onclick="openFiscalModal(${row.id})" class="px-2 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs transition-colors">
-                                <i class="fas fa-receipt mr-1"></i>Bon
+                            <button onclick="openFiscalModal(${row.id}, ${row.fiscal_enabled ? 'true' : 'false'})" class="px-2 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs transition-colors">
+                                <i class="fas fa-receipt mr-1"></i>${row.fiscal_enabled ? 'Bon' : 'Plată'}
                             </button>
                         ` : ''}
                         ${row.ended_at ? '' : `
@@ -967,9 +977,11 @@
     let fiscalModalPaymentType = null;
     let fiscalModalData = null;
     let fiscalModalReceiptData = null;
+    let fiscalEnabled = true;
 
-    function openFiscalModal(sessionId) {
+    function openFiscalModal(sessionId, sessionFiscalEnabled = true) {
         fiscalModalSessionId = sessionId;
+        fiscalEnabled = sessionFiscalEnabled;
         fiscalModalCurrentStep = 1;
         fiscalModalPaymentType = null;
         fiscalModalData = null;
@@ -1329,21 +1341,76 @@
             alert('Date incomplete');
             return;
         }
-        
+
         // Check if single session or multiple sessions
         const isCombined = !fiscalModalSessionId && selectedSessions.size >= 2;
         const isSingle = fiscalModalSessionId !== null;
-        
+
         if (!isSingle && !isCombined) {
             alert('Date incomplete');
             return;
         }
-        
+
         // Go to loading step
         fiscalModalCurrentStep = 3;
         document.getElementById('fiscal-modal-step-2').classList.add('hidden');
         document.getElementById('fiscal-modal-step-3').classList.remove('hidden');
-        
+
+        // If fiscal is disabled for this location, skip the bridge entirely
+        if (!fiscalEnabled) {
+            try {
+                const voucherHours = fiscalModalData.voucherHours || 0;
+                let url, body;
+
+                if (isCombined) {
+                    url = '/sessions/mark-combined-paid-no-fiscal';
+                    body = {
+                        session_ids: Array.from(selectedSessions),
+                        payment_method: fiscalModalPaymentType,
+                        voucher_hours: voucherHours > 0 ? voucherHours : null,
+                    };
+                } else {
+                    url = `/sessions/${fiscalModalSessionId}/mark-paid-no-fiscal`;
+                    body = {
+                        payment_method: fiscalModalPaymentType,
+                        voucher_hours: voucherHours > 0 ? voucherHours : null,
+                    };
+                }
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Eroare la marcarea sesiunii ca plătită');
+                }
+
+                const result = await response.json();
+                if (result.success) {
+                    showFiscalResult('success', 'Plata a fost înregistrată cu succes.', null);
+                    if (isCombined) {
+                        selectedSessions.clear();
+                        updateCombinedButton();
+                    }
+                    fetchData();
+                } else {
+                    throw new Error(result.message || 'Eroare necunoscută');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showFiscalResult('error', error.message, null);
+                fetchData();
+            }
+            return;
+        }
+
         try {
             // Use already prepared data from goToConfirmStep
             const prepareData = {

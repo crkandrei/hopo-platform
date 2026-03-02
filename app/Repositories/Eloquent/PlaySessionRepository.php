@@ -81,6 +81,9 @@ class PlaySessionRepository implements PlaySessionRepositoryInterface
         $dateStart = $date->copy()->startOfDay();
         $dateEnd = $date->copy()->endOfDay();
         
+        $location = \App\Models\Location::find($locationId);
+        $locationFiscalEnabled = $location ? (bool) $location->fiscal_enabled : true;
+
         $query = PlaySession::query()
             ->where('play_sessions.location_id', $locationId)
             ->whereBetween('play_sessions.started_at', [$dateStart, $dateEnd])
@@ -211,6 +214,7 @@ class PlaySessionRepository implements PlaySessionRepositoryInterface
                     'is_paid' => !is_null($row->paid_at),
                     'payment_status' => $row->payment_status ?? null,
                     'voucher_hours' => $row->voucher_hours ? (float) $row->voucher_hours : null,
+                    'fiscal_enabled' => $locationFiscalEnabled,
                 ];
             });
 

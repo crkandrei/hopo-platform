@@ -1101,6 +1101,55 @@ class SessionsController extends Controller
     }
 
     /**
+     * Mark multiple sessions as paid without fiscal receipt (for locations with fiscal_enabled = false)
+     */
+    public function markCombinedPaidNoFiscal(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Neautentificat'], 401);
+        }
+
+        $validated = $request->validate([
+            'session_ids'    => 'required|array|min:2',
+            'session_ids.*'  => 'required|integer|exists:play_sessions,id',
+            'payment_method' => 'required|in:CASH,CARD',
+            'voucher_hours'  => 'nullable|numeric|min:0',
+        ]);
+
+        $query = PlaySession::whereIn('id', $validated['session_ids']);
+        if (!$user->isSuperAdmin() && $user->location) {
+            $query->where('location_id', $user->location->id);
+        }
+
+        $sessions = $query->get();
+
+        if ($sessions->count() !== count($validated['session_ids'])) {
+            return response()->json(['success' => false, 'message' => 'Unele sesiuni nu au fost găsite'], 404);
+        }
+
+        foreach ($sessions as $session) {
+            if (!$session->ended_at) {
+                return response()->json(['success' => false, 'message' => 'Toate sesiunile trebuie să fie finalizate'], 400);
+            }
+            if ($session->isPaid()) {
+                return response()->json(['success' => false, 'message' => 'Unele sesiuni sunt deja plătite'], 400);
+            }
+        }
+
+        PlaySession::whereIn('id', $validated['session_ids'])
+            ->whereNull('paid_at')
+            ->update([
+                'paid_at'        => now(),
+                'payment_status' => 'paid',
+                'payment_method' => $validated['payment_method'],
+                'voucher_hours'  => $validated['voucher_hours'] ?? null,
+            ]);
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
      * Mark session as paid without fiscal receipt (for locations with fiscal_enabled = false)
      */
     public function markPaidNoFiscal($id, Request $request)
