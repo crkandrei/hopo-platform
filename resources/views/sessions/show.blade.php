@@ -477,11 +477,15 @@ $sessionProductsJson = $session->products->map(function($sp) {
                     <button onclick="closeFiscalModal()" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
                         Anulează
                     </button>
-                    <button 
+                    <button
                         onclick="confirmAndPrint()"
                         class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                         <i class="fas fa-check mr-2"></i>
-                        Confirmă și Emite
+                        @if($session->location && !$session->location->fiscal_enabled)
+                            Confirmă plata
+                        @else
+                            Confirmă și Emite
+                        @endif
                     </button>
                 </div>
             </div>
@@ -616,6 +620,7 @@ $sessionProductsJson = $session->products->map(function($sp) {
 let printInProgress = false;
 const sessionId = {{ $session->id }};
 const sessionIsPaid = {{ $session->isPaid() ? 'true' : 'false' }};
+const fiscalEnabled = {{ ($session->location && $session->location->fiscal_enabled) ? 'true' : 'false' }};
 let availableProducts = [];
 let sessionProducts = @json($sessionProductsJson);
 
@@ -906,12 +911,49 @@ async function confirmAndPrint() {
         alert('Date incomplete');
         return;
     }
-    
+
     // Go to loading step
     fiscalModalCurrentStep = 3;
     document.getElementById('fiscal-modal-step-2').classList.add('hidden');
     document.getElementById('fiscal-modal-step-3').classList.remove('hidden');
-    
+
+    // If fiscal is disabled for this location, skip the bridge entirely
+    if (!fiscalEnabled) {
+        try {
+            const voucherHours = fiscalModalData.voucherHours || 0;
+            const response = await fetch(`/sessions/${fiscalModalSessionId}/mark-paid-no-fiscal`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    payment_method: fiscalModalPaymentType,
+                    voucher_hours: voucherHours > 0 ? voucherHours : null,
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Eroare la marcarea sesiunii ca plătită');
+            }
+
+            const result = await response.json();
+            if (result.success) {
+                showFiscalResult('success', 'Plata a fost înregistrată cu succes.', null);
+                setTimeout(() => { window.location.reload(); }, 1500);
+            } else {
+                throw new Error(result.message || 'Eroare necunoscută');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showFiscalResult('error', error.message, null);
+            setTimeout(() => { window.location.reload(); }, 1500);
+        }
+        return;
+    }
+
     try {
         // Use already prepared data from goToConfirmStep
         const prepareData = {
@@ -976,7 +1018,7 @@ async function confirmAndPrint() {
         }
     } catch (error) {
         console.error('Error:', error);
-        
+
         // Save error log to database
         try {
             await saveFiscalReceiptLog({
@@ -991,12 +1033,12 @@ async function confirmAndPrint() {
             console.error('Error saving log:', logError);
             // Don't block the UI if log saving fails
         }
-        
+
         // Show error in modal
         const errorMessage = error.message.includes('Failed to fetch') || error.message.includes('NetworkError')
             ? 'Nu s-a putut conecta la bridge-ul fiscal local. Verifică că serviciul Node.js rulează pe calculatorul tău.'
             : error.message;
-        
+
         showFiscalResult('error', errorMessage, null);
         // Reload page even on error to ensure consistency
         setTimeout(() => {

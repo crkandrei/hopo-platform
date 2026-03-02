@@ -65,6 +65,7 @@ class LocationController extends Controller
             'price_per_hour' => 'required|numeric|min:0',
             'is_active' => 'boolean',
             'bracelet_required' => 'boolean',
+            'fiscal_enabled' => 'boolean',
             'bridge_config' => 'nullable|array',
         ]);
 
@@ -76,6 +77,7 @@ class LocationController extends Controller
         $validated['slug'] = Str::slug($validated['name']);
         $validated['is_active'] = $request->boolean('is_active', true);
         $validated['bracelet_required'] = $request->boolean('bracelet_required', true);
+        $validated['fiscal_enabled'] = $request->boolean('fiscal_enabled', true);
         
         // Ensure unique slug within company
         $baseSlug = $validated['slug'];
@@ -139,6 +141,7 @@ class LocationController extends Controller
             'price_per_hour' => 'required|numeric|min:0',
             'is_active' => 'boolean',
             'bracelet_required' => 'boolean',
+            'fiscal_enabled' => 'boolean',
             'bridge_config' => 'nullable|array',
         ]);
 
@@ -150,6 +153,7 @@ class LocationController extends Controller
         // Explicitly handle checkboxes (unchecked = absent from request = false)
         $validated['is_active'] = $request->boolean('is_active');
         $validated['bracelet_required'] = $request->boolean('bracelet_required');
+        $validated['fiscal_enabled'] = $request->boolean('fiscal_enabled');
 
         // Update slug if name changed
         if ($location->name !== $validated['name']) {

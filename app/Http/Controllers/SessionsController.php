@@ -1101,6 +1101,63 @@ class SessionsController extends Controller
     }
 
     /**
+     * Mark session as paid without fiscal receipt (for locations with fiscal_enabled = false)
+     */
+    public function markPaidNoFiscal($id, Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Neautentificat'
+            ], 401);
+        }
+
+        $validated = $request->validate([
+            'payment_method' => 'required|in:CASH,CARD',
+            'voucher_hours'  => 'nullable|numeric|min:0',
+        ]);
+
+        $sessionQuery = PlaySession::where('id', $id);
+
+        if (!$user->isSuperAdmin() && $user->location) {
+            $sessionQuery->where('location_id', $user->location->id);
+        }
+
+        $session = $sessionQuery->with('location')->first();
+
+        if (!$session) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sesiunea nu a fost găsită'
+            ], 404);
+        }
+
+        if (!$session->ended_at) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sesiunea nu a fost finalizată'
+            ], 400);
+        }
+
+        if ($session->isPaid()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sesiunea a fost deja plătită'
+            ], 400);
+        }
+
+        $session->update([
+            'paid_at'        => now(),
+            'payment_status' => 'paid',
+            'payment_method' => $validated['payment_method'],
+            'voucher_hours'  => $validated['voucher_hours'] ?? null,
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
      * Format duration as "Xh Ym" or "Xh" if no minutes, or "Ym" if no hours
      */
     private function formatDuration(int $hours, int $minutes): string

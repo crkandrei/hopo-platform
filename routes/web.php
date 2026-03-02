@@ -97,6 +97,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/sessions/save-fiscal-receipt-log', [App\Http\Controllers\SessionsController::class, 'saveFiscalReceiptLog'])->name('sessions.save-fiscal-receipt-log');
     Route::post('/sessions/save-combined-fiscal-receipt-log', [App\Http\Controllers\SessionsController::class, 'saveCombinedFiscalReceiptLog'])->name('sessions.save-combined-fiscal-receipt-log');
     Route::post('/sessions/{id}/mark-paid-with-voucher', [App\Http\Controllers\SessionsController::class, 'markPaidWithVoucher'])->name('sessions.mark-paid-with-voucher');
+    Route::post('/sessions/{id}/mark-paid-no-fiscal', [App\Http\Controllers\SessionsController::class, 'markPaidNoFiscal'])->name('sessions.mark-paid-no-fiscal');
     Route::post('/sessions/{id}/toggle-payment-status', [App\Http\Controllers\SessionsController::class, 'togglePaymentStatus'])->name('sessions.toggle-payment-status');
     Route::post('/sessions/{id}/restart', [App\Http\Controllers\SessionsController::class, 'restartSession'])->name('sessions.restart');
 

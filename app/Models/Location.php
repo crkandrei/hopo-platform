@@ -20,12 +20,14 @@ class Location extends Model
         'price_per_hour',
         'is_active',
         'bracelet_required',
+        'fiscal_enabled',
         'bridge_config',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'bracelet_required' => 'boolean',
+        'fiscal_enabled' => 'boolean',
         'price_per_hour' => 'decimal:2',
         'bridge_config' => 'array',
     ];

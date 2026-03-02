@@ -152,6 +152,18 @@
                     </label>
                 </div>
 
+                <!-- Fiscal Enabled -->
+                <div>
+                    <label class="flex items-center">
+                        <input type="checkbox"
+                               name="fiscal_enabled"
+                               value="1"
+                               {{ old('fiscal_enabled', $location->fiscal_enabled ?? true) ? 'checked' : '' }}
+                               class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <span class="ml-2 text-sm text-gray-700">Locația folosește fiscalizare (bon fiscal)</span>
+                    </label>
+                </div>
+
                 <!-- Submit Button -->
                 <div class="flex justify-end gap-4">
                     <a href="{{ route('locations.index') }}" 
