@@ -119,7 +119,7 @@ class PlaySessionRepository implements PlaySessionRepositoryInterface
             ->orderByRaw($sortColumn . ' ' . $sortDir)
             ->forPage($page, $perPage)
             ->get()
-            ->map(function ($row) {
+            ->map(function ($row) use ($locationFiscalEnabled) {
                 $childName = $row->child_name ?? '';
                 // Load full session to compute effective time and pause state
                 $ps = \App\Models\PlaySession::with(['intervals', 'products'])->find($row->id);
