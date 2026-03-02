@@ -466,6 +466,104 @@
         </div>
     </section>
 
+    <!-- Social Proof Stats -->
+    <section class="py-12 px-6 bg-gray-50" id="stats-section">
+        <div class="max-w-4xl mx-auto">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-0 sm:divide-x sm:divide-gray-200">
+
+                <!-- Stat 1 – Locuri de joacă -->
+                <div class="flex flex-col items-center text-center px-6 gap-3">
+                    <div class="w-14 h-14 rounded-2xl bg-hopo-purple/10 flex items-center justify-center">
+                        <svg class="w-7 h-7 text-hopo-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="text-3xl md:text-4xl font-bold gradient-text leading-none">
+                            <span class="stat-counter" data-target="20" data-suffix="+">0</span>
+                        </div>
+                        <div class="text-sm font-medium text-gray-700 mt-1">locuri de joacă</div>
+                        <div class="text-xs text-gray-400">care folosesc HOPO</div>
+                    </div>
+                </div>
+
+                <!-- Stat 2 – Copii -->
+                <div class="flex flex-col items-center text-center px-6 gap-3">
+                    <div class="w-14 h-14 rounded-2xl bg-hopo-purple/10 flex items-center justify-center">
+                        <svg class="w-7 h-7 text-hopo-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="text-3xl md:text-4xl font-bold gradient-text leading-none">
+                            <span class="stat-counter" data-target="15000" data-suffix="+" data-separator=".">0</span>
+                        </div>
+                        <div class="text-sm font-medium text-gray-700 mt-1">copii înregistrați</div>
+                        <div class="text-xs text-gray-400">în platformă</div>
+                    </div>
+                </div>
+
+                <!-- Stat 3 – Ore de joacă -->
+                <div class="flex flex-col items-center text-center px-6 gap-3">
+                    <div class="w-14 h-14 rounded-2xl bg-hopo-purple/10 flex items-center justify-center">
+                        <svg class="w-7 h-7 text-hopo-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="text-3xl md:text-4xl font-bold gradient-text leading-none">
+                            <span class="stat-counter" data-target="15000" data-suffix="+" data-separator=".">0</span>
+                        </div>
+                        <div class="text-sm font-medium text-gray-700 mt-1">ore de joacă</div>
+                        <div class="text-xs text-gray-400">gestionate lunar</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <script>
+    (function () {
+        function animateCounter(el) {
+            const target = parseInt(el.dataset.target, 10);
+            const suffix = el.dataset.suffix || '';
+            const separator = el.dataset.separator || '';
+            const duration = 1800;
+            const startTime = performance.now();
+
+            function format(n) {
+                if (!separator) return n + suffix;
+                return n.toLocaleString('ro-RO').replace(/\./g, separator) + suffix;
+            }
+
+            function step(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                // ease-out cubic
+                const eased = 1 - Math.pow(1 - progress, 3);
+                const current = Math.round(eased * target);
+                el.textContent = format(current);
+                if (progress < 1) requestAnimationFrame(step);
+            }
+
+            requestAnimationFrame(step);
+        }
+
+        const observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    entry.target.querySelectorAll('.stat-counter').forEach(animateCounter);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.3 });
+
+        const section = document.getElementById('stats-section');
+        if (section) observer.observe(section);
+    })();
+    </script>
+
     <!-- Pain Points Solved -->
     <section class="py-16 px-6 bg-gradient-to-br from-hopo-purple to-indigo-700 text-white relative overflow-hidden">
         <!-- Decorative elements -->
@@ -479,59 +577,63 @@
             </div>
             
             <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Card 1 -->
+                <!-- Card 1 – Siguranță / Stop pierderi bani -->
                 <div class="group relative">
                     <div class="absolute inset-0 bg-white/10 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div class="relative bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 hover:border-white/30 transition-all">
+                    <div class="relative bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 hover:border-white/30 transition-all h-full flex flex-col">
                         <div class="flex items-center gap-3 mb-3">
-                            <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            <!-- Shield icon – Siguranță -->
+                            <svg class="w-6 h-6 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                             </svg>
-                            <span class="text-white font-semibold">Preț automat instant</span>
+                            <span class="text-white font-semibold">Stop pierderilor de bani la încasare</span>
                         </div>
-                        <p class="text-white/70 text-sm">Fără calcule manuale pe hârtie</p>
+                        <p class="text-white/70 text-sm leading-relaxed">Fiecare secundă e contorizată digital. Zero calcule manuale, zero „uitări". Recuperezi până la 15% din încasările care înainte se pierdeau prin erori.</p>
                     </div>
                 </div>
 
-                <!-- Card 2 -->
+                <!-- Card 2 – Viteză / Adio haos -->
                 <div class="group relative">
                     <div class="absolute inset-0 bg-white/10 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div class="relative bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 hover:border-white/30 transition-all">
+                    <div class="relative bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 hover:border-white/30 transition-all h-full flex flex-col">
                         <div class="flex items-center gap-3 mb-3">
-                            <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            <!-- Bolt icon – Viteză -->
+                            <svg class="w-6 h-6 text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                             </svg>
-                            <span class="text-white font-semibold">Scan brățară = gata</span>
+                            <span class="text-white font-semibold">Adio, haos la orele de vârf!</span>
                         </div>
-                        <p class="text-white/70 text-sm">Fără căutare manuală în registru</p>
+                        <p class="text-white/70 text-sm leading-relaxed">10 copii ies deodată? Nicio problemă. Check-out în 5 secunde per copil — angajații rămân calmi, părinții pleacă mulțumiți.</p>
                     </div>
                 </div>
 
-                <!-- Card 3 -->
+                <!-- Card 3 – Cloud / Libertate -->
                 <div class="group relative">
                     <div class="absolute inset-0 bg-white/10 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div class="relative bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 hover:border-white/30 transition-all">
+                    <div class="relative bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 hover:border-white/30 transition-all h-full flex flex-col">
                         <div class="flex items-center gap-3 mb-3">
-                            <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            <!-- Cloud icon – Libertate/Cloud -->
+                            <svg class="w-6 h-6 text-blue-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path>
                             </svg>
-                            <span class="text-white font-semibold">Click → Raport complet</span>
+                            <span class="text-white font-semibold">Afacerea ta, în buzunarul tău</span>
                         </div>
-                        <p class="text-white/70 text-sm">Fără Excel manual în fiecare zi</p>
+                        <p class="text-white/70 text-sm leading-relaxed">Nu mai suni la recepție să afli cum merge ziua. Încasări live și câți copii sunt în locație — direct pe telefonul tău, oricând.</p>
                     </div>
                 </div>
 
-                <!-- Card 4 -->
+                <!-- Card 4 – Bon fiscal / Conformitate ANAF -->
                 <div class="group relative">
                     <div class="absolute inset-0 bg-white/10 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div class="relative bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 hover:border-white/30 transition-all">
+                    <div class="relative bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 hover:border-white/30 transition-all h-full flex flex-col">
                         <div class="flex items-center gap-3 mb-3">
-                            <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            <!-- Receipt/document icon – Conformitate -->
+                            <svg class="w-6 h-6 text-orange-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
-                            <span class="text-white font-semibold">Printare automată</span>
+                            <span class="text-white font-semibold">Bonuri fiscale fără bătaie de cap</span>
                         </div>
-                        <p class="text-white/70 text-sm">Fără bon fiscal tastat manual</p>
+                        <p class="text-white/70 text-sm leading-relaxed">Tasezi manual fiecare bon? Risc de amendă și timp pierdut. HOPO printează automat, conform ANAF, la fiecare plată.</p>
                     </div>
                 </div>
             </div>
@@ -605,9 +707,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-semibold mb-2">Brățări RFID</h3>
+                    <h3 class="text-lg font-semibold mb-2">Identificare rapidă</h3>
                     <p class="text-gray-600 text-sm">
-                        Scanează brățara și sistemul identifică automat copilul și sesiunea.
+                        Cu brățară RFID sau manual — sistemul identifică copilul și pornește sesiunea în secunde.
                     </p>
                 </div>
 
@@ -677,8 +779,8 @@
             <div class="grid md:grid-cols-3 gap-8">
                 <div class="text-center">
                     <div class="w-16 h-16 bg-hopo-purple text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">1</div>
-                    <h3 class="font-semibold mb-2">Scanează brățara</h3>
-                    <p class="text-gray-600 text-sm">Copilul primește brățara, o scanezi și sesiunea pornește automat.</p>
+                    <h3 class="font-semibold mb-2">Pornește sesiunea</h3>
+                    <p class="text-gray-600 text-sm">Scanează brățara RFID sau selectează copilul manual — sesiunea pornește instant.</p>
                 </div>
                 <div class="text-center">
                     <div class="w-16 h-16 bg-hopo-purple text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">2</div>
@@ -694,19 +796,60 @@
         </div>
     </section>
 
+    <!-- Callout Banner – Autoritate / Competitivitate -->
+    <section class="py-16 px-6 bg-indigo-50 border-y border-indigo-100">
+        <div class="max-w-4xl mx-auto text-center">
+            <!-- Icon cluster -->
+            <div class="flex justify-center items-center gap-4 mb-6">
+                <!-- Shield – Siguranță -->
+                <div class="w-12 h-12 rounded-full bg-white shadow-sm border border-indigo-100 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-hopo-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                    </svg>
+                </div>
+                <!-- Bolt – Viteză -->
+                <div class="w-14 h-14 rounded-full bg-white shadow-md border border-indigo-200 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-hopo-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+                <!-- Cloud – Libertate -->
+                <div class="w-12 h-12 rounded-full bg-white shadow-sm border border-indigo-100 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-hopo-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                Luptă de la egal la egal cu marile francize
+            </h2>
+            <p class="text-gray-600 text-lg leading-relaxed max-w-2xl mx-auto">
+                Nu lăsa tehnologia să fie motivul pentru care pierzi clienți în fața mall-urilor.
+                HOPO îți oferă aceleași instrumente premium&nbsp;— brățări, scanare, bonuri fiscale rapide&nbsp;—
+                la un cost adaptat pentru afacerea ta locală. Arată-le părinților că locația ta este
+                <strong class="text-gray-800">sigură, modernă și digitalizată</strong>.
+            </p>
+        </div>
+    </section>
+
     <!-- Pricing -->
     <section id="pricing" class="py-20 px-6">
         <div class="max-w-6xl mx-auto">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl font-bold mb-4">Prețuri transparente pentru gestiunea locului de joacă</h2>
-                <p class="text-gray-600">Fără costuri ascunse. Plătești lunar.</p>
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4">Avem diferite pachete în funcție de nevoie</h2>
+                <p class="text-gray-600 text-lg">Contactează-ne pentru mai multe detalii și o ofertă personalizată.</p>
+                <a href="#contact" class="inline-block mt-6 bg-hopo-purple hover:bg-hopo-purple-dark text-white px-8 py-3 rounded-lg font-medium transition-colors">
+                    Solicită o ofertă
+                </a>
             </div>
-            
+
             <div class="grid md:grid-cols-3 gap-8 mb-8">
                 <!-- START Package -->
-                <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-lg hover:border-hopo-purple/50 transition-all">
-                    <div class="text-center">
+                <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-lg hover:border-hopo-purple/50 transition-all flex flex-col">
+                    <div class="text-center flex flex-col flex-1">
                         <h3 class="text-xl font-semibold mb-2">START</h3>
+                        {{-- PRET ASCUNS TEMPORAR
                         <div class="mb-6">
                             <div class="flex items-center justify-center gap-2">
                                 <span class="text-2xl font-bold text-gray-400 line-through">99 €</span>
@@ -714,7 +857,8 @@
                                 <span class="text-gray-600">€ / lună</span>
                             </div>
                         </div>
-                        <ul class="text-left space-y-3 mb-8">
+                        --}}
+                        <ul class="text-left space-y-3 flex-1">
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
@@ -758,19 +902,20 @@
                                 <span class="text-sm">Suport email & documentație</span>
                             </li>
                         </ul>
-                        <a href="#contact" class="block w-full bg-gray-700 hover:bg-gray-800 text-white py-3 rounded-lg font-medium transition-colors">
+                        <a href="#contact" class="block w-full bg-gray-700 hover:bg-gray-800 text-white py-3 rounded-lg font-medium transition-colors mt-auto">
                             Solicită demo gratuit
                         </a>
                     </div>
                 </div>
 
                 <!-- STANDARD Package -->
-                <div class="bg-white border-2 border-hopo-purple rounded-2xl p-8 shadow-lg relative">
+                <div class="bg-white border-2 border-hopo-purple rounded-2xl p-8 shadow-lg relative flex flex-col">
                     <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-hopo-purple text-white px-4 py-1 rounded-full text-sm font-medium">
                         Popular
                     </div>
-                    <div class="text-center">
+                    <div class="text-center flex flex-col flex-1">
                         <h3 class="text-xl font-semibold mb-2">STANDARD</h3>
+                        {{-- PRET ASCUNS TEMPORAR
                         <div class="mb-6">
                             <div class="flex items-center justify-center gap-2">
                                 <span class="text-2xl font-bold text-gray-400 line-through">129 €</span>
@@ -778,7 +923,8 @@
                                 <span class="text-gray-600">€ / lună</span>
                             </div>
                         </div>
-                        <ul class="text-left space-y-3 mb-8">
+                        --}}
+                        <ul class="text-left space-y-3 flex-1">
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
@@ -822,16 +968,17 @@
                                 <span class="text-sm">Funcția Pauză</span>
                             </li>
                         </ul>
-                        <a href="#contact" class="block w-full bg-hopo-purple hover:bg-hopo-purple-dark text-white py-3 rounded-lg font-medium transition-colors">
+                        <a href="#contact" class="block w-full bg-hopo-purple hover:bg-hopo-purple-dark text-white py-3 rounded-lg font-medium transition-colors mt-auto">
                             Solicită demo gratuit
                         </a>
                     </div>
                 </div>
 
                 <!-- PRO Package -->
-                <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-lg hover:border-hopo-coral/50 transition-all">
-                    <div class="text-center">
+                <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-lg hover:border-hopo-coral/50 transition-all flex flex-col">
+                    <div class="text-center flex flex-col flex-1">
                         <h3 class="text-xl font-semibold mb-2">PRO</h3>
+                        {{-- PRET ASCUNS TEMPORAR
                         <div class="mb-6">
                             <div class="flex items-center justify-center gap-2">
                                 <span class="text-2xl font-bold text-gray-400 line-through">159 €</span>
@@ -839,7 +986,8 @@
                                 <span class="text-gray-600">€ / lună</span>
                             </div>
                         </div>
-                        <ul class="text-left space-y-3 mb-8">
+                        --}}
+                        <ul class="text-left space-y-3 flex-1">
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
@@ -883,16 +1031,18 @@
                                 <span class="text-sm">Suport prioritar + setup asistat</span>
                             </li>
                         </ul>
-                        <a href="#contact" class="block w-full bg-gray-700 hover:bg-gray-800 text-white py-3 rounded-lg font-medium transition-colors">
+                        <a href="#contact" class="block w-full bg-gray-700 hover:bg-gray-800 text-white py-3 rounded-lg font-medium transition-colors mt-auto">
                             Solicită demo gratuit
                         </a>
                     </div>
                 </div>
             </div>
 
+            {{-- OFERTA ASCUNSA TEMPORAR
             <p class="text-center text-gray-600 text-sm">
                 🎁 <strong>Ofertă de lansare:</strong> Prima lună gratuită, apoi 50% reducere în luna a doua.
             </p>
+            --}}
         </div>
     </section>
 
@@ -1362,7 +1512,7 @@
             <div class="grid md:grid-cols-3 gap-8 mb-8">
                 <div>
                     <img src="{{ asset('images/hopo-logo.png') }}" alt="Hopo - Logo soft gestiune locuri de joacă" width="200" height="60" loading="lazy" class="h-8 brightness-0 invert opacity-70 mb-4">
-                    <p class="text-sm">Soft de gestiune pentru locuri de joacă indoor. Sesiuni, brățări RFID, bonuri fiscale.</p>
+                    <p class="text-sm">Soft de gestiune pentru locuri de joacă indoor. Sesiuni, identificare rapidă, bonuri fiscale.</p>
                 </div>
                 <div>
                     <h4 class="text-white font-semibold mb-4">Contact</h4>
