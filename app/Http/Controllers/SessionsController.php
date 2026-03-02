@@ -216,8 +216,8 @@ class SessionsController extends Controller
         $durationInHours = $pricingService->getDurationInHours($session);
         $roundedHours = $pricingService->roundToHalfHour($durationInHours);
         
-        // Validate voucher hours don't exceed session duration (only for paid time sessions)
-        if (!$isFreeSession && $voucherHours > $roundedHours) {
+        // Validate voucher hours don't exceed session duration
+        if ($voucherHours > $roundedHours) {
             return response()->json([
                 'success' => false,
                 'message' => 'Orele de voucher nu pot depăși durata sesiunii (' . $this->formatDuration(floor($roundedHours), round(($roundedHours - floor($roundedHours)) * 60)) . ')'

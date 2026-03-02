@@ -642,7 +642,7 @@
                         <a href="/sessions/${row.id}/show" class="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs transition-colors">
                             <i class="fas fa-eye mr-1"></i>Detalii
                         </a>
-                        ${row.ended_at && !row.is_paid && row.products_price > 0 ? `
+                        ${row.ended_at && !row.is_paid ? `
                             <button onclick="openFiscalModal(${row.id})" class="px-2 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs transition-colors">
                                 <i class="fas fa-receipt mr-1"></i>Bon
                             </button>
