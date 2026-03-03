@@ -56,6 +56,37 @@
             background-clip: text;
         }
         [x-cloak] { display: none !important; }
+
+        /* Scroll-triggered animations */
+        [data-animate] {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity 0.72s ease, transform 0.72s ease;
+        }
+        [data-animate].is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        [data-delay="100"] { transition-delay: 0.10s; }
+        [data-delay="150"] { transition-delay: 0.15s; }
+        [data-delay="200"] { transition-delay: 0.20s; }
+        [data-delay="300"] { transition-delay: 0.30s; }
+        [data-delay="400"] { transition-delay: 0.40s; }
+        [data-delay="500"] { transition-delay: 0.50s; }
+        [data-delay="600"] { transition-delay: 0.60s; }
+
+        /* Hero image — load animation */
+        @keyframes heroFadeUp {
+            from { opacity: 0; transform: translateY(32px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .hero-image-anim {
+            animation: heroFadeUp 0.72s ease 0.35s both;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            [data-animate] { opacity: 1; transform: none; transition: none; }
+            .hero-image-anim { animation: none; }
+        }
     </style>
     <script type="application/ld+json">
     @verbatim
@@ -288,7 +319,7 @@
                 </div>
                 
                 <!-- Right: App Screenshot Mockup -->
-                <div class="relative lg:ml-8">
+                <div class="relative lg:ml-8 hero-image-anim">
                     <!-- Browser mockup frame -->
                     <div class="bg-gray-900 rounded-xl shadow-2xl overflow-hidden">
                         <!-- Browser top bar -->
@@ -571,14 +602,14 @@
         <div class="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2"></div>
         
         <div class="max-w-6xl mx-auto relative">
-            <div class="text-center mb-12">
+            <div class="text-center mb-12" data-animate>
                 <h2 class="text-xl md:text-2xl font-bold text-white/90 uppercase tracking-wider mb-2">De ce ai nevoie de un soft pentru locul de joacă?</h2>
                 <p class="text-white/70 text-lg">Probleme rezolvate din prima zi</p>
             </div>
             
             <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <!-- Card 1 – Siguranță / Stop pierderi bani -->
-                <div class="group relative">
+                <div class="group relative" data-animate data-delay="100">
                     <div class="absolute inset-0 bg-white/10 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div class="relative bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 hover:border-white/30 transition-all h-full flex flex-col">
                         <div class="flex items-center gap-3 mb-3">
@@ -593,7 +624,7 @@
                 </div>
 
                 <!-- Card 2 – Viteză / Adio haos -->
-                <div class="group relative">
+                <div class="group relative" data-animate data-delay="200">
                     <div class="absolute inset-0 bg-white/10 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div class="relative bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 hover:border-white/30 transition-all h-full flex flex-col">
                         <div class="flex items-center gap-3 mb-3">
@@ -608,7 +639,7 @@
                 </div>
 
                 <!-- Card 3 – Cloud / Libertate -->
-                <div class="group relative">
+                <div class="group relative" data-animate data-delay="300">
                     <div class="absolute inset-0 bg-white/10 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div class="relative bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 hover:border-white/30 transition-all h-full flex flex-col">
                         <div class="flex items-center gap-3 mb-3">
@@ -623,7 +654,7 @@
                 </div>
 
                 <!-- Card 4 – Bon fiscal / Conformitate ANAF -->
-                <div class="group relative">
+                <div class="group relative" data-animate data-delay="400">
                     <div class="absolute inset-0 bg-white/10 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div class="relative bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 hover:border-white/30 transition-all h-full flex flex-col">
                         <div class="flex items-center gap-3 mb-3">
@@ -679,7 +710,7 @@
     <!-- Features Section -->
     <section id="features" class="py-20 px-6">
         <div class="max-w-6xl mx-auto">
-            <div class="text-center mb-16">
+            <div class="text-center mb-16" data-animate>
                 <h2 class="text-3xl font-bold mb-4">Funcționalități pentru gestiunea locului de joacă</h2>
                 <p class="text-gray-600 max-w-2xl mx-auto">
                     De la intrarea copilului până la închiderea zilei - o soluție completă.
@@ -688,7 +719,7 @@
             
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <!-- Feature 1 -->
-                <div class="p-6 rounded-xl border border-gray-100 hover:border-hopo-purple/20 hover:shadow-lg transition-all">
+                <div class="p-6 rounded-xl border border-gray-100 hover:border-hopo-purple/20 hover:shadow-lg transition-all" data-animate>
                     <div class="w-12 h-12 bg-hopo-purple/10 rounded-lg flex items-center justify-center mb-4">
                         <svg class="w-6 h-6 text-hopo-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -701,7 +732,7 @@
                 </div>
 
                 <!-- Feature 2 -->
-                <div class="p-6 rounded-xl border border-gray-100 hover:border-hopo-purple/20 hover:shadow-lg transition-all">
+                <div class="p-6 rounded-xl border border-gray-100 hover:border-hopo-purple/20 hover:shadow-lg transition-all" data-animate data-delay="100">
                     <div class="w-12 h-12 bg-hopo-purple/10 rounded-lg flex items-center justify-center mb-4">
                         <svg class="w-6 h-6 text-hopo-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
@@ -714,7 +745,7 @@
                 </div>
 
                 <!-- Feature 3 -->
-                <div class="p-6 rounded-xl border border-gray-100 hover:border-hopo-purple/20 hover:shadow-lg transition-all">
+                <div class="p-6 rounded-xl border border-gray-100 hover:border-hopo-purple/20 hover:shadow-lg transition-all" data-animate data-delay="200">
                     <div class="w-12 h-12 bg-hopo-purple/10 rounded-lg flex items-center justify-center mb-4">
                         <svg class="w-6 h-6 text-hopo-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
@@ -727,7 +758,7 @@
                 </div>
 
                 <!-- Feature 4 -->
-                <div class="p-6 rounded-xl border border-gray-100 hover:border-hopo-purple/20 hover:shadow-lg transition-all">
+                <div class="p-6 rounded-xl border border-gray-100 hover:border-hopo-purple/20 hover:shadow-lg transition-all" data-animate data-delay="300">
                     <div class="w-12 h-12 bg-hopo-coral/10 rounded-lg flex items-center justify-center mb-4">
                         <svg class="w-6 h-6 text-hopo-coral" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
@@ -740,7 +771,7 @@
                 </div>
 
                 <!-- Feature 5 -->
-                <div class="p-6 rounded-xl border border-gray-100 hover:border-hopo-purple/20 hover:shadow-lg transition-all">
+                <div class="p-6 rounded-xl border border-gray-100 hover:border-hopo-purple/20 hover:shadow-lg transition-all" data-animate data-delay="400">
                     <div class="w-12 h-12 bg-hopo-coral/10 rounded-lg flex items-center justify-center mb-4">
                         <svg class="w-6 h-6 text-hopo-coral" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
@@ -753,7 +784,7 @@
                 </div>
 
                 <!-- Feature 6 -->
-                <div class="p-6 rounded-xl border border-gray-100 hover:border-hopo-purple/20 hover:shadow-lg transition-all">
+                <div class="p-6 rounded-xl border border-gray-100 hover:border-hopo-purple/20 hover:shadow-lg transition-all" data-animate data-delay="500">
                     <div class="w-12 h-12 bg-hopo-coral/10 rounded-lg flex items-center justify-center mb-4">
                         <svg class="w-6 h-6 text-hopo-coral" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
@@ -771,23 +802,23 @@
     <!-- How it works -->
     <section class="py-20 px-6 bg-gray-50">
         <div class="max-w-6xl mx-auto">
-            <div class="text-center mb-16">
+            <div class="text-center mb-16" data-animate>
                 <h2 class="text-3xl font-bold mb-4">Cum funcționează Hopo în 3 pași</h2>
                 <p class="text-gray-600">Trei pași și gata.</p>
             </div>
             
             <div class="grid md:grid-cols-3 gap-8">
-                <div class="text-center">
+                <div class="text-center" data-animate>
                     <div class="w-16 h-16 bg-hopo-purple text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">1</div>
                     <h3 class="font-semibold mb-2">Pornește sesiunea</h3>
                     <p class="text-gray-600 text-sm">Scanează brățara RFID sau selectează copilul manual — sesiunea pornește instant.</p>
                 </div>
-                <div class="text-center">
+                <div class="text-center" data-animate data-delay="150">
                     <div class="w-16 h-16 bg-hopo-purple text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">2</div>
                     <h3 class="font-semibold mb-2">Copilul se joacă</h3>
                     <p class="text-gray-600 text-sm">Timpul curge automat. Poți pune pauză dacă ies pentru prânz.</p>
                 </div>
-                <div class="text-center">
+                <div class="text-center" data-animate data-delay="300">
                     <div class="w-16 h-16 bg-hopo-coral text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">3</div>
                     <h3 class="font-semibold mb-2">Încasezi și emiti bon</h3>
                     <p class="text-gray-600 text-sm">Oprești sesiunea, vezi prețul calculat, încasezi și emiți bonul fiscal.</p>
@@ -798,7 +829,7 @@
 
     <!-- Callout Banner – Autoritate / Competitivitate -->
     <section class="py-16 px-6 bg-indigo-50 border-y border-indigo-100">
-        <div class="max-w-4xl mx-auto text-center">
+        <div class="max-w-4xl mx-auto text-center" data-animate>
             <!-- Icon cluster -->
             <div class="flex justify-center items-center gap-4 mb-6">
                 <!-- Shield – Siguranță -->
@@ -836,7 +867,7 @@
     <!-- Pricing -->
     <section id="pricing" class="py-20 px-6">
         <div class="max-w-6xl mx-auto">
-            <div class="text-center mb-12">
+            <div class="text-center mb-12" data-animate>
                 <h2 class="text-3xl font-bold mb-4">Avem diferite pachete în funcție de nevoie</h2>
                 <p class="text-gray-600 text-lg">Contactează-ne pentru mai multe detalii și o ofertă personalizată.</p>
                 <a href="#contact" class="inline-block mt-6 bg-hopo-purple hover:bg-hopo-purple-dark text-white px-8 py-3 rounded-lg font-medium transition-colors">
@@ -846,7 +877,7 @@
 
             <div class="grid md:grid-cols-3 gap-8 mb-8">
                 <!-- START Package -->
-                <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-lg hover:border-hopo-purple/50 transition-all flex flex-col">
+                <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-lg hover:border-hopo-purple/50 transition-all flex flex-col" data-animate>
                     <div class="text-center flex flex-col flex-1">
                         <h3 class="text-xl font-semibold mb-2">START</h3>
                         {{-- PRET ASCUNS TEMPORAR
@@ -909,7 +940,7 @@
                 </div>
 
                 <!-- STANDARD Package -->
-                <div class="bg-white border-2 border-hopo-purple rounded-2xl p-8 shadow-lg relative flex flex-col">
+                <div class="bg-white border-2 border-hopo-purple rounded-2xl p-8 shadow-lg relative flex flex-col" data-animate data-delay="150">
                     <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-hopo-purple text-white px-4 py-1 rounded-full text-sm font-medium">
                         Popular
                     </div>
@@ -975,7 +1006,7 @@
                 </div>
 
                 <!-- PRO Package -->
-                <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-lg hover:border-hopo-coral/50 transition-all flex flex-col">
+                <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-lg hover:border-hopo-coral/50 transition-all flex flex-col" data-animate data-delay="300">
                     <div class="text-center flex flex-col flex-1">
                         <h3 class="text-xl font-semibold mb-2">PRO</h3>
                         {{-- PRET ASCUNS TEMPORAR
@@ -1053,7 +1084,7 @@
         <div class="absolute bottom-20 right-0 w-64 h-64 bg-hopo-coral/5 rounded-full blur-3xl"></div>
         
         <div class="max-w-4xl mx-auto relative">
-            <div class="text-center mb-12">
+            <div class="text-center mb-12" data-animate>
                 <span class="inline-block px-4 py-1.5 bg-hopo-purple/10 text-hopo-purple text-sm font-medium rounded-full mb-4">Întrebări frecvente</span>
                 <h2 class="text-3xl md:text-4xl font-bold mb-4">
                     Află mai multe despre 
@@ -1432,7 +1463,7 @@
     <section id="contact" class="py-20 px-6">
         <div class="max-w-6xl mx-auto">
             <div class="grid md:grid-cols-2 gap-12">
-                <div>
+                <div data-animate>
                     <h2 class="text-3xl font-bold mb-4">Solicită un demo gratuit</h2>
                     <p class="text-gray-600 mb-8">
                         Completează formularul și te contactăm în maxim 24 de ore pentru a programa un demo.
@@ -1452,7 +1483,7 @@
                         </div>
                     </div>
                 </div>
-                <div>
+                <div data-animate data-delay="150">
                     <form id="contact-form" class="space-y-4" method="POST" action="/contact">
                         @csrf
                         
@@ -1615,5 +1646,21 @@
         });
     </script>
 
+    <script>
+    (function () {
+        var animObserver = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    animObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+        document.querySelectorAll('[data-animate]').forEach(function (el) {
+            animObserver.observe(el);
+        });
+    })();
+    </script>
 </body>
 </html>
