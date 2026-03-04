@@ -135,6 +135,39 @@
     </div>
 
     <!-- Users -->
+    <!-- Configurare Zile de Naștere -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Configurare Zile de Naștere</h2>
+        <div class="flex flex-wrap gap-4 items-center mb-4">
+            <a href="{{ route('locations.birthday-halls.index', $location) }}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium">
+                <i class="fas fa-door-open mr-2"></i>Gestionează săli
+            </a>
+            <a href="{{ route('locations.birthday-packages.index', $location) }}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium">
+                <i class="fas fa-gift mr-2"></i>Gestionează pachete
+            </a>
+            <a href="{{ route('birthday-reservations.index') }}?location_id={{ $location->id }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 font-medium">
+                <i class="fas fa-calendar-check mr-2"></i>Vezi rezervări
+            </a>
+        </div>
+        <div class="pt-4 border-t border-gray-200">
+            <label class="block text-sm font-medium text-gray-700 mb-1">URL public pentru clienți</label>
+            <div class="flex flex-wrap gap-2 items-center">
+                <input type="text" readonly value="{{ url('/booking/' . $location->slug) }}" id="booking-url" class="flex-1 min-w-[200px] px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700">
+                <button type="button" id="copy-booking-link-btn" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 font-medium">
+                    Copiază link pentru clienți
+                </button>
+                <script>
+                document.getElementById('copy-booking-link-btn').addEventListener('click', function() {
+                    var btn = this;
+                    navigator.clipboard.writeText(document.getElementById('booking-url').value);
+                    btn.textContent = 'Copiat!';
+                    setTimeout(function() { btn.textContent = 'Copiază link pentru clienți'; }, 2000);
+                });
+                </script>
+            </div>
+        </div>
+    </div>
+
     @if($location->users->count() > 0)
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h2 class="text-xl font-bold text-gray-900 mb-4">Utilizatori Asociați ({{ $location->users->count() }})</h2>

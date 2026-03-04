@@ -54,6 +54,13 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Public booking (no auth) - location resolved by slug
+Route::get('/booking/{location:slug}', [App\Http\Controllers\PublicBookingController::class, 'showForm'])->name('booking.show');
+Route::post('/booking/{location:slug}', [App\Http\Controllers\PublicBookingController::class, 'submitForm']);
+Route::get('/booking/{location:slug}/confirmare', [App\Http\Controllers\PublicBookingController::class, 'confirmation'])->name('booking.confirmation');
+Route::get('/booking/{location:slug}/slots', [App\Http\Controllers\PublicBookingController::class, 'getAvailableSlots'])->name('booking.slots');
+Route::get('/booking/{location:slug}/availability', [App\Http\Controllers\PublicBookingController::class, 'getAvailability'])->name('booking.availability');
+
 // Location context routes (for COMPANY_ADMIN)
 Route::middleware('auth')->group(function () {
     Route::post('/location-context/set', [App\Http\Controllers\LocationContextController::class, 'setLocation'])->name('location-context.set');
@@ -167,11 +174,21 @@ Route::middleware('auth')->group(function () {
     Route::get('/legal/terms', [App\Http\Controllers\LegalController::class, 'terms'])->name('legal.terms');
     Route::get('/legal/gdpr', [App\Http\Controllers\LegalController::class, 'gdpr'])->name('legal.gdpr');
     
+    // Onboarding wizard (super admin only)
+    Route::get('/onboarding', [App\Http\Controllers\OnboardingController::class, 'create'])->name('onboarding.create');
+    Route::post('/onboarding', [App\Http\Controllers\OnboardingController::class, 'store'])->name('onboarding.store');
+
     // Companies management (super admin only)
     Route::resource('companies', App\Http\Controllers\CompanyController::class);
     
     // Locations management (super admin and company admin)
     Route::resource('locations', App\Http\Controllers\LocationController::class);
+
+    // Birthday halls, time slots, packages (per location)
+    Route::resource('locations.birthday-halls', App\Http\Controllers\BirthdayHallController::class);
+    Route::resource('birthday-halls.time-slots', App\Http\Controllers\BirthdayTimeSlotsController::class)->except(['create', 'show']);
+    Route::resource('locations.birthday-packages', App\Http\Controllers\BirthdayPackageController::class);
+    Route::resource('birthday-reservations', App\Http\Controllers\BirthdayReservationController::class)->except(['create', 'store']);
     
     // Users management (super admin and company admin)
     Route::resource('users', App\Http\Controllers\UserController::class);

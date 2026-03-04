@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Hopo – program de gestiune pentru locuri de joacă: cronometrare automată, brățări RFID, bonuri fiscale ANAF și rapoarte zilnice. Demo gratuit!">
-    <title>Program gestiune loc de joacă – Bonuri fiscale & RFID | Hopo</title>
+    <meta name="description" content="Hopo – program de gestiune pentru locuri de joacă: cronometrare automată, brățări RFID, bonuri fiscale ANAF, rapoarte zilnice și rezervări online petreceri. Demo gratuit!">
+    <title>Program gestiune & rezervări loc de joacă – Bonuri fiscale & RFID | Hopo</title>
     <link rel="canonical" href="https://hopo.ro/">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://hopo.ro/">
-    <meta property="og:title" content="Hopo – Soft gestiune loc de joacă | Sesiuni, brățări RFID, bonuri fiscale">
-    <meta property="og:description" content="Hopo este soft-ul complet pentru gestiunea locului tău de joacă. Cronometrare sesiuni, brățări RFID, calcul automat tarife și bonuri fiscale conforme ANAF.">
+    <meta property="og:title" content="Hopo – Soft gestiune & rezervări loc de joacă | Sesiuni, brățări RFID, bonuri fiscale">
+    <meta property="og:description" content="Hopo este soft-ul complet pentru gestiunea locului tău de joacă. Cronometrare sesiuni, brățări RFID, calcul automat tarife, bonuri fiscale conforme ANAF și rezervări online petreceri.">
     <meta property="og:image" content="https://hopo.ro/images/hopo-og-image.png">
     <meta property="og:locale" content="ro_RO">
     <meta property="og:site_name" content="Hopo">
@@ -20,7 +20,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://hopo.ro/">
     <meta name="twitter:title" content="Hopo – Soft gestiune loc de joacă">
-    <meta name="twitter:description" content="Cronometrare sesiuni, brățări RFID, calcul automat tarife și bonuri fiscale conforme ANAF.">
+    <meta name="twitter:description" content="Cronometrare sesiuni, brățări RFID, calcul automat tarife, bonuri fiscale conforme ANAF și rezervări online petreceri.">
     <meta name="twitter:image" content="https://hopo.ro/images/hopo-og-image.png">
     
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}?v=3">
@@ -119,7 +119,7 @@
                 "name": "Hopo",
                 "applicationCategory": "BusinessApplication",
                 "operatingSystem": "Web",
-                "description": "Soft de gestiune pentru locuri de joacă indoor. Cronometrare sesiuni, brățări RFID, calcul automat tarife și bonuri fiscale.",
+                "description": "Soft de gestiune și rezervări online pentru locuri de joacă indoor. Cronometrare sesiuni, brățări RFID, calcul automat tarife, bonuri fiscale și rezervări petreceri.",
                 "url": "https://hopo.ro",
                 "provider": {
                     "@id": "https://hopo.ro/#organization"
@@ -159,7 +159,8 @@
                     "Rapoarte zilnice de încasări",
                     "Evidență copii și părinți",
                     "Dashboard live cu sesiuni active",
-                    "Integrare case de marcat Datecs"
+                    "Integrare case de marcat Datecs",
+                    "Rezervări online petreceri și zile de naștere"
                 ],
                 "screenshot": "https://hopo.ro/images/screenshot-dashboard.png"
             },
@@ -299,14 +300,13 @@
                 <!-- Left: Text -->
                 <div>
                     <h1 class="text-4xl md:text-5xl font-bold leading-tight mb-3">
-                        Soft de gestiune pentru 
+                        Program de gestiune și rezervări pentru 
                         <span class="gradient-text">locuri de joacă</span>
                     </h1>
                     <p class="text-2xl md:text-3xl font-normal text-gray-600 mb-4">Fără caiete, fără greșeli, fără stres</p>
                     <p class="text-xl text-gray-600 mb-8 leading-relaxed">
-                        HOPO este un <strong>program de gestiune</strong> creat special pentru locuri de joacă. 
-                        Gestionează sesiunile de joacă, calculează automat prețurile și emite bonuri fiscale. 
-                        Totul într-o singură aplicație.
+                        HOPO este un <strong>program de gestiune</strong> pentru locuri de joacă. 
+                        Sesiuni, prețuri, bonuri fiscale și <strong>rezervări online</strong> — totul într-o singură aplicație.
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4">
                         <a href="#contact" class="bg-hopo-purple hover:bg-hopo-purple-dark text-white px-6 py-3 rounded-lg font-medium transition-colors text-center">
@@ -711,7 +711,7 @@
     <section id="features" class="py-20 px-6">
         <div class="max-w-6xl mx-auto">
             <div class="text-center mb-16" data-animate>
-                <h2 class="text-3xl font-bold mb-4">Funcționalități pentru gestiunea locului de joacă</h2>
+                <h2 class="text-3xl font-bold mb-4">Funcționalități pentru gestiunea și rezervările locului de joacă</h2>
                 <p class="text-gray-600 max-w-2xl mx-auto">
                     De la intrarea copilului până la închiderea zilei - o soluție completă.
                 </p>
@@ -787,12 +787,12 @@
                 <div class="p-6 rounded-xl border border-gray-100 hover:border-hopo-purple/20 hover:shadow-lg transition-all" data-animate data-delay="500">
                     <div class="w-12 h-12 bg-hopo-coral/10 rounded-lg flex items-center justify-center mb-4">
                         <svg class="w-6 h-6 text-hopo-coral" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-semibold mb-2">Evidență copii</h3>
+                    <h3 class="text-lg font-semibold mb-2">Rezervări online</h3>
                     <p class="text-gray-600 text-sm">
-                        Bază de date cu copii, tutori, istoric sesiuni. GDPR compliant.
+                        Trimite un link clienților și aceștia rezervă singuri petrecerea. Tu doar confirmi.
                     </p>
                 </div>
             </div>
@@ -1054,6 +1054,12 @@
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                 </svg>
                                 <span class="text-sm">Sistem fidelizare avansat</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span class="text-sm">Link de rezervare online — clienții tăi rezervă singuri</span>
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -1428,6 +1434,47 @@
                                     </svg>
                                 </a>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 9 -->
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                    <button 
+                        @click="activeAccordion = activeAccordion === 9 ? null : 9"
+                        class="w-full px-6 py-5 flex items-center justify-between text-left"
+                    >
+                        <span class="font-semibold text-gray-900 pr-4">Pot primi rezervări online de la clienți?</span>
+                        <div class="flex-shrink-0 w-8 h-8 bg-hopo-purple/10 rounded-full flex items-center justify-center transition-transform duration-300" :class="{ 'rotate-180': activeAccordion === 9 }">
+                            <svg class="w-4 h-4 text-hopo-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </button>
+                    <div 
+                        x-show="activeAccordion === 9" 
+                        x-collapse
+                        x-cloak
+                    >
+                        <div class="px-6 pb-5 text-gray-600 border-t border-gray-50 pt-4">
+                            <p class="mb-3"><strong class="text-gray-900">Da!</strong> Cu pachetul <strong class="text-gray-900">PRO</strong>, HOPO generează un link unic de rezervare pe care îl poți distribui pe site, Facebook sau WhatsApp.</p>
+                            <div class="space-y-2 mb-3">
+                                <div class="flex items-center">
+                                    <div class="w-2 h-2 bg-hopo-purple rounded-full mr-3"></div>
+                                    <span>Clienții aleg sala, pachetul, data și ora</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-2 h-2 bg-hopo-purple rounded-full mr-3"></div>
+                                    <span>Completează datele copilului și tutorelui</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-2 h-2 bg-hopo-purple rounded-full mr-3"></div>
+                                    <span>Tu primești cererea și o confirmi cu un click</span>
+                                </div>
+                            </div>
+                            <p class="text-sm bg-purple-50 text-purple-700 px-3 py-2 rounded-lg">
+                                Fără telefoane, fără mesaje — rezervările vin direct în sistem.
+                            </p>
                         </div>
                     </div>
                 </div>

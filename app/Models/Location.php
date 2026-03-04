@@ -71,4 +71,24 @@ class Location extends Model
     {
         return $this->hasMany(SpecialPeriodRate::class);
     }
+
+    public function birthdayHalls(): HasMany
+    {
+        return $this->hasMany(BirthdayHall::class);
+    }
+
+    public function birthdayPackages(): HasMany
+    {
+        return $this->hasMany(BirthdayPackage::class);
+    }
+
+    public function birthdayReservations(): HasMany
+    {
+        return $this->hasMany(BirthdayReservation::class);
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
 }

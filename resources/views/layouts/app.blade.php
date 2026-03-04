@@ -208,7 +208,8 @@
                     </a>
                     @endif
                     
-                    @if($currentUser && $currentUser->location && !$currentUser->location->bracelet_required)
+                    @if($currentUser && !$currentUser->isSuperAdmin())
+                    @if($currentUser->location && !$currentUser->location->bracelet_required)
                     <a href="{{ route('start-session') }}"
                        data-title="Start Sesiune"
                        class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('start-session') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
@@ -224,38 +225,37 @@
                     </a>
                     @endif
 
-                    <a href="{{ route('end-of-day.index') }}" 
+                    <a href="{{ route('end-of-day.index') }}"
                        data-title="Final de Zi"
                        class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('end-of-day.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                         <i class="fas fa-calendar-check sidebar-icon mr-3"></i>
                         <span class="sidebar-text">Final de Zi</span>
                     </a>
 
-                    <a href="{{ route('sessions.index') }}" 
+                    <a href="{{ route('sessions.index') }}"
                        data-title="Sesiuni"
-                    class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('sessions.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                       class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('sessions.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                         <i class="fas fa-stopwatch sidebar-icon mr-3"></i>
                         <span class="sidebar-text">Sesiuni</span>
                     </a>
-                    
-                    <a href="{{ route('children.index') }}" 
+
+                    <a href="{{ route('children.index') }}"
                        data-title="Copii"
                        class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('children.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                         <i class="fas fa-child sidebar-icon mr-3"></i>
                         <span class="sidebar-text">Copii</span>
                     </a>
-                    
-                    @if($currentUser && ($currentUser->isSuperAdmin() || $currentUser->isCompanyAdmin()))
-                    <a href="{{ route('products.index') }}" 
+
+                    @if($currentUser->isCompanyAdmin())
+                    <a href="{{ route('products.index') }}"
                        data-title="Produse"
                        class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('products.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                         <i class="fas fa-box sidebar-icon mr-3"></i>
                         <span class="sidebar-text">Produse</span>
                     </a>
                     @endif
-                    
-                    @if($currentUser && ($currentUser->isSuperAdmin() || $currentUser->isCompanyAdmin() || $currentUser->isStaff()))
-                    <a href="{{ route('guardians.index') }}" 
+
+                    <a href="{{ route('guardians.index') }}"
                        data-title="Părinți"
                        class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('guardians.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                         <i class="fas fa-users sidebar-icon mr-3"></i>
@@ -263,7 +263,7 @@
                     </a>
                     @endif
                     
-                    @if($currentUser && ($currentUser->isSuperAdmin() || $currentUser->isCompanyAdmin()))
+                    @if($currentUser && $currentUser->isCompanyAdmin())
                     <!-- Rapoarte Menu (dropdown) -->
                     <div class="relative" id="reports-menu">
                         <button id="reports-menu-btn" 
@@ -297,6 +297,13 @@
                     @endif
                     
                     @if($currentUser && $currentUser->role && $currentUser->role->name === 'SUPER_ADMIN')
+                    <a href="{{ route('onboarding.create') }}"
+                       data-title="Client Nou"
+                       class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('onboarding.*') ? 'bg-green-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                        <i class="fas fa-user-plus sidebar-icon mr-3"></i>
+                        <span class="sidebar-text">Client Nou</span>
+                    </a>
+
                     <a href="{{ route('companies.index') }}" 
                        data-title="Companii"
                        class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('companies.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
@@ -350,15 +357,17 @@
                     </div>
                     @endif
                     
-                    @if($currentUser && ($currentUser->isSuperAdmin() || $currentUser->isCompanyAdmin()))
-                    <a href="{{ route('users.index') }}" 
+                    @if($currentUser && $currentUser->isCompanyAdmin())
+                    <a href="{{ route('users.index') }}"
                        data-title="Utilizatori"
                        class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('users.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                         <i class="fas fa-users sidebar-icon mr-3"></i>
                         <span class="sidebar-text">Utilizatori</span>
                     </a>
-                    
-                    <a href="{{ route('pricing.index') }}" 
+                    @endif
+
+                    @if($currentUser && ($currentUser->isSuperAdmin() || $currentUser->isCompanyAdmin()))
+                    <a href="{{ route('pricing.index') }}"
                        data-title="Gestionare Tarife"
                        class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('pricing.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                         <i class="fas fa-dollar-sign sidebar-icon mr-3"></i>
