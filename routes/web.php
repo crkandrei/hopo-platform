@@ -195,6 +195,8 @@ Route::middleware('auth')->group(function () {
     
     // Pricing management (super admin and company admin)
     Route::get('/pricing', [App\Http\Controllers\PricingController::class, 'index'])->name('pricing.index');
+    Route::post('/pricing/mode', [App\Http\Controllers\PricingController::class, 'updatePricingMode'])->name('pricing.mode.update');
+    Route::post('/pricing/tiered-rates', [App\Http\Controllers\PricingController::class, 'updateTieredRates'])->name('pricing.tiered-rates.update');
     Route::get('/pricing/weekly-rates', [App\Http\Controllers\PricingController::class, 'showWeeklyRates'])->name('pricing.weekly-rates');
     Route::post('/pricing/weekly-rates', [App\Http\Controllers\PricingController::class, 'updateWeeklyRates'])->name('pricing.weekly-rates.update');
     Route::get('/pricing/special-periods', [App\Http\Controllers\PricingController::class, 'indexSpecialPeriods'])->name('pricing.special-periods');

@@ -18,6 +18,8 @@ class Location extends Model
         'phone',
         'email',
         'price_per_hour',
+        'pricing_mode',
+        'overflow_price_per_hour',
         'is_active',
         'bracelet_required',
         'fiscal_enabled',
@@ -29,6 +31,7 @@ class Location extends Model
         'bracelet_required' => 'boolean',
         'fiscal_enabled' => 'boolean',
         'price_per_hour' => 'decimal:2',
+        'overflow_price_per_hour' => 'decimal:2',
         'bridge_config' => 'array',
     ];
 
@@ -70,6 +73,11 @@ class Location extends Model
     public function specialPeriodRates(): HasMany
     {
         return $this->hasMany(SpecialPeriodRate::class);
+    }
+
+    public function pricingTiers(): HasMany
+    {
+        return $this->hasMany(PricingTier::class);
     }
 
     public function birthdayHalls(): HasMany

@@ -13,6 +13,13 @@
                 <p class="text-gray-600 text-lg">Detalii locație și statistici</p>
             </div>
             <div class="flex gap-3">
+                @if(Auth::user() && Auth::user()->isSuperAdmin())
+                <a href="{{ route('pricing.index', ['location_id' => $location->id]) }}" 
+                   class="inline-flex items-center px-6 py-3 rounded-lg font-medium shadow-md transition-all duration-200 bg-indigo-600 text-white hover:bg-indigo-700 border border-indigo-700">
+                    <i class="fas fa-dollar-sign mr-2" aria-hidden="true"></i>
+                    <span>Configurare Tarife</span>
+                </a>
+                @endif
                 <a href="{{ route('locations.edit', $location) }}" 
                    class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium flex items-center shadow-md">
                     <i class="fas fa-edit mr-2"></i>

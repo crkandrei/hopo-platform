@@ -59,7 +59,7 @@
                         @if(isset($weeklyRates[$dayNum]))
                             <p class="text-xs text-gray-500 mt-1">Tarif actual: {{ number_format($weeklyRates[$dayNum], 2, '.', '') }} RON/oră</p>
                         @else
-                            <p class="text-xs text-gray-500 mt-1">Nu este setat. Se va folosi tariful implicit: {{ number_format($tenant->price_per_hour ?? 0, 2, '.', '') }} RON/oră</p>
+                            <p class="text-xs text-gray-500 mt-1">Nu este setat. Se va folosi tariful implicit: {{ number_format($location->price_per_hour ?? 0, 2, '.', '') }} RON/oră</p>
                         @endif
                     </div>
                 </div>
@@ -67,7 +67,7 @@
             </div>
 
             <div class="mt-6 flex justify-end gap-4">
-                <a href="{{ route('pricing.index') }}{{ Auth::user()->isSuperAdmin() ? '?tenant_id=' . $tenant->id : '' }}" 
+                <a href="{{ route('pricing.index') }}{{ Auth::user()->isSuperAdmin() ? '?location_id=' . $location->id : '' }}" 
                    class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
                     Anulează
                 </a>
@@ -88,7 +88,7 @@
                 <h3 class="font-medium text-blue-900 mb-2">Informații importante</h3>
                 <ul class="text-sm text-blue-800 space-y-1 list-disc list-inside">
                     <li>Tarifele săptămânale sunt folosite ca tarif implicit pentru fiecare zi a săptămânii</li>
-                    <li>Dacă nu setați un tarif pentru o zi, se va folosi tariful implicit al tenant-ului ({{ number_format($tenant->price_per_hour ?? 0, 2, '.', '') }} RON/oră)</li>
+                    <li>Dacă nu setați un tarif pentru o zi, se va folosi tariful implicit al locației ({{ number_format($location->price_per_hour ?? 0, 2, '.', '') }} RON/oră)</li>
                     <li>Perioadele speciale au prioritate peste tarifele săptămânale</li>
                     <li>Pentru a șterge un tarif, lăsați câmpul gol</li>
                 </ul>

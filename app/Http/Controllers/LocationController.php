@@ -182,19 +182,36 @@ class LocationController extends Controller
     public function destroy(Location $location)
     {
         $this->authorize('delete', $location);
-        
-        // Check if location has associated data
-        $hasSessions = $location->playSessions()->exists();
-        $hasChildren = $location->children()->exists();
-        $hasUsers = $location->users()->exists();
-        
-        if ($hasSessions || $hasChildren || $hasUsers) {
-            return redirect()->route('locations.index')
-                ->with('error', 'Nu se poate șterge locația deoarece are date asociate');
+
+        $checks = [
+            'users' => 'Utilizatori',
+            'guardians' => 'Tutori',
+            'children' => 'Copii',
+            'products' => 'Produse',
+            'playSessions' => 'Sesiuni de joc',
+            'weeklyRates' => 'Tarife săptămânale',
+            'specialPeriodRates' => 'Tarife perioade speciale',
+            'pricingTiers' => 'Tarife pe durate',
+            'birthdayHalls' => 'Săli zile de naștere',
+            'birthdayPackages' => 'Pachete zile de naștere',
+            'birthdayReservations' => 'Rezervări zile de naștere',
+        ];
+
+        $entitiesWithData = [];
+        foreach ($checks as $relation => $label) {
+            if ($location->{$relation}()->exists()) {
+                $entitiesWithData[] = $label;
+            }
         }
-        
+
+        if (!empty($entitiesWithData)) {
+            $entitiesList = implode(', ', $entitiesWithData);
+            return redirect()->route('locations.index')
+                ->with('error', 'Nu se poate șterge locația deoarece are date asociate: ' . $entitiesList . '. Eliminați sau mutați aceste date înainte de ștergere.');
+        }
+
         $location->delete();
-        
+
         return redirect()->route('locations.index')
             ->with('success', 'Locația a fost ștearsă cu succes');
     }

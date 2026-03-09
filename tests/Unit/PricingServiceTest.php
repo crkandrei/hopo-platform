@@ -15,7 +15,7 @@ class PricingServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->pricingService = new PricingService();
+        $this->pricingService = $this->app->make(PricingService::class);
     }
 
     /**
@@ -393,18 +393,17 @@ class PricingServiceTest extends TestCase
      */
     public function test_decimal_prices(): void
     {
-        $tenant = new Tenant();
-        $tenant->price_per_hour = 33.33;
+        $location = new Location();
+        $location->price_per_hour = 33.33;
 
         $session = Mockery::mock(PlaySession::class)->makePartial();
         $session->shouldAllowMockingProtectedMethods();
-        $session->tenant = $tenant;
+        $session->location = $location;
         $session->shouldReceive('getEffectiveDurationSeconds')
-            ->andReturn(3600); // 1 oră exactă
+            ->andReturn(3600);
 
         $price = $this->pricingService->calculateSessionPrice($session);
         
-        // 1.0 ore * 33.33 RON = 33.33 RON (rotunjit la 2 zecimale)
         $this->assertEquals(33.33, $price);
     }
 
@@ -413,18 +412,17 @@ class PricingServiceTest extends TestCase
      */
     public function test_decimal_prices_with_longer_durations(): void
     {
-        $tenant = new Tenant();
-        $tenant->price_per_hour = 25.50;
+        $location = new Location();
+        $location->price_per_hour = 25.50;
 
         $session = Mockery::mock(PlaySession::class)->makePartial();
         $session->shouldAllowMockingProtectedMethods();
-        $session->tenant = $tenant;
+        $session->location = $location;
         $session->shouldReceive('getEffectiveDurationSeconds')
-            ->andReturn(5400); // 1h 30min = 5400 secunde
+            ->andReturn(5400);
 
         $price = $this->pricingService->calculateSessionPrice($session);
         
-        // 1.5 ore * 25.50 RON = 38.25 RON
         $this->assertEquals(38.25, $price);
     }
 

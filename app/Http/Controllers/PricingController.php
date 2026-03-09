@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Location;
+use App\Models\PricingTier;
 use App\Models\WeeklyRate;
 use App\Models\SpecialPeriodRate;
 use Illuminate\Http\Request;
@@ -98,21 +99,44 @@ class PricingController extends Controller
 
         if ($user->isSuperAdmin()) {
             $locations = Location::with('company')->orderBy('name')->get();
+            if ($locationId) {
+                $selectedLocation = Location::with(['weeklyRates', 'specialPeriodRates', 'pricingTiers'])->find($locationId);
+            }
         } elseif ($user->isCompanyAdmin() && $user->company_id) {
             $locations = Location::where('company_id', $user->company_id)->orderBy('name')->get();
             if ($locationId) {
-                $selectedLocation = Location::with(['weeklyRates', 'specialPeriodRates'])->findOrFail($locationId);
+                $selectedLocation = Location::with(['weeklyRates', 'specialPeriodRates', 'pricingTiers'])->findOrFail($locationId);
             } elseif ($locations->count() > 0) {
-                $selectedLocation = Location::with(['weeklyRates', 'specialPeriodRates'])->find($locations->first()->id);
+                $selectedLocation = Location::with(['weeklyRates', 'specialPeriodRates', 'pricingTiers'])->find($locations->first()->id);
             }
         } elseif ($user->isStaff() && $user->location_id) {
-            // Staff: automatically use their location
-            $selectedLocation = Location::with(['weeklyRates', 'specialPeriodRates'])->findOrFail($user->location_id);
+            $selectedLocation = Location::with(['weeklyRates', 'specialPeriodRates', 'pricingTiers'])->findOrFail($user->location_id);
+        }
+
+        $weeklyRatesByDay = [];
+        $tieredGrid = [];
+        $durations = [1, 2, 3, 4];
+        if ($selectedLocation) {
+            foreach ($selectedLocation->weeklyRates as $rate) {
+                $weeklyRatesByDay[$rate->day_of_week] = $rate->hourly_rate;
+            }
+            foreach (range(0, 6) as $day) {
+                $tieredGrid[$day] = [];
+                foreach ($durations as $dur) {
+                    $tier = $selectedLocation->pricingTiers->first(function ($t) use ($day, $dur) {
+                        return $t->day_of_week === $day && (float) $t->duration_hours === (float) $dur;
+                    });
+                    $tieredGrid[$day][$dur] = $tier ? (float) $tier->price : null;
+                }
+            }
         }
 
         return view('pricing.index', [
             'locations' => $locations,
             'selectedLocation' => $selectedLocation,
+            'weeklyRatesByDay' => $weeklyRatesByDay,
+            'tieredGrid' => $tieredGrid ?? [],
+            'durations' => $durations,
             'isSuperAdmin' => $user->isSuperAdmin(),
         ]);
     }
@@ -198,6 +222,106 @@ class PricingController extends Controller
             ->with('success', 'Tarifele săptămânale au fost actualizate cu succes');
     }
 
+    /**
+     * Update pricing mode (flat_hourly / tiered)
+     */
+    public function updatePricingMode(Request $request)
+    {
+        $this->checkPricingAccess();
+
+        $locationId = $this->getLocationIdForUser($request->location_id);
+        if (!$locationId) {
+            return redirect()->route('pricing.index')
+                ->with('error', 'Locație invalidă');
+        }
+
+        $request->validate([
+            'pricing_mode' => 'required|in:flat_hourly,tiered',
+        ]);
+
+        $location = Location::findOrFail($locationId);
+        $this->ensureLocationAccess($location->id);
+
+        $location->update(['pricing_mode' => $request->pricing_mode]);
+
+        $redirectParams = [];
+        if (Auth::user()->isSuperAdmin()) {
+            $redirectParams['location_id'] = $location->id;
+        }
+
+        return redirect()->route('pricing.index', $redirectParams)
+            ->with('success', 'Modul de tarifare a fost actualizat');
+    }
+
+    /**
+     * Update tiered rates (grid: day_of_week x duration_hours => price)
+     */
+    public function updateTieredRates(Request $request)
+    {
+        $this->checkPricingAccess();
+
+        $locationId = $this->getLocationIdForUser($request->location_id);
+        if (!$locationId) {
+            return redirect()->route('pricing.index')
+                ->with('error', 'Locație invalidă');
+        }
+
+        $location = Location::findOrFail($locationId);
+        $this->ensureLocationAccess($location->id);
+
+        $request->validate([
+            'overflow_price_per_hour' => 'nullable|numeric|min:0',
+            'tiers' => 'array',
+            'tiers.*' => 'array',
+            'tiers.*.*' => 'nullable|numeric|min:0',
+        ]);
+
+        $overflow = $request->overflow_price_per_hour !== null && $request->overflow_price_per_hour !== ''
+            ? (float) $request->overflow_price_per_hour
+            : null;
+        $location->update(['overflow_price_per_hour' => $overflow]);
+
+        $durations = $request->input('durations', [1, 2, 3, 4]);
+        if (!is_array($durations)) {
+            $durations = [1, 2, 3, 4];
+        }
+
+        DB::transaction(function () use ($location, $request, $durations) {
+            $tiers = $request->input('tiers', []);
+            foreach (range(0, 6) as $day) {
+                $dayTiers = $tiers[$day] ?? [];
+                foreach ($durations as $dur) {
+                    $dur = (float) $dur;
+                    $price = isset($dayTiers[$dur]) && $dayTiers[$dur] !== '' && $dayTiers[$dur] !== null
+                        ? (float) $dayTiers[$dur]
+                        : null;
+                    if ($price !== null && $price >= 0) {
+                        PricingTier::updateOrCreate(
+                            [
+                                'location_id' => $location->id,
+                                'day_of_week' => $day,
+                                'duration_hours' => $dur,
+                            ],
+                            ['price' => $price]
+                        );
+                    } else {
+                        PricingTier::where('location_id', $location->id)
+                            ->where('day_of_week', $day)
+                            ->where('duration_hours', $dur)
+                            ->delete();
+                    }
+                }
+            }
+        });
+
+        $redirectParams = [];
+        if (Auth::user()->isSuperAdmin()) {
+            $redirectParams['location_id'] = $location->id;
+        }
+
+        return redirect()->route('pricing.index', $redirectParams)
+            ->with('success', 'Tarifele pe durate au fost actualizate');
+    }
 
     /**
      * List special periods
@@ -244,8 +368,20 @@ class PricingController extends Controller
             'name' => 'required|string|max:255',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'hourly_rate' => 'required|numeric|min:0',
+            'pricing_mode' => 'required|in:flat_hourly,tiered',
+            'hourly_rate' => 'required_unless:pricing_mode,tiered|nullable|numeric|min:0',
+            'price_1h' => 'nullable|numeric|min:0',
+            'price_2h' => 'nullable|numeric|min:0',
+            'price_3h' => 'nullable|numeric|min:0',
+            'price_4h' => 'nullable|numeric|min:0',
+            'overflow_price_per_hour' => 'nullable|numeric|min:0',
         ]);
+        if ($request->pricing_mode === 'tiered') {
+            $hasTier = $request->filled('price_1h') || $request->filled('price_2h') || $request->filled('price_3h') || $request->filled('price_4h');
+            if (!$hasTier) {
+                return back()->withInput()->with('error', 'Pentru tarifare pe durate setați cel puțin un preț (1h, 2h, 3h sau 4h).');
+            }
+        }
 
         // Check for overlapping periods
         $overlap = $this->checkSpecialPeriodOverlap(
@@ -259,14 +395,23 @@ class PricingController extends Controller
                 ->with('error', 'Există deja o perioadă specială care se suprapune cu perioada specificată');
         }
 
+        $hourlyRate = $request->pricing_mode === 'tiered' ? 0 : ($request->hourly_rate ?? 0);
+        $data = [
+            'location_id' => $locationId,
+            'name' => $request->name,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'hourly_rate' => $hourlyRate,
+            'pricing_mode' => $request->pricing_mode,
+            'price_1h' => $request->price_1h !== '' && $request->price_1h !== null ? $request->price_1h : null,
+            'price_2h' => $request->price_2h !== '' && $request->price_2h !== null ? $request->price_2h : null,
+            'price_3h' => $request->price_3h !== '' && $request->price_3h !== null ? $request->price_3h : null,
+            'price_4h' => $request->price_4h !== '' && $request->price_4h !== null ? $request->price_4h : null,
+            'overflow_price_per_hour' => $request->overflow_price_per_hour !== '' && $request->overflow_price_per_hour !== null ? $request->overflow_price_per_hour : null,
+        ];
+
         try {
-            SpecialPeriodRate::create([
-                'location_id' => $locationId,
-                'name' => $request->name,
-                'start_date' => $request->start_date,
-                'end_date' => $request->end_date,
-                'hourly_rate' => $request->hourly_rate,
-            ]);
+            SpecialPeriodRate::create($data);
 
             $redirectParams = [];
             if (Auth::user()->isSuperAdmin()) {
@@ -295,8 +440,20 @@ class PricingController extends Controller
             'name' => 'required|string|max:255',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'hourly_rate' => 'required|numeric|min:0',
+            'pricing_mode' => 'required|in:flat_hourly,tiered',
+            'hourly_rate' => 'required_unless:pricing_mode,tiered|nullable|numeric|min:0',
+            'price_1h' => 'nullable|numeric|min:0',
+            'price_2h' => 'nullable|numeric|min:0',
+            'price_3h' => 'nullable|numeric|min:0',
+            'price_4h' => 'nullable|numeric|min:0',
+            'overflow_price_per_hour' => 'nullable|numeric|min:0',
         ]);
+        if ($request->pricing_mode === 'tiered') {
+            $hasTier = $request->filled('price_1h') || $request->filled('price_2h') || $request->filled('price_3h') || $request->filled('price_4h');
+            if (!$hasTier) {
+                return back()->withInput()->with('error', 'Pentru tarifare pe durate setați cel puțin un preț (1h, 2h, 3h sau 4h).');
+            }
+        }
 
         // Check for overlapping periods (excluding current one)
         $overlap = $this->checkSpecialPeriodOverlap(
@@ -311,13 +468,22 @@ class PricingController extends Controller
                 ->with('error', 'Există deja o perioadă specială care se suprapune cu perioada specificată');
         }
 
+        $hourlyRate = $request->pricing_mode === 'tiered' ? 0 : ($request->hourly_rate ?? 0);
+        $updateData = [
+            'name' => $request->name,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'hourly_rate' => $hourlyRate,
+            'pricing_mode' => $request->pricing_mode,
+            'price_1h' => $request->price_1h !== '' && $request->price_1h !== null ? $request->price_1h : null,
+            'price_2h' => $request->price_2h !== '' && $request->price_2h !== null ? $request->price_2h : null,
+            'price_3h' => $request->price_3h !== '' && $request->price_3h !== null ? $request->price_3h : null,
+            'price_4h' => $request->price_4h !== '' && $request->price_4h !== null ? $request->price_4h : null,
+            'overflow_price_per_hour' => $request->overflow_price_per_hour !== '' && $request->overflow_price_per_hour !== null ? $request->overflow_price_per_hour : null,
+        ];
+
         try {
-            $specialPeriod->update([
-                'name' => $request->name,
-                'start_date' => $request->start_date,
-                'end_date' => $request->end_date,
-                'hourly_rate' => $request->hourly_rate,
-            ]);
+            $specialPeriod->update($updateData);
 
             $redirectParams = [];
             if (Auth::user()->isSuperAdmin()) {
