@@ -26,6 +26,8 @@ class PlaySession extends Model
         'voucher_hours',
         'payment_status',
         'payment_method',
+        'session_type',
+        'is_free',
     ];
 
     protected $casts = [
@@ -35,6 +37,7 @@ class PlaySession extends Model
         'price_per_hour_at_calculation' => 'decimal:2',
         'paid_at' => 'datetime',
         'voucher_hours' => 'decimal:2',
+        'is_free' => 'boolean',
     ];
 
 
@@ -232,13 +235,14 @@ class PlaySession extends Model
     /**
      * Start a new play session
      */
-    public static function startSession(Location $location, Child $child, ?string $braceletCode): self
+    public static function startSession(Location $location, Child $child, ?string $braceletCode, string $sessionType = 'normal'): self
     {
         $session = self::create([
             'location_id' => $location->id,
             'child_id' => $child->id,
             'bracelet_code' => $braceletCode,
             'started_at' => now(),
+            'session_type' => in_array($sessionType, ['normal', 'birthday'], true) ? $sessionType : 'normal',
         ]);
 
         // Create initial open interval
@@ -274,6 +278,14 @@ class PlaySession extends Model
 
         // Calculate and save price
         $this->saveCalculatedPrice();
+
+        // Birthday sessions are automatically paid with 0 value
+        if ($this->session_type === 'birthday' && !$this->isPaid()) {
+            $this->update([
+                'paid_at' => now(),
+                'payment_status' => 'paid',
+            ]);
+        }
 
         return $this;
     }

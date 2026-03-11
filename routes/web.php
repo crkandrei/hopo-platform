@@ -84,9 +84,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/change-password', [AuthController::class, 'showChangePasswordForm'])->name('change-password');
     Route::post('/change-password', [AuthController::class, 'changePassword']);
     
-    // Scan page
+    // Scan / Start session page (unified, mode determined by location config)
     Route::get('/scan', [App\Http\Controllers\ScanPageController::class, 'index'])->name('scan');
-    Route::get('/start-session', [App\Http\Controllers\ScanPageController::class, 'startSessionIndex'])->name('start-session');
+    Route::get('/start-session', [App\Http\Controllers\ScanPageController::class, 'index'])->name('start-session');
 
     // End of day page (accessible to all authenticated users)
     Route::get('/end-of-day', [App\Http\Controllers\EndOfDayController::class, 'index'])->name('end-of-day.index');
@@ -108,6 +108,17 @@ Route::middleware('auth')->group(function () {
     Route::post('/sessions/mark-combined-paid-no-fiscal', [App\Http\Controllers\SessionsController::class, 'markCombinedPaidNoFiscal'])->name('sessions.mark-combined-paid-no-fiscal');
     Route::post('/sessions/{id}/toggle-payment-status', [App\Http\Controllers\SessionsController::class, 'togglePaymentStatus'])->name('sessions.toggle-payment-status');
     Route::post('/sessions/{id}/restart', [App\Http\Controllers\SessionsController::class, 'restartSession'])->name('sessions.restart');
+    Route::post('/sessions/{id}/mark-free', [App\Http\Controllers\SessionsController::class, 'markFree'])->name('sessions.mark-free');
+    Route::post('/sessions/{id}/toggle-session-type', [App\Http\Controllers\SessionsController::class, 'toggleSessionType'])->name('sessions.toggle-session-type');
+
+    // Standalone receipts (Bon Specific)
+    Route::get('/standalone-receipts/available-items', [App\Http\Controllers\StandaloneReceiptController::class, 'availableItems'])->name('standalone-receipts.available-items');
+    Route::get('/standalone-receipts/create', [App\Http\Controllers\StandaloneReceiptController::class, 'create'])->name('standalone-receipts.create');
+    Route::post('/standalone-receipts', [App\Http\Controllers\StandaloneReceiptController::class, 'store'])->name('standalone-receipts.store');
+    Route::get('/standalone-receipts/{standaloneReceipt}/pay', [App\Http\Controllers\StandaloneReceiptController::class, 'pay'])->name('standalone-receipts.pay');
+    Route::post('/standalone-receipts/{standaloneReceipt}/prepare-fiscal-print', [App\Http\Controllers\StandaloneReceiptController::class, 'prepareFiscalPrint'])->name('standalone-receipts.prepare-fiscal-print');
+    Route::post('/standalone-receipts/save-fiscal-receipt-log', [App\Http\Controllers\StandaloneReceiptController::class, 'saveFiscalReceiptLog'])->name('standalone-receipts.save-fiscal-receipt-log');
+    Route::post('/standalone-receipts/{standaloneReceipt}/mark-paid-no-fiscal', [App\Http\Controllers\StandaloneReceiptController::class, 'markPaidNoFiscal'])->name('standalone-receipts.mark-paid-no-fiscal');
 
     // Dashboard API (session-auth via web guard)
     Route::prefix('dashboard-api')->group(function () {
@@ -188,6 +199,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('locations.birthday-halls', App\Http\Controllers\BirthdayHallController::class);
     Route::resource('birthday-halls.time-slots', App\Http\Controllers\BirthdayTimeSlotsController::class)->except(['create', 'show']);
     Route::resource('locations.birthday-packages', App\Http\Controllers\BirthdayPackageController::class);
+    Route::resource('locations.packages', App\Http\Controllers\PackageController::class);
     Route::resource('birthday-reservations', App\Http\Controllers\BirthdayReservationController::class)->except(['create', 'store']);
     
     // Users management (super admin and company admin)

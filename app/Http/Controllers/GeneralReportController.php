@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PlaySession;
 use App\Models\PlaySessionProduct;
+use App\Models\StandaloneReceipt;
 use App\Support\ApiResponder;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -78,8 +79,8 @@ class GeneralReportController extends Controller
         $totalSessions = $sessions->count();
         $normalSessions = $totalSessions;
         
-        // Sales breakdown - only paid sessions
-        $paidSessions = $sessions->filter(fn($s) => $s->isPaid());
+        // Sales breakdown - only paid sessions (exclude is_free)
+        $paidSessions = $sessions->filter(fn($s) => $s->isPaid() && !$s->is_free);
         
         $cashTotal = 0;
         $cardTotal = 0;
@@ -128,8 +129,34 @@ class GeneralReportController extends Controller
                 $productSales[$productName]['total'] += $sessionProduct->total_price;
             }
         }
+
+        // Add standalone receipts in date range
+        $standaloneReceipts = StandaloneReceipt::where('location_id', $locationId)
+            ->whereNotNull('paid_at')
+            ->whereBetween('paid_at', [$start, $end])
+            ->with('items')
+            ->get();
+        foreach ($standaloneReceipts as $receipt) {
+            if ($receipt->payment_method === 'CASH') {
+                $cashTotal += (float) $receipt->total_amount;
+            } elseif ($receipt->payment_method === 'CARD') {
+                $cardTotal += (float) $receipt->total_amount;
+            } else {
+                $cashTotal += (float) $receipt->total_amount;
+            }
+            foreach ($receipt->items as $item) {
+                $totalProductsSold += $item->quantity;
+                $name = $item->name;
+                if (!isset($productSales[$name])) {
+                    $productSales[$name] = ['name' => $name, 'quantity' => 0, 'total' => 0];
+                }
+                $productSales[$name]['quantity'] += $item->quantity;
+                $productSales[$name]['total'] += (float) $item->unit_price * $item->quantity;
+            }
+        }
         
-        // Sort products by quantity and get top 10
+        // Sort products by quantity and get top 10 (productSales is now associative by name)
+        $productSales = array_values($productSales);
         usort($productSales, fn($a, $b) => $b['quantity'] - $a['quantity']);
         $topProducts = array_slice($productSales, 0, 10);
         

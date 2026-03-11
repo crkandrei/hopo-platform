@@ -28,43 +28,23 @@ class ScanPageController extends Controller
     }
 
     /**
-     * Show scan page
+     * Show unified scan/session page.
+     * Mode (bracelet vs name search) is determined by location config.
      */
     public function index()
     {
         $user = Auth::user();
         $location = $user->location;
+        $braceletRequired = $location ? (bool) $location->bracelet_required : true;
 
-        // Get available children for the location
         $children = [];
-
         if ($location) {
             $children = Child::where('location_id', $location->id)
                 ->with('guardian')
                 ->get();
         }
 
-        return view('scan.index', compact('children'));
-    }
-
-    /**
-     * Show start session page (for locations without bracelet requirement)
-     */
-    public function startSessionIndex()
-    {
-        $user = Auth::user();
-        $location = $user->location;
-
-        // If bracelet is required for this location, redirect to scan page
-        if (!$location || $location->bracelet_required) {
-            return redirect()->route('scan');
-        }
-
-        $children = Child::where('location_id', $location->id)
-            ->with('guardian')
-            ->get();
-
-        return view('scan.start-session', compact('location', 'children'));
+        return view('scan.index', compact('children', 'braceletRequired', 'location'));
     }
 
     /**
@@ -137,6 +117,10 @@ class ScanPageController extends Controller
         }
 
         $braceletCode = $request->bracelet_code !== null ? trim($request->bracelet_code) : null;
+        $sessionType = $request->input('session_type', 'normal');
+        if (!in_array($sessionType, ['normal', 'birthday'], true)) {
+            $sessionType = 'normal';
+        }
         $child = Child::where('id', $request->child_id)
             ->where('location_id', $location->id)
             ->first();
@@ -161,7 +145,7 @@ class ScanPageController extends Controller
         }
 
         try {
-            $session = $this->scanService->startPlaySession($location, $child, $braceletCode);
+            $session = $this->scanService->startPlaySession($location, $child, $braceletCode, $sessionType);
 
             return ApiResponder::success([
                 'message' => 'Sesiune pornită cu succes',
@@ -192,9 +176,13 @@ class ScanPageController extends Controller
         }
 
         $braceletCode = $request->bracelet_code !== null ? trim($request->bracelet_code) : null;
+        $sessionType = $request->input('session_type', 'normal');
+        if (!in_array($sessionType, ['normal', 'birthday'], true)) {
+            $sessionType = 'normal';
+        }
 
         try {
-            $data = DB::transaction(function () use ($request, $location, $braceletCode) {
+            $data = DB::transaction(function () use ($request, $location, $braceletCode, $sessionType) {
                 // Identifică sau creează părintele/tutorul în funcție de datele primite
                 if ($request->filled('guardian_id')) {
                     $guardian = Guardian::where('id', $request->guardian_id)
@@ -253,7 +241,7 @@ class ScanPageController extends Controller
                 ]);
 
                 // Pornește sesiunea cu codul de bare
-                $session = $this->scanService->startPlaySession($location, $child, $braceletCode);
+                $session = $this->scanService->startPlaySession($location, $child, $braceletCode, $sessionType);
 
                 return [
                     'child' => $child,
@@ -380,7 +368,11 @@ class ScanPageController extends Controller
             }
 
             $braceletCode = $request->bracelet_code !== null ? trim($request->bracelet_code) : null;
-            $session = $this->scanService->startPlaySession($location, $child, $braceletCode);
+            $sessionType = $request->input('session_type', 'normal');
+            if (!in_array($sessionType, ['normal', 'birthday'], true)) {
+                $sessionType = 'normal';
+            }
+            $session = $this->scanService->startPlaySession($location, $child, $braceletCode, $sessionType);
 
             return ApiResponder::success([
                 'message' => 'Sesiunea a început cu succes',

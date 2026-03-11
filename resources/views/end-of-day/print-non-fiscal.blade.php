@@ -117,8 +117,16 @@
         <div class="report-line">Voucher: {{ number_format($voucherTotal, 2, ',', '.') }} lei</div>
         @endif
         @endif
+        @if(isset($standaloneReceipts) && $standaloneReceipts->isNotEmpty())
         <div class="report-separator"></div>
-        <div class="report-line">Total General: {{ number_format($totalSessionsValue + $totalProductsValue, 2, ',', '.') }} lei</div>
+        <div class="report-line report-title" style="font-size: 9pt;">BONURI SPECIFICE</div>
+        @foreach($standaloneReceipts as $rec)
+        <div class="report-line">Bon {{ $rec->id }}: {{ number_format($rec->total_amount, 2, ',', '.') }} lei ({{ $rec->payment_method ?? '-' }})</div>
+        @endforeach
+        <div class="report-line">Total Bonuri Specifice: {{ number_format($standaloneTotal ?? 0, 2, ',', '.') }} lei</div>
+        @endif
+        <div class="report-separator"></div>
+        <div class="report-line">Total General: {{ number_format($cashTotal + $cardTotal + $voucherTotal, 2, ',', '.') }} lei</div>
     </div>
     
     <div class="no-print">

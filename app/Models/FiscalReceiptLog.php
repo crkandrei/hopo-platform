@@ -14,6 +14,7 @@ class FiscalReceiptLog extends Model
         'type',
         'play_session_id',
         'play_session_ids',
+        'standalone_receipt_id',
         'location_id',
         'filename',
         'status',
@@ -34,6 +35,14 @@ class FiscalReceiptLog extends Model
     public function playSession(): BelongsTo
     {
         return $this->belongsTo(PlaySession::class);
+    }
+
+    /**
+     * Get the standalone receipt that owns this fiscal receipt log (when type is standalone).
+     */
+    public function standaloneReceipt(): BelongsTo
+    {
+        return $this->belongsTo(StandaloneReceipt::class);
     }
 
 

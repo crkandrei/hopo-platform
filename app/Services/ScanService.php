@@ -252,7 +252,7 @@ class ScanService
     /**
      * Începe o sesiune de joacă pentru un copil cu un cod de bare (opțional)
      */
-    public function startPlaySession(Location $location, Child $child, ?string $braceletCode): PlaySession
+    public function startPlaySession(Location $location, Child $child, ?string $braceletCode, string $sessionType = 'normal'): PlaySession
     {
         // Trim only (no normalization - code should already be correct from frontend)
         $braceletCode = $braceletCode !== null ? trim($braceletCode) : null;
@@ -284,7 +284,7 @@ class ScanService
             }
         }
 
-        $session = PlaySession::startSession($location, $child, $braceletCode);
+        $session = PlaySession::startSession($location, $child, $braceletCode, $sessionType);
 
         ActionLogger::logSession('started', $session->id, [
             'child_id' => $child->id,

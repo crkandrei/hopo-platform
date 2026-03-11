@@ -24,17 +24,22 @@
                     <h2 class="text-xl font-bold text-gray-900">Informații Sesiune</h2>
                 </div>
                 <div class="flex items-center gap-3">
-                    @if($session->ended_at && Auth::user() && !$session->isPaid())
+                    @if($session->ended_at && Auth::user() && !$session->isPaid() && $session->session_type !== 'birthday')
                     <button onclick="openFiscalModal({{ $session->id }})" class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors">
                         <i class="fas fa-receipt mr-2"></i>
                         Printează Bon
                     </button>
                     @endif
-                    @if($session->ended_at && Auth::user() && Auth::user()->isSuperAdmin() && !$session->isPaid())
+                    @if($session->ended_at && Auth::user() && Auth::user()->isSuperAdmin() && !$session->isPaid() && $session->session_type !== 'birthday')
                     <button onclick="openRestartModal()" class="inline-flex items-center px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-medium rounded-lg transition-colors">
                         <i class="fas fa-redo mr-2"></i>
                         Repornește Sesiunea
                     </button>
+                    @endif
+                    @if($session->session_type === 'birthday')
+                    <span class="px-3 py-1 text-sm font-medium rounded-full bg-pink-100 text-pink-800 inline-flex items-center">
+                        <i class="fas fa-birthday-cake mr-1"></i>Birthday
+                    </span>
                     @endif
                     <span class="px-3 py-1 text-sm font-medium rounded-full {{ $session->ended_at ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
                         {{ $session->ended_at ? 'Închisă' : 'Activă' }}
@@ -58,7 +63,7 @@
                             <i class="fas fa-clock mr-1"></i>Neplătit
                         </span>
                         @endif
-                        @if(Auth::user() && Auth::user()->isSuperAdmin())
+                        @if(Auth::user() && Auth::user()->isSuperAdmin() && $session->session_type !== 'birthday')
                         <button id="toggle-payment-status-btn" 
                                 onclick="togglePaymentStatus({{ $session->id }})"
                                 class="ml-2 px-3 py-1 text-sm font-medium rounded-lg {{ $session->isPaid() ? 'bg-gray-200 hover:bg-gray-300 text-gray-700' : 'bg-green-200 hover:bg-green-300 text-green-700' }} transition-colors">

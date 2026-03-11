@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PlaySession;
+use App\Models\StandaloneReceipt;
 use App\Models\FiscalReceiptLog;
 use App\Models\PlaySessionProduct;
 use App\Services\PricingService;
@@ -69,7 +70,7 @@ class EndOfDayController extends Controller
         $endedSessions = $sessionsToday->whereNotNull('ended_at')->whereNotNull('calculated_price');
         
         foreach ($endedSessions as $session) {
-            if ($session->isPaid()) {
+            if ($session->isPaid() && !$session->is_free) {
                 // Get total price (time + products)
                 $timePrice = $session->calculated_price ?? $session->calculatePrice();
                 $productsPrice = $session->getProductsTotalPrice();
@@ -100,6 +101,24 @@ class EndOfDayController extends Controller
             }
         }
         
+        // Add standalone receipts (Bon Specific) paid on this date
+        $standaloneQuery = StandaloneReceipt::whereNotNull('paid_at')
+            ->whereBetween('paid_at', [$startOfDay, $endOfDay]);
+        if ($locationId) {
+            $standaloneQuery->where('location_id', $locationId);
+        }
+        $standaloneReceipts = $standaloneQuery->with('items')->orderBy('paid_at')->get();
+        $standaloneTotal = $standaloneReceipts->sum('total_amount');
+        foreach ($standaloneReceipts as $receipt) {
+            if ($receipt->payment_method === 'CASH') {
+                $cashTotal += (float) $receipt->total_amount;
+            } elseif ($receipt->payment_method === 'CARD') {
+                $cardTotal += (float) $receipt->total_amount;
+            } else {
+                $cashTotal += (float) $receipt->total_amount;
+            }
+        }
+
         // Total money = cash + card + voucher (total value, not just collected)
         $totalMoney = $cashTotal + $cardTotal + $voucherTotal;
 
@@ -120,6 +139,8 @@ class EndOfDayController extends Controller
             'cashTotal' => round($cashTotal, 2),
             'cardTotal' => round($cardTotal, 2),
             'voucherTotal' => round($voucherTotal, 2),
+            'standaloneReceipts' => $standaloneReceipts,
+            'standaloneTotal' => round($standaloneTotal, 2),
             'locationId' => $locationId,
             'selectedDate' => $date->format('Y-m-d'),
             'selectedDateFormatted' => $date->format('d.m.Y'),
@@ -229,9 +250,27 @@ class EndOfDayController extends Controller
             }
         }
 
-        // Get all products sold today (only from paid sessions)
+        // Add standalone receipts (Bon Specific) paid on this date
+        $standaloneQuery = StandaloneReceipt::whereNotNull('paid_at')
+            ->whereBetween('paid_at', [$startOfDay, $endOfDay]);
+        if ($locationId) {
+            $standaloneQuery->where('location_id', $locationId);
+        }
+        $standaloneReceipts = $standaloneQuery->with('items')->orderBy('paid_at')->get();
+        $standaloneTotal = $standaloneReceipts->sum('total_amount');
+        foreach ($standaloneReceipts as $receipt) {
+            if ($receipt->payment_method === 'CASH') {
+                $cashTotal += (float) $receipt->total_amount;
+            } elseif ($receipt->payment_method === 'CARD') {
+                $cardTotal += (float) $receipt->total_amount;
+            } else {
+                $cashTotal += (float) $receipt->total_amount;
+            }
+        }
+
+        // Get all products sold today (only from paid sessions, exclude is_free)
         $paidSessionIds = $sessionsToday->filter(function($session) {
-            return $session->ended_at && $session->isPaid();
+            return $session->ended_at && $session->isPaid() && !$session->is_free;
         })->pluck('id');
         
         $productsSold = PlaySessionProduct::whereIn('play_session_id', $paidSessionIds)
@@ -256,6 +295,20 @@ class EndOfDayController extends Controller
             $productsGrouped[$productId]['total'] += $totalPrice;
             $productsGrouped[$productId]['quantity'] += $psp->quantity;
             $totalProductsValue += $totalPrice;
+        }
+        // Add product-type items from standalone receipts to productsGrouped (by name for aggregation)
+        foreach ($standaloneReceipts as $receipt) {
+            foreach ($receipt->items as $item) {
+                if ($item->source_type === 'product') {
+                    $key = 'product_' . $item->source_id;
+                    if (!isset($productsGrouped[$key])) {
+                        $productsGrouped[$key] = ['name' => $item->name, 'total' => 0, 'quantity' => 0];
+                    }
+                    $productsGrouped[$key]['total'] += (float) $item->unit_price * $item->quantity;
+                    $productsGrouped[$key]['quantity'] += $item->quantity;
+                    $totalProductsValue += (float) $item->unit_price * $item->quantity;
+                }
+            }
         }
 
         // Format hours for display
@@ -282,6 +335,8 @@ class EndOfDayController extends Controller
             'totalVoucherHours' => $formatHours($totalVoucherHours),
             'productsGrouped' => $productsGrouped,
             'totalProductsValue' => $totalProductsValue,
+            'standaloneReceipts' => $standaloneReceipts,
+            'standaloneTotal' => round($standaloneTotal, 2),
             'cashTotal' => round($cashTotal, 2),
             'cardTotal' => round($cardTotal, 2),
             'voucherTotal' => round($voucherTotal, 2),

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\PlaySession;
+use App\Models\StandaloneReceipt;
 use App\Repositories\Contracts\ChildRepositoryInterface;
 use App\Repositories\Contracts\PlaySessionRepositoryInterface;
 use Carbon\Carbon;
@@ -57,7 +58,7 @@ class DashboardService
         $voucherTotal = 0;
         
         foreach ($sessionsEndedToday as $session) {
-            if ($session->isPaid()) {
+            if ($session->isPaid() && !$session->is_free) {
                 // Get total price (time + products)
                 $timePrice = $session->calculated_price ?? $session->calculatePrice();
                 $productsPrice = $session->getProductsTotalPrice();
@@ -85,6 +86,21 @@ class DashboardService
                         $cashTotal += $amountCollected;
                     }
                 }
+            }
+        }
+
+        // Add standalone receipts (Bon Specific) paid today
+        $standaloneToday = StandaloneReceipt::where('location_id', $locationId)
+            ->whereNotNull('paid_at')
+            ->whereBetween('paid_at', [$startOfDay, $endOfDay])
+            ->get();
+        foreach ($standaloneToday as $receipt) {
+            if ($receipt->payment_method === 'CASH') {
+                $cashTotal += (float) $receipt->total_amount;
+            } elseif ($receipt->payment_method === 'CARD') {
+                $cardTotal += (float) $receipt->total_amount;
+            } else {
+                $cashTotal += (float) $receipt->total_amount;
             }
         }
         
@@ -135,16 +151,22 @@ class DashboardService
             ->where('ended_at', '>=', $start)
             ->where('ended_at', '<=', $end)
             ->get();
-        
+
         $total = 0;
         foreach ($sessions as $session) {
-            if ($session->isPaid()) {
+            if ($session->isPaid() && !$session->is_free) {
                 $timePrice = $session->calculated_price ?? 0;
                 $productsPrice = $session->getProductsTotalPrice();
                 $total += $timePrice + $productsPrice;
             }
         }
-        
+
+        $standaloneTotal = StandaloneReceipt::where('location_id', $locationId)
+            ->whereNotNull('paid_at')
+            ->whereBetween('paid_at', [$start, $end])
+            ->sum('total_amount');
+        $total += (float) $standaloneTotal;
+
         return $total;
     }
     

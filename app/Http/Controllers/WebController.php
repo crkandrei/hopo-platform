@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Company;
 use App\Models\Location;
 use App\Models\PlaySession;
+use App\Models\StandaloneReceipt;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -43,14 +44,23 @@ class WebController extends Controller
             ->groupBy('locations.company_id')
             ->pluck('sessions_today', 'company_id');
 
-        // Per-company income today (paid sessions)
+        // Per-company income today (paid sessions, exclude is_free)
         $incomeByCompany = DB::table('play_sessions')
             ->join('locations', 'play_sessions.location_id', '=', 'locations.id')
             ->whereDate('play_sessions.paid_at', $today)
             ->whereNotNull('play_sessions.paid_at')
+            ->whereRaw('(play_sessions.is_free IS NULL OR play_sessions.is_free = 0)')
             ->select('locations.company_id', DB::raw('SUM(play_sessions.calculated_price) as income_today'))
             ->groupBy('locations.company_id')
             ->pluck('income_today', 'company_id');
+
+        // Add standalone receipts income today per company
+        $standaloneByCompany = StandaloneReceipt::whereNotNull('paid_at')
+            ->whereDate('paid_at', $today)
+            ->join('locations', 'standalone_receipts.location_id', '=', 'locations.id')
+            ->selectRaw('locations.company_id, SUM(standalone_receipts.total_amount) as total')
+            ->groupBy('locations.company_id')
+            ->pluck('total', 'company_id');
 
         // Per-company active sessions right now
         $activeByCompany = DB::table('play_sessions')
@@ -64,9 +74,9 @@ class WebController extends Controller
             ->with('locations:id,company_id,is_active')
             ->orderBy('name')
             ->get()
-            ->map(function ($company) use ($sessionsByCompany, $incomeByCompany, $activeByCompany) {
+            ->map(function ($company) use ($sessionsByCompany, $incomeByCompany, $activeByCompany, $standaloneByCompany) {
                 $company->sessions_today = $sessionsByCompany[$company->id] ?? 0;
-                $company->income_today   = (float) ($incomeByCompany[$company->id] ?? 0);
+                $company->income_today   = (float) ($incomeByCompany[$company->id] ?? 0) + (float) ($standaloneByCompany[$company->id] ?? 0);
                 $company->active_now     = $activeByCompany[$company->id] ?? 0;
                 $company->active_locations = $company->locations->where('is_active', true)->count();
                 return $company;
@@ -77,7 +87,7 @@ class WebController extends Controller
             'locations'       => Location::count(),
             'users'           => User::whereHas('role', fn($q) => $q->whereIn('name', ['COMPANY_ADMIN', 'STAFF']))->count(),
             'sessions_today'  => $sessionsByCompany->sum(),
-            'income_today'    => (float) $incomeByCompany->sum(),
+            'income_today'    => (float) $incomeByCompany->sum() + (float) $standaloneByCompany->sum(),
             'active_now'      => $activeByCompany->sum(),
         ];
 

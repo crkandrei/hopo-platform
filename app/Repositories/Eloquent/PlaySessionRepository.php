@@ -98,7 +98,10 @@ class PlaySessionRepository implements PlaySessionRepositoryInterface
                 'play_sessions.price_per_hour_at_calculation',
                 'play_sessions.paid_at',
                 'play_sessions.payment_status',
+                'play_sessions.payment_method',
                 'play_sessions.voucher_hours',
+                'play_sessions.session_type',
+                'play_sessions.is_free',
                 'children.name as child_name',
                 'guardians.name as guardian_name',
                 'guardians.phone as guardian_phone',
@@ -213,7 +216,10 @@ class PlaySessionRepository implements PlaySessionRepositoryInterface
                     'paid_at' => optional($row->paid_at)->toISOString(),
                     'is_paid' => !is_null($row->paid_at),
                     'payment_status' => $row->payment_status ?? null,
+                    'payment_method' => $row->payment_method ?? null,
                     'voucher_hours' => $row->voucher_hours ? (float) $row->voucher_hours : null,
+                    'session_type' => $row->session_type ?? 'normal',
+                    'is_free' => (bool) ($row->is_free ?? false),
                     'fiscal_enabled' => $locationFiscalEnabled,
                 ];
             });

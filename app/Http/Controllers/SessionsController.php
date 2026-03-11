@@ -1207,6 +1207,92 @@ class SessionsController extends Controller
     }
 
     /**
+     * Mark session as free (Gratuit). Sets is_free = true and calculated_price = 0.
+     */
+    public function markFree($id, Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Neautentificat'], 401);
+        }
+
+        $sessionQuery = PlaySession::where('id', $id);
+        if (!$user->isSuperAdmin() && $user->location) {
+            $sessionQuery->where('location_id', $user->location->id);
+        }
+        $session = $sessionQuery->first();
+
+        if (!$session) {
+            return response()->json(['success' => false, 'message' => 'Sesiunea nu a fost găsită'], 404);
+        }
+        if (!$session->ended_at) {
+            return response()->json(['success' => false, 'message' => 'Sesiunea trebuie finalizată înainte de a o marca gratuit'], 400);
+        }
+        if ($session->isPaid()) {
+            return response()->json(['success' => false, 'message' => 'Sesiunea a fost deja plătită'], 400);
+        }
+
+        $session->update(['is_free' => true]);
+        $session->saveCalculatedPrice();
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Toggle session_type between 'normal' and 'birthday'
+     */
+    public function toggleSessionType($id)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Neautentificat'], 401);
+        }
+
+        $sessionQuery = PlaySession::where('id', $id);
+        if (!$user->isSuperAdmin() && $user->location) {
+            $sessionQuery->where('location_id', $user->location->id);
+        }
+
+        $session = $sessionQuery->first();
+
+        if (!$session) {
+            return response()->json(['success' => false, 'message' => 'Sesiunea nu a fost găsită'], 404);
+        }
+
+        $newType = $session->session_type === 'birthday' ? 'normal' : 'birthday';
+
+        if ($newType === 'birthday') {
+            $updateData = ['session_type' => 'birthday'];
+            if ($session->ended_at) {
+                $updateData['paid_at'] = now();
+                $updateData['payment_status'] = 'paid';
+                $updateData['calculated_price'] = 0;
+                $updateData['price_per_hour_at_calculation'] = 0;
+            }
+            $session->update($updateData);
+        } else {
+            $updateData = [
+                'session_type' => 'normal',
+                'paid_at' => null,
+                'payment_status' => null,
+                'payment_method' => null,
+            ];
+            $session->update($updateData);
+
+            if ($session->ended_at) {
+                $session->saveCalculatedPrice();
+                $session->refresh();
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'session_type' => $newType,
+            'message' => $newType === 'birthday' ? 'Sesiunea a fost marcată ca Birthday' : 'Sesiunea a fost setată ca normală',
+        ]);
+    }
+
+    /**
      * Format duration as "Xh Ym" or "Xh" if no minutes, or "Ym" if no hours
      */
     private function formatDuration(int $hours, int $minutes): string

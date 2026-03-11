@@ -152,6 +152,9 @@
             <a href="{{ route('locations.birthday-packages.index', $location) }}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium">
                 <i class="fas fa-gift mr-2"></i>Gestionează pachete
             </a>
+            <a href="{{ route('locations.packages.index', $location) }}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium">
+                <i class="fas fa-file-invoice-dollar mr-2"></i>Pachete Bon Specific
+            </a>
             <a href="{{ route('birthday-reservations.index') }}?location_id={{ $location->id }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 font-medium">
                 <i class="fas fa-calendar-check mr-2"></i>Vezi rezervări
             </a>

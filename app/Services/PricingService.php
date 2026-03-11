@@ -23,6 +23,10 @@ class PricingService
      */
     public function calculateSessionPrice(PlaySession $session): float
     {
+        if ($session->is_free || $session->session_type === 'birthday') {
+            return 0.00;
+        }
+
         $location = $session->location;
         if (!$location) {
             return 0.00;
@@ -54,6 +58,10 @@ class PricingService
      */
     public function getEffectiveHourlyRateForSession(PlaySession $session): float
     {
+        if ($session->is_free || $session->session_type === 'birthday') {
+            return 0.00;
+        }
+
         $location = $session->location;
         if (!$location) {
             return 0.00;
@@ -114,6 +122,14 @@ class PricingService
      */
     public function calculateAndSavePrice(PlaySession $session): PlaySession
     {
+        if ($session->is_free || $session->session_type === 'birthday') {
+            $session->update([
+                'calculated_price' => 0,
+                'price_per_hour_at_calculation' => 0,
+            ]);
+            return $session;
+        }
+
         $location = $session->location;
         if (!$location) {
             return $session;

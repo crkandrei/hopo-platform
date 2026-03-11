@@ -26,6 +26,7 @@ class CreateChildRequest extends FormRequest
                 'min:1',
                 'max:50',
             ],
+            'session_type' => ['nullable', 'string', 'in:normal,birthday'],
         ];
     }
 

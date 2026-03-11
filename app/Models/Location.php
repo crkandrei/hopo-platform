@@ -95,6 +95,16 @@ class Location extends Model
         return $this->hasMany(BirthdayReservation::class);
     }
 
+    public function packages(): HasMany
+    {
+        return $this->hasMany(Package::class);
+    }
+
+    public function standaloneReceipts(): HasMany
+    {
+        return $this->hasMany(StandaloneReceipt::class);
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';

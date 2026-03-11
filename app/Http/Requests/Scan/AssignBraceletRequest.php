@@ -21,6 +21,7 @@ class AssignBraceletRequest extends FormRequest
                 'max:50',
             ],
             'child_id' => ['required', 'exists:children,id'],
+            'session_type' => ['nullable', 'string', 'in:normal,birthday'],
         ];
     }
 

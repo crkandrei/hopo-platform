@@ -67,6 +67,18 @@
         </div>
     </div>
 
+    @if(isset($standaloneReceipts) && $standaloneReceipts->isNotEmpty())
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
+        <h2 class="text-xl font-bold text-gray-900 mb-3">Bonuri Specifice</h2>
+        <p class="text-sm text-gray-600 mb-3">Total: {{ number_format($standaloneTotal ?? 0, 2, '.', '') }} RON</p>
+        <ul class="space-y-1 text-sm">
+            @foreach($standaloneReceipts as $rec)
+            <li>Bon #{{ $rec->id }} – {{ number_format($rec->total_amount, 2, '.', '') }} RON ({{ $rec->payment_method ?? '-' }}) – {{ $rec->paid_at ? $rec->paid_at->format('H:i') : '' }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
     <!-- Print Actions -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h2 class="text-xl font-bold text-gray-900 mb-4">Rapoarte</h2>
