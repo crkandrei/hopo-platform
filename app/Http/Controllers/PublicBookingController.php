@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\BirthdayReservationCreated;
 use App\Models\BirthdayHall;
 use App\Models\BirthdayPackage;
 use App\Models\BirthdayReservation;
@@ -17,19 +18,68 @@ class PublicBookingController extends Controller
 {
     public function showForm(Location $location)
     {
-        $location->load(['birthdayHalls' => fn ($q) => $q->where('is_active', true), 'birthdayPackages' => fn ($q) => $q->where('is_active', true)]);
-        $halls = $location->birthdayHalls;
-        $packages = $location->birthdayPackages;
+        $halls = $location->birthdayHalls()->where('is_active', true)->get();
+        $activeBirthdayPackagesQuery = $location->birthdayPackages()->where('is_active', true);
 
-        if ($halls->isEmpty() || $packages->isEmpty()) {
+        if ($halls->isEmpty() || ! $activeBirthdayPackagesQuery->exists()) {
             abort(404, 'Rezervările pentru zile de naștere nu sunt configurate pentru această locație.');
         }
+
+        $selectedDate = old('reservation_date');
+        $packages = collect();
+        if ($selectedDate) {
+            $packages = $location->birthdayPackages()
+                ->where('is_active', true)
+                ->with('birthdayPackageWeekdays')
+                ->availableOnDate(Carbon::parse($selectedDate))
+                ->orderBy('name')
+                ->get();
+        }
+
+        $singleHall = $halls->count() === 1;
 
         return view('booking.show', [
             'location' => $location,
             'halls' => $halls,
             'packages' => $packages,
+            'initialPackages' => $packages->map(fn (BirthdayPackage $birthdayPackage) => [
+                'id' => $birthdayPackage->id,
+                'name' => $birthdayPackage->name,
+                'description' => $birthdayPackage->description,
+                'duration_minutes' => $birthdayPackage->duration_minutes,
+                'includes_food' => $birthdayPackage->includes_food,
+                'includes_decorations' => $birthdayPackage->includes_decorations,
+            ])->values()->all(),
+            'selectedDate' => $selectedDate,
+            'singleHall' => $singleHall,
         ]);
+    }
+
+    public function getAvailablePackages(Request $request, Location $location)
+    {
+        $request->validate([
+            'date' => 'required|date|after_or_equal:today',
+        ]);
+
+        $date = Carbon::parse($request->date);
+
+        $packages = $location->birthdayPackages()
+            ->where('is_active', true)
+            ->with('birthdayPackageWeekdays')
+            ->availableOnDate($date)
+            ->orderBy('name')
+            ->get()
+            ->map(fn (BirthdayPackage $birthdayPackage) => [
+                'id' => $birthdayPackage->id,
+                'name' => $birthdayPackage->name,
+                'description' => $birthdayPackage->description,
+                'duration_minutes' => $birthdayPackage->duration_minutes,
+                'includes_food' => $birthdayPackage->includes_food,
+                'includes_decorations' => $birthdayPackage->includes_decorations,
+            ])
+            ->values();
+
+        return response()->json(['packages' => $packages]);
     }
 
     public function getAvailableSlots(Request $request, Location $location)
@@ -101,7 +151,17 @@ class PublicBookingController extends Controller
         $date = Carbon::parse($request->date);
         $hallId = (int) $request->birthday_hall_id;
         $packageId = (int) $request->birthday_package_id;
-        $package = BirthdayPackage::where('location_id', $location->id)->where('is_active', true)->findOrFail($packageId);
+        $package = BirthdayPackage::where('location_id', $location->id)
+            ->where('is_active', true)
+            ->with('birthdayPackageWeekdays')
+            ->findOrFail($packageId);
+
+        if (! $package->isAvailableOn($date)) {
+            throw ValidationException::withMessages([
+                'birthday_package_id' => ['Pachetul selectat nu este disponibil în ziua aleasă.'],
+            ]);
+        }
+
         $durationMinutes = (int) $package->duration_minutes;
 
         $slotsForDay = BirthdayTimeSlot::where('birthday_hall_id', $hallId)
@@ -183,7 +243,10 @@ class PublicBookingController extends Controller
                 'required',
                 Rule::exists('birthday_halls', 'id')->where('location_id', $location->id)->where('is_active', true),
             ],
-            'birthday_package_id' => 'required|exists:birthday_packages,id',
+            'birthday_package_id' => [
+                'required',
+                Rule::exists('birthday_packages', 'id')->where('location_id', $location->id)->where('is_active', true),
+            ],
             'reservation_date' => 'required|date|after_or_equal:today',
             'reservation_time' => 'required|date_format:H:i',
             'number_of_children' => 'required|integer|min:1',
@@ -192,9 +255,14 @@ class PublicBookingController extends Controller
         ];
 
         $validated = $request->validate($rules);
+        $date = Carbon::parse($validated['reservation_date']);
 
-        $package = BirthdayPackage::where('location_id', $location->id)->findOrFail($validated['birthday_package_id']);
-        if (! $package->is_active) {
+        $package = BirthdayPackage::where('location_id', $location->id)
+            ->where('is_active', true)
+            ->with('birthdayPackageWeekdays')
+            ->findOrFail($validated['birthday_package_id']);
+
+        if (! $package->isAvailableOn($date)) {
             return back()->withInput()->withErrors(['birthday_package_id' => 'Pachet invalid.']);
         }
 
@@ -204,13 +272,7 @@ class PublicBookingController extends Controller
                 'number_of_children' => ['Numărul de copii nu poate depăși capacitatea sălii (' . $hall->capacity . ' copii).'],
             ]);
         }
-        if ($numChildren > $package->max_children) {
-            throw ValidationException::withMessages([
-                'number_of_children' => ['Numărul de copii nu poate depăși limita pachetului selectat (' . $package->max_children . ' copii).'],
-            ]);
-        }
 
-        $date = Carbon::parse($validated['reservation_date']);
         $startM = Carbon::parse($validated['reservation_time'])->format('H') * 60 + (int) Carbon::parse($validated['reservation_time'])->format('i');
         $endM = $startM + (int) $package->duration_minutes;
         $reservations = BirthdayReservation::where('birthday_hall_id', $hall->id)
@@ -237,9 +299,7 @@ class PublicBookingController extends Controller
             }
         }
 
-        $totalPrice = $package->price;
-
-        return DB::transaction(function () use ($location, $validated, $hall, $package, $totalPrice) {
+        return DB::transaction(function () use ($location, $validated, $hall, $package) {
             $reservation = BirthdayReservation::create([
                 'location_id' => $location->id,
                 'birthday_hall_id' => $validated['birthday_hall_id'],
@@ -255,8 +315,9 @@ class PublicBookingController extends Controller
                 'number_of_children' => $validated['number_of_children'],
                 'notes' => $validated['notes'] ?? null,
                 'status' => 'pending',
-                'total_price' => $totalPrice,
             ]);
+
+            BirthdayReservationCreated::dispatch($reservation);
 
             return redirect()->route('booking.confirmation', [
                 'location' => $location,

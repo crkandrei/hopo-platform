@@ -21,6 +21,7 @@
         <form method="POST" action="{{ route('locations.birthday-packages.store', $location) }}">
             @csrf
             <div class="space-y-4 max-w-xl">
+                @php($availableWeekdays = collect(old('available_weekdays', []))->map(fn ($day) => (string) $day)->all())
                 <div>
                     <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nume pachet <span class="text-red-500">*</span></label>
                     <input type="text" name="name" id="name" value="{{ old('name') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
@@ -30,22 +31,26 @@
                     <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Descriere</label>
                     <textarea name="description" id="description" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">{{ old('description') }}</textarea>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label for="price" class="block text-sm font-medium text-gray-700 mb-1">Preț (RON) <span class="text-red-500">*</span></label>
-                        <input type="number" name="price" id="price" value="{{ old('price') }}" step="0.01" min="0" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                        @error('price')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-                    </div>
-                    <div>
-                        <label for="duration_minutes" class="block text-sm font-medium text-gray-700 mb-1">Durată (min) <span class="text-red-500">*</span></label>
-                        <input type="number" name="duration_minutes" id="duration_minutes" value="{{ old('duration_minutes', 90) }}" min="15" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                        @error('duration_minutes')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-                    </div>
+                <div>
+                    <label for="duration_minutes" class="block text-sm font-medium text-gray-700 mb-1">Durată (min) <span class="text-red-500">*</span></label>
+                    <input type="number" name="duration_minutes" id="duration_minutes" value="{{ old('duration_minutes', 90) }}" min="15" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    @error('duration_minutes')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label for="max_children" class="block text-sm font-medium text-gray-700 mb-1">Max copii <span class="text-red-500">*</span></label>
-                    <input type="number" name="max_children" id="max_children" value="{{ old('max_children', 20) }}" min="1" class="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                    @error('max_children')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                    <p class="block text-sm font-medium text-gray-700 mb-2">Zile disponibile <span class="text-red-500">*</span></p>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        @foreach(\App\Models\BirthdayPackage::DAY_NAMES as $dayOfWeek => $dayLabel)
+                            <label class="inline-flex items-center rounded-lg border border-gray-200 px-3 py-2">
+                                <input type="checkbox" name="available_weekdays[]" value="{{ $dayOfWeek }}"
+                                    {{ in_array((string) $dayOfWeek, $availableWeekdays, true) ? 'checked' : '' }}
+                                    class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                <span class="ml-2 text-sm text-gray-700">{{ $dayLabel }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500">Selectați cel puțin o zi în care acest pachet poate fi rezervat.</p>
+                    @error('available_weekdays')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                    @error('available_weekdays.*')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                 </div>
                 <div class="flex gap-6">
                     <label class="inline-flex items-center">

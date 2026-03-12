@@ -23,14 +23,12 @@ class BirthdayReservation extends Model
         'number_of_children',
         'notes',
         'status',
-        'total_price',
         'token',
     ];
 
     protected $casts = [
         'reservation_date' => 'date',
         'status' => 'string',
-        'total_price' => 'decimal:2',
     ];
 
     protected static function booted(): void

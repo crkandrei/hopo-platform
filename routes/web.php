@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BirthdayReservationActionController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\WebController;
 use Illuminate\Support\Facades\Route;
@@ -54,10 +55,17 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Public birthday reservation action (confirm/reject via email link)
+Route::get('/rezervari/{token}/{action}', BirthdayReservationActionController::class)
+    ->where('token', '[0-9a-f-]{36}')
+    ->where('action', 'confirm|reject')
+    ->name('birthday-reservations.action');
+
 // Public booking (no auth) - location resolved by slug
 Route::get('/booking/{location:slug}', [App\Http\Controllers\PublicBookingController::class, 'showForm'])->name('booking.show');
 Route::post('/booking/{location:slug}', [App\Http\Controllers\PublicBookingController::class, 'submitForm']);
 Route::get('/booking/{location:slug}/confirmare', [App\Http\Controllers\PublicBookingController::class, 'confirmation'])->name('booking.confirmation');
+Route::get('/booking/{location:slug}/packages', [App\Http\Controllers\PublicBookingController::class, 'getAvailablePackages'])->name('booking.packages');
 Route::get('/booking/{location:slug}/slots', [App\Http\Controllers\PublicBookingController::class, 'getAvailableSlots'])->name('booking.slots');
 Route::get('/booking/{location:slug}/availability', [App\Http\Controllers\PublicBookingController::class, 'getAvailability'])->name('booking.availability');
 
@@ -205,6 +213,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('birthday-halls.time-slots', App\Http\Controllers\BirthdayTimeSlotsController::class)->except(['create', 'show']);
     Route::resource('locations.birthday-packages', App\Http\Controllers\BirthdayPackageController::class);
     Route::resource('locations.packages', App\Http\Controllers\PackageController::class);
+    Route::get('birthday-reservations/dashboard', [App\Http\Controllers\BirthdayReservationController::class, 'dashboard'])->name('birthday-reservations.dashboard');
     Route::resource('birthday-reservations', App\Http\Controllers\BirthdayReservationController::class)->except(['create', 'store']);
     
     // Users management (super admin and company admin)

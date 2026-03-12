@@ -36,7 +36,7 @@
             <dl class="space-y-3">
                 <div><dt class="text-sm text-gray-500">Locație</dt><dd class="font-medium text-gray-900">{{ $birthdayReservation->location->name }}</dd></div>
                 <div><dt class="text-sm text-gray-500">Sală</dt><dd class="font-medium text-gray-900">{{ $birthdayReservation->birthdayHall->name }}</dd></div>
-                <div><dt class="text-sm text-gray-500">Pachet</dt><dd class="font-medium text-gray-900">{{ $birthdayReservation->birthdayPackage->name }} — {{ number_format($birthdayReservation->total_price, 2) }} RON</dd></div>
+                <div><dt class="text-sm text-gray-500">Pachet</dt><dd class="font-medium text-gray-900">{{ $birthdayReservation->birthdayPackage->name }}</dd></div>
                 <div><dt class="text-sm text-gray-500">Data</dt><dd class="font-medium text-gray-900">{{ $birthdayReservation->reservation_date->format('d.m.Y') }}</dd></div>
                 @if($birthdayReservation->timeSlot)
                     <div><dt class="text-sm text-gray-500">Interval</dt><dd class="font-medium text-gray-900">{{ \Carbon\Carbon::parse($birthdayReservation->timeSlot->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($birthdayReservation->timeSlot->end_time)->format('H:i') }}</dd></div>

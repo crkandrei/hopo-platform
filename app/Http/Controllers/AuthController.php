@@ -15,6 +15,14 @@ class AuthController extends Controller
      */
     public function showLoginForm()
     {
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user->isStaff()) {
+                return redirect(($user->location && !$user->location->bracelet_required) ? '/start-session' : '/scan');
+            }
+            return redirect('/dashboard');
+        }
+
         return view('auth.login');
     }
 

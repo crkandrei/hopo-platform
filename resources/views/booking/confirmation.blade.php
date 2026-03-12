@@ -106,13 +106,6 @@
                 </div>
             </div>
 
-            <div class="px-6 py-4 flex items-center gap-4">
-                <i class="fas fa-tag text-hopo-purple w-4 text-center flex-shrink-0"></i>
-                <div>
-                    <p class="text-xs text-gray-400">Total</p>
-                    <p class="text-xl font-bold text-hopo-purple">{{ number_format($reservation->total_price, 0) }} RON</p>
-                </div>
-            </div>
         </div>
     </div>
 

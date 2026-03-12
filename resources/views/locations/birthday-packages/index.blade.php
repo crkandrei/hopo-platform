@@ -38,9 +38,8 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nume</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Preț</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Durată</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Max copii</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Zile disponibile</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acțiuni</th>
                     </tr>
@@ -49,9 +48,14 @@
                     @forelse($packages as $package)
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 font-medium text-gray-900">{{ $package->name }}</td>
-                            <td class="px-6 py-4 text-gray-600">{{ number_format($package->price, 2) }} RON</td>
                             <td class="px-6 py-4 text-gray-600">{{ $package->duration_minutes }} min</td>
-                            <td class="px-6 py-4 text-gray-600">{{ $package->max_children }}</td>
+                            <td class="px-6 py-4 text-gray-600">
+                                @if(count($package->available_day_names))
+                                    {{ implode(', ', $package->available_day_names) }}
+                                @else
+                                    <span class="text-red-600">Nicio zi setată</span>
+                                @endif
+                            </td>
                             <td class="px-6 py-4">
                                 @if($package->is_active)
                                     <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Activ</span>
@@ -69,7 +73,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">Niciun pachet. Adăugați un pachet pentru zile de naștere.</td></tr>
+                        <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">Niciun pachet. Adăugați un pachet pentru zile de naștere.</td></tr>
                     @endforelse
                 </tbody>
             </table>

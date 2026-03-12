@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Events\BirthdayReservationCreated;
+use App\Listeners\SendNewReservationNotificationToAdmins;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use App\Models\User;
@@ -43,6 +46,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Event::listen(
+            BirthdayReservationCreated::class,
+            SendNewReservationNotificationToAdmins::class,
+        );
     }
 }
