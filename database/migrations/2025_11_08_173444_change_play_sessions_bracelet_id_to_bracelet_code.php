@@ -32,25 +32,21 @@ return new class extends Migration
         // Drop foreign key and bracelet_id column if they exist
         if (Schema::hasColumn('play_sessions', 'bracelet_id')) {
             Schema::table('play_sessions', function (Blueprint $table) {
-                // Check if foreign key exists before dropping
                 $foreignKeys = DB::select("
-                    SELECT CONSTRAINT_NAME 
-                    FROM information_schema.KEY_COLUMN_USAGE 
-                    WHERE TABLE_SCHEMA = DATABASE() 
-                    AND TABLE_NAME = 'play_sessions' 
-                    AND COLUMN_NAME = 'bracelet_id' 
+                    SELECT CONSTRAINT_NAME
+                    FROM information_schema.KEY_COLUMN_USAGE
+                    WHERE TABLE_SCHEMA = DATABASE()
+                    AND TABLE_NAME = 'play_sessions'
+                    AND COLUMN_NAME = 'bracelet_id'
                     AND REFERENCED_TABLE_NAME IS NOT NULL
                 ");
-                
                 if (!empty($foreignKeys)) {
                     $table->dropForeign(['bracelet_id']);
                 }
-                
-                // Drop the bracelet_id column
                 $table->dropColumn('bracelet_id');
             });
         }
-        
+
         // Add index on bracelet_code for performance (only if it doesn't exist)
         if (Schema::hasColumn('play_sessions', 'bracelet_code')) {
             $indexes = DB::select("SHOW INDEXES FROM play_sessions WHERE Key_name = 'play_sessions_bracelet_code_index'");

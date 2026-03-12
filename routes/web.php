@@ -106,13 +106,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/sessions/{id}/mark-paid-with-voucher', [App\Http\Controllers\SessionsController::class, 'markPaidWithVoucher'])->name('sessions.mark-paid-with-voucher');
     Route::post('/sessions/{id}/mark-paid-no-fiscal', [App\Http\Controllers\SessionsController::class, 'markPaidNoFiscal'])->name('sessions.mark-paid-no-fiscal');
     Route::post('/sessions/mark-combined-paid-no-fiscal', [App\Http\Controllers\SessionsController::class, 'markCombinedPaidNoFiscal'])->name('sessions.mark-combined-paid-no-fiscal');
+    Route::post('/sessions/mark-combined-paid-with-voucher', [App\Http\Controllers\SessionsController::class, 'markCombinedPaidWithVoucher'])->name('sessions.mark-combined-paid-with-voucher');
     Route::post('/sessions/{id}/toggle-payment-status', [App\Http\Controllers\SessionsController::class, 'togglePaymentStatus'])->name('sessions.toggle-payment-status');
     Route::post('/sessions/{id}/restart', [App\Http\Controllers\SessionsController::class, 'restartSession'])->name('sessions.restart');
     Route::post('/sessions/{id}/mark-free', [App\Http\Controllers\SessionsController::class, 'markFree'])->name('sessions.mark-free');
     Route::post('/sessions/{id}/toggle-session-type', [App\Http\Controllers\SessionsController::class, 'toggleSessionType'])->name('sessions.toggle-session-type');
 
     // Standalone receipts (Bon Specific)
-    Route::get('/standalone-receipts/available-items', [App\Http\Controllers\StandaloneReceiptController::class, 'availableItems'])->name('standalone-receipts.available-items');
     Route::get('/standalone-receipts/create', [App\Http\Controllers\StandaloneReceiptController::class, 'create'])->name('standalone-receipts.create');
     Route::post('/standalone-receipts', [App\Http\Controllers\StandaloneReceiptController::class, 'store'])->name('standalone-receipts.store');
     Route::get('/standalone-receipts/{standaloneReceipt}/pay', [App\Http\Controllers\StandaloneReceiptController::class, 'pay'])->name('standalone-receipts.pay');
@@ -194,6 +194,11 @@ Route::middleware('auth')->group(function () {
     
     // Locations management (super admin and company admin)
     Route::resource('locations', App\Http\Controllers\LocationController::class);
+
+    // Vouchers (per location)
+    Route::get('/locations/{location}/vouchers/report', [App\Http\Controllers\VoucherController::class, 'report'])->name('locations.vouchers.report');
+    Route::resource('locations.vouchers', App\Http\Controllers\VoucherController::class);
+    Route::post('/vouchers/validate', [App\Http\Controllers\VoucherController::class, 'validate'])->name('vouchers.validate');
 
     // Birthday halls, time slots, packages (per location)
     Route::resource('locations.birthday-halls', App\Http\Controllers\BirthdayHallController::class);

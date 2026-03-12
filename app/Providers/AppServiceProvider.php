@@ -5,7 +5,9 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use App\Models\User;
+use App\Models\Voucher;
 use App\Policies\UserPolicy;
+use App\Policies\VoucherPolicy;
 use App\Repositories\Contracts\PlaySessionRepositoryInterface;
 use App\Repositories\Eloquent\PlaySessionRepository;
 use App\Repositories\Contracts\ChildRepositoryInterface;
@@ -22,6 +24,7 @@ class AppServiceProvider extends ServiceProvider
      */
     protected $policies = [
         User::class => UserPolicy::class,
+        Voucher::class => VoucherPolicy::class,
     ];
 
     /**

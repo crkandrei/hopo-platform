@@ -79,6 +79,95 @@
     </div>
 </div>
 
+@include('partials.payment-wizard')
+@endsection
+
+@section('scripts')
+<script>
+window.PaymentWizardConfig = {
+    getLocationId: function(ctx) { return ctx.type === 'standalone' ? (ctx.locationId || null) : null; },
+    getVoucherValidationType: function(ctx) { return ctx.type === 'standalone' ? 'amount' : null; },
+    prepare: function(ctx, paymentType, voucherCode) {
+        if (ctx.type === 'standalone') {
+            return { url: '/standalone-receipts/' + ctx.receiptId + '/prepare-fiscal-print', body: { paymentType: paymentType, voucher_code: voucherCode || null } };
+        }
+        return { url: null, body: {} };
+    },
+    noReceiptNeeded: function(receipt) { return receipt && receipt.noReceiptNeeded === true; },
+    markPaidWithVoucherOnly: async function(ctx, voucherCode, showResult) {
+        const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        if (ctx.type === 'standalone') {
+            const payload = { payment_method: null, voucher_code: voucherCode || null };
+            if (ctx.voucherId) payload.voucher_id = ctx.voucherId;
+            if (ctx.voucherAmountUsed != null) payload.voucher_amount_used = ctx.voucherAmountUsed;
+            const res = await fetch('/standalone-receipts/' + ctx.receiptId + '/mark-paid-no-fiscal', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }, body: JSON.stringify(payload) });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Eroare');
+            showResult('success', 'Valoarea a fost acoperită de voucher. Bonul a fost marcat plătit.', null);
+            if (ctx.onStandaloneSuccess) ctx.onStandaloneSuccess();
+        }
+    },
+    renderReceiptPreview: function(receipt, data, itemsEl, tenantEl, totalEl, methodEl) {
+        if (!itemsEl) return;
+        itemsEl.innerHTML = '';
+        if (tenantEl) tenantEl.textContent = (receipt && receipt.locationName) || (receipt && receipt.tenantName) || '-';
+        if (methodEl) methodEl.textContent = data.paymentType === 'CASH' ? 'Cash' : 'Card';
+        if (data && data.items && data.items.length) {
+            data.items.forEach(function(item) {
+                var d = document.createElement('div');
+                d.className = 'flex justify-between text-sm';
+                var lineTotal = (item.quantity || 1) * (parseFloat(item.price) || 0);
+                d.innerHTML = '<div><span class="font-medium text-gray-900">' + (item.name || '') + '</span><span class="text-gray-500 ml-2">×' + (item.quantity || 1) + '</span></div><span class="font-semibold text-gray-900">' + lineTotal.toFixed(2) + ' RON</span>';
+                itemsEl.appendChild(d);
+            });
+            if (receipt && receipt.discount_amount > 0) {
+                var v = document.createElement('div');
+                v.className = 'flex justify-between text-sm text-green-600 border-t border-gray-300 pt-2 mt-2';
+                v.innerHTML = '<span class="font-medium">Voucher</span><span class="font-semibold">-' + parseFloat(receipt.discount_amount).toFixed(2) + ' RON</span>';
+                itemsEl.appendChild(v);
+            }
+        }
+        var total = (receipt && receipt.finalPrice != null) ? receipt.finalPrice : (data && data.price != null ? data.price : 0);
+        if (totalEl) totalEl.textContent = parseFloat(total).toFixed(2) + ' RON';
+    },
+    confirmAndPrint: async function(ctx, opts) {
+        var paymentType = opts.paymentType;
+        var preparedData = opts.preparedData;
+        var getVoucherCode = opts.getVoucherCode;
+        var csrfToken = opts.csrfToken;
+        var bridgeUrl = opts.bridgeUrl;
+        var showResult = opts.showResult;
+        var fiscalEnabled = ctx.fiscalEnabled !== false;
+        if (!fiscalEnabled) {
+            var url = '/standalone-receipts/' + ctx.receiptId + '/mark-paid-no-fiscal';
+            var body = { payment_method: paymentType, voucher_code: (getVoucherCode && getVoucherCode()) || null, voucher_id: preparedData.voucher_id || null, voucher_amount_used: (preparedData.voucher_discount_amount || 0) > 0 ? preparedData.voucher_discount_amount : null };
+            var res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }, body: JSON.stringify(body) });
+            var data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Eroare');
+            showResult('success', 'Plata a fost înregistrată cu succes.', null);
+            if (ctx.onStandaloneSuccess) ctx.onStandaloneSuccess();
+            return;
+        }
+        var bridgeRes = await fetch(bridgeUrl + '/print', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(preparedData) });
+        if (!bridgeRes.ok) {
+            var errText = await bridgeRes.text();
+            try { var err = JSON.parse(errText); errText = err.message || err.details || errText; } catch (_) {}
+            throw new Error(errText || 'Eroare bridge');
+        }
+        var bridgeData = await bridgeRes.json();
+        await fetch('{{ route("standalone-receipts.save-fiscal-receipt-log") }}', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }, body: JSON.stringify({ standalone_receipt_id: ctx.receiptId, filename: bridgeData.file || null, status: bridgeData.status === 'success' ? 'success' : 'error', error_message: bridgeData.status === 'success' ? null : (bridgeData.message || bridgeData.details), payment_method: paymentType, voucher_id: preparedData.voucher_id || null, voucher_amount_used: preparedData.voucher_discount_amount || null }) });
+        if (bridgeData.status === 'success') {
+            showResult('success', 'Bon fiscal emis cu succes!', bridgeData.file || null);
+            if (ctx.onStandaloneSuccess) ctx.onStandaloneSuccess();
+        } else {
+            showResult('error', bridgeData.message || bridgeData.details || 'Eroare', null);
+        }
+    },
+    onSuccess: function() {},
+    showError: function(msg) { alert(msg); }
+};
+</script>
+@include('partials.payment-wizard-script')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('standalone-receipt-form');
@@ -86,6 +175,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnSubmit = document.getElementById('btn-submit');
     const formError = document.getElementById('form-error');
     const formErrorText = document.getElementById('form-error-text');
+    const locationId = {{ $location->id }};
+    const fiscalEnabled = {{ $location->fiscal_enabled ? 'true' : 'false' }};
 
     function getSelectedItems() {
         const items = [];
@@ -144,8 +235,22 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!res.ok) {
                 throw new Error(data.message || 'Eroare la crearea bonului');
             }
-            if (data.success && data.payment_url) {
-                window.location.href = data.payment_url;
+            if (data.success && data.receipt_id) {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = '<i class="fas fa-receipt mr-2"></i>Plătește';
+                if (window.PaymentWizard) {
+                    window.PaymentWizard.open({
+                        type: 'standalone',
+                        receiptId: data.receipt_id,
+                        locationId: locationId,
+                        fiscalEnabled: fiscalEnabled,
+                        onStandaloneSuccess: function() {
+                            window.location.href = '{{ route('sessions.index') }}';
+                        }
+                    });
+                } else {
+                    window.location.href = '/standalone-receipts/' + data.receipt_id + '/pay';
+                }
             } else {
                 throw new Error('Răspuns invalid de la server');
             }

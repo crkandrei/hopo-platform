@@ -107,15 +107,24 @@ class EndOfDayController extends Controller
         if ($locationId) {
             $standaloneQuery->where('location_id', $locationId);
         }
-        $standaloneReceipts = $standaloneQuery->with('items')->orderBy('paid_at')->get();
+        $standaloneReceipts = $standaloneQuery->with(['items', 'voucherUsages'])->orderBy('paid_at')->get();
         $standaloneTotal = $standaloneReceipts->sum('total_amount');
         foreach ($standaloneReceipts as $receipt) {
+            $voucherDiscount = $receipt->getVoucherDiscount();
+            $amountCollected = max(0, (float) $receipt->total_amount - $voucherDiscount);
+
+            if ($voucherDiscount > 0) {
+                $voucherTotal += $voucherDiscount;
+            }
+
             if ($receipt->payment_method === 'CASH') {
-                $cashTotal += (float) $receipt->total_amount;
+                $cashTotal += $amountCollected;
             } elseif ($receipt->payment_method === 'CARD') {
-                $cardTotal += (float) $receipt->total_amount;
+                $cardTotal += $amountCollected;
             } else {
-                $cashTotal += (float) $receipt->total_amount;
+                if ($amountCollected > 0) {
+                    $cashTotal += $amountCollected;
+                }
             }
         }
 
@@ -256,15 +265,24 @@ class EndOfDayController extends Controller
         if ($locationId) {
             $standaloneQuery->where('location_id', $locationId);
         }
-        $standaloneReceipts = $standaloneQuery->with('items')->orderBy('paid_at')->get();
+        $standaloneReceipts = $standaloneQuery->with(['items', 'voucherUsages'])->orderBy('paid_at')->get();
         $standaloneTotal = $standaloneReceipts->sum('total_amount');
         foreach ($standaloneReceipts as $receipt) {
+            $voucherDiscount = $receipt->getVoucherDiscount();
+            $amountCollected = max(0, (float) $receipt->total_amount - $voucherDiscount);
+
+            if ($voucherDiscount > 0) {
+                $voucherTotal += $voucherDiscount;
+            }
+
             if ($receipt->payment_method === 'CASH') {
-                $cashTotal += (float) $receipt->total_amount;
+                $cashTotal += $amountCollected;
             } elseif ($receipt->payment_method === 'CARD') {
-                $cardTotal += (float) $receipt->total_amount;
+                $cardTotal += $amountCollected;
             } else {
-                $cashTotal += (float) $receipt->total_amount;
+                if ($amountCollected > 0) {
+                    $cashTotal += $amountCollected;
+                }
             }
         }
 

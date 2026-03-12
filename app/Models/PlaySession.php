@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Models\Traits\BelongsToLocation;
+use App\Models\Voucher;
+use App\Models\VoucherUsage;
 use App\Services\PricingService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -28,6 +30,7 @@ class PlaySession extends Model
         'payment_method',
         'session_type',
         'is_free',
+        'voucher_id',
     ];
 
     protected $casts = [
@@ -60,6 +63,18 @@ class PlaySession extends Model
     public function products(): HasMany
     {
         return $this->hasMany(PlaySessionProduct::class);
+    }
+
+    /** Voucher used for this session (if any) */
+    public function voucher(): BelongsTo
+    {
+        return $this->belongsTo(Voucher::class);
+    }
+
+    /** Voucher usages linked to this session */
+    public function voucherUsages(): HasMany
+    {
+        return $this->hasMany(VoucherUsage::class, 'play_session_id');
     }
 
     /** Determine if the session is currently active. */
@@ -541,6 +556,45 @@ class PlaySession extends Model
         }
         
         return $this->voucher_hours * $this->price_per_hour_at_calculation;
+    }
+
+    /**
+     * Apply voucher to this session: consume from voucher, create VoucherUsage, update session.
+     */
+    public function applyVoucher(Voucher $voucher, float $amountOrHours): VoucherUsage
+    {
+        $usage = $voucher->use($amountOrHours, $this);
+        $update = ['voucher_id' => $voucher->id];
+        if ($voucher->type === 'hours') {
+            $update['voucher_hours'] = ($this->voucher_hours ?? 0) + $amountOrHours;
+        }
+        $this->update($update);
+        return $usage;
+    }
+
+    /**
+     * Discount from voucher (RON for amount voucher, or RON equivalent for hours).
+     */
+    public function getVoucherDiscount(): float
+    {
+        if ($this->voucher_id) {
+            $v = $this->relationLoaded('voucher') ? $this->voucher : $this->voucher()->first();
+            if ($v && $v->type === 'amount') {
+                return (float) $this->voucherUsages()->where('voucher_id', $v->id)->sum('amount_used');
+            }
+        }
+        return $this->getVoucherPrice();
+    }
+
+    /**
+     * Final price after voucher (time after discount + products).
+     */
+    public function getFinalPrice(): float
+    {
+        $timePrice = $this->calculated_price ?? $this->calculatePrice();
+        $productsPrice = $this->getProductsTotalPrice();
+        $discount = $this->getVoucherDiscount();
+        return max(0, $timePrice - $discount) + $productsPrice;
     }
 }
 

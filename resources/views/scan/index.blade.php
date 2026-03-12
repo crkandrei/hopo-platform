@@ -1044,6 +1044,7 @@ document.getElementById('assignChildBtn').addEventListener('click', async functi
     } finally {
         isProcessing = false;
         this.disabled = false;
+        this.innerHTML = orig;
         if (BRACELET_MODE) await updateAssignButtonState();
     }
 });

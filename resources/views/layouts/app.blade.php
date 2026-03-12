@@ -209,6 +209,31 @@
                     @endif
                     
                     @if($currentUser && !$currentUser->isSuperAdmin())
+                    @php
+                        $companyAdminLocation = null;
+                        if ($currentUser->isCompanyAdmin() && $currentUser->company_id) {
+                            if ($currentUser->location_id) {
+                                $companyAdminLocation = \App\Models\Location::where('id', $currentUser->location_id)
+                                    ->where('company_id', $currentUser->company_id)
+                                    ->where('is_active', true)
+                                    ->first();
+                            }
+
+                            if (!$companyAdminLocation) {
+                                $companyAdminLocation = \App\Models\Location::where('company_id', $currentUser->company_id)
+                                    ->where('is_active', true)
+                                    ->orderBy('name')
+                                    ->first();
+                            }
+                        }
+                    @endphp
+
+                    @if($currentUser->isCompanyAdmin())
+                    <div class="px-4 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-500 sidebar-text">
+                        Operațiuni
+                    </div>
+                    @endif
+
                     @if($currentUser->location && !$currentUser->location->bracelet_required)
                     <a href="{{ route('start-session') }}"
                        data-title="Start Sesiune"
@@ -225,6 +250,13 @@
                     </a>
                     @endif
 
+                    <a href="{{ route('sessions.index') }}"
+                       data-title="Sesiuni"
+                       class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('sessions.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                        <i class="fas fa-stopwatch sidebar-icon mr-3"></i>
+                        <span class="sidebar-text">Sesiuni</span>
+                    </a>
+
                     <a href="{{ route('end-of-day.index') }}"
                        data-title="Final de Zi"
                        class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('end-of-day.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
@@ -232,12 +264,21 @@
                         <span class="sidebar-text">Final de Zi</span>
                     </a>
 
-                    <a href="{{ route('sessions.index') }}"
-                       data-title="Sesiuni"
-                       class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('sessions.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
-                        <i class="fas fa-stopwatch sidebar-icon mr-3"></i>
-                        <span class="sidebar-text">Sesiuni</span>
+                    @if($currentUser->isCompanyAdmin() && $companyAdminLocation)
+                    <a href="{{ route('birthday-reservations.index', ['location_id' => $companyAdminLocation->id]) }}"
+                       data-title="Rezervări"
+                       class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('birthday-reservations.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                        <i class="fas fa-calendar-day sidebar-icon mr-3"></i>
+                        <span class="sidebar-text">Rezervări</span>
                     </a>
+                    @endif
+
+                    @if($currentUser->isCompanyAdmin())
+                    <div class="mx-4 my-2 border-t border-gray-700"></div>
+                    <div class="px-4 pt-1 pb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-500 sidebar-text">
+                        Clienți
+                    </div>
+                    @endif
 
                     <a href="{{ route('children.index') }}"
                        data-title="Copii"
@@ -246,21 +287,28 @@
                         <span class="sidebar-text">Copii</span>
                     </a>
 
-                    @if($currentUser->isCompanyAdmin())
-                    <a href="{{ route('products.index') }}"
-                       data-title="Produse"
-                       class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('products.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
-                        <i class="fas fa-box sidebar-icon mr-3"></i>
-                        <span class="sidebar-text">Produse</span>
-                    </a>
-                    @endif
-
                     <a href="{{ route('guardians.index') }}"
                        data-title="Părinți"
                        class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('guardians.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                         <i class="fas fa-users sidebar-icon mr-3"></i>
                         <span class="sidebar-text">Părinți</span>
                     </a>
+
+                    @if($currentUser->isCompanyAdmin())
+                    <div class="mx-4 my-2 border-t border-gray-700"></div>
+                    <div class="px-4 pt-1 pb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-500 sidebar-text">
+                        Administrare
+                    </div>
+
+                    @if($companyAdminLocation)
+                    <a href="{{ route('locations.show', $companyAdminLocation) }}"
+                       data-title="Configurare Locație"
+                       class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('locations.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                        <i class="fas fa-cog sidebar-icon mr-3"></i>
+                        <span class="sidebar-text">Configurare Locație</span>
+                    </a>
+                    @endif
+                    @endif
                     @endif
                     
                     @if($currentUser && $currentUser->isCompanyAdmin())
@@ -366,7 +414,7 @@
                     </a>
                     @endif
 
-                    @if($currentUser && ($currentUser->isSuperAdmin() || $currentUser->isCompanyAdmin()))
+                    @if($currentUser && $currentUser->isSuperAdmin())
                     <a href="{{ route('pricing.index') }}"
                        data-title="Gestionare Tarife"
                        class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('pricing.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">

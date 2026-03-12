@@ -8,8 +8,11 @@ use App\Models\StandaloneReceipt;
 use App\Models\StandaloneReceiptItem;
 use App\Models\FiscalReceiptLog;
 use App\Models\Location;
+use App\Models\Voucher;
+use App\Services\VoucherService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class StandaloneReceiptController extends Controller
 {
@@ -26,28 +29,6 @@ class StandaloneReceiptController extends Controller
         $packages = $location->packages()->where('is_active', true)->orderBy('name')->get();
         $products = $location->products()->where('is_active', true)->orderBy('name')->get();
         return view('standalone-receipts.create', compact('location', 'packages', 'products'));
-    }
-
-    /**
-     * Return available packages and products as JSON for the inline modal.
-     */
-    public function availableItems()
-    {
-        $user = Auth::user();
-        if (!$user || !$user->location) {
-            return response()->json(['success' => false, 'message' => 'Fără locație'], 400);
-        }
-        $location = $user->location;
-        $packages = $location->packages()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'price']);
-        $products = $location->products()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'price']);
-
-        return response()->json([
-            'success' => true,
-            'packages' => $packages,
-            'products' => $products,
-            'fiscal_enabled' => (bool) $location->fiscal_enabled,
-            'location_name' => $location->name,
-        ]);
     }
 
     /**
@@ -155,8 +136,33 @@ class StandaloneReceiptController extends Controller
         }
 
         $request->validate([
-            'paymentType' => 'required|in:CASH,CARD',
+            'paymentType' => 'nullable|in:CASH,CARD',
+            'voucher_code' => 'nullable|string|max:32',
         ]);
+
+        $totalPrice = (float) $standaloneReceipt->total_amount;
+        $voucherCode = null;
+        $voucherType = null;
+        $voucherId = null;
+        $discountAmount = 0.0;
+        $finalPrice = $totalPrice;
+
+        if ($request->filled('voucher_code')) {
+            $voucherService = app(VoucherService::class);
+            $result = $voucherService->validateVoucher($request->voucher_code, $standaloneReceipt->location, 'amount');
+            if (!$result['valid']) {
+                return response()->json(['success' => false, 'message' => $result['message']], 400);
+            }
+            $voucher = $result['voucher'];
+            if ($voucher->type !== 'amount') {
+                return response()->json(['success' => false, 'message' => 'Pe bonuri specifice se acceptă doar vouchere de tip sumă (RON).'], 400);
+            }
+            $discountAmount = min((float) $voucher->remaining_value, $totalPrice);
+            $finalPrice = max(0, $totalPrice - $discountAmount);
+            $voucherCode = $voucher->code;
+            $voucherType = $voucher->type;
+            $voucherId = $voucher->id;
+        }
 
         $items = $standaloneReceipt->items->map(function (StandaloneReceiptItem $item) {
             return [
@@ -171,9 +177,19 @@ class StandaloneReceiptController extends Controller
             'data' => [
                 'items' => $items,
                 'paymentType' => $request->paymentType,
+                'voucher_code' => $voucherCode,
+                'voucher_type' => $voucherType,
+                'voucher_id' => $voucherId,
+                'voucher_discount_amount' => (float) $discountAmount,
             ],
             'receipt' => [
-                'totalPrice' => (float) $standaloneReceipt->total_amount,
+                'totalPrice' => (float) $totalPrice,
+                'finalPrice' => $finalPrice,
+                'voucher_code' => $voucherCode,
+                'voucher_type' => $voucherType,
+                'voucher_id' => $voucherId,
+                'discount_amount' => (float) $discountAmount,
+                'noReceiptNeeded' => $finalPrice <= 0,
             ],
         ]);
     }
@@ -194,6 +210,8 @@ class StandaloneReceiptController extends Controller
             'status' => 'required|in:success,error',
             'error_message' => 'nullable|string',
             'payment_method' => 'nullable|string|in:CASH,CARD',
+            'voucher_id' => 'nullable|exists:vouchers,id',
+            'voucher_amount_used' => 'nullable|numeric|min:0',
         ]);
 
         $receipt = StandaloneReceipt::findOrFail($request->standalone_receipt_id);
@@ -201,27 +219,46 @@ class StandaloneReceiptController extends Controller
             return response()->json(['success' => false, 'message' => 'Acces interzis'], 403);
         }
 
-        FiscalReceiptLog::create([
-            'type' => 'standalone',
-            'standalone_receipt_id' => $receipt->id,
-            'location_id' => $receipt->location_id,
-            'filename' => $request->filename,
-            'status' => $request->status,
-            'error_message' => $request->error_message,
-        ]);
+        try {
+            DB::transaction(function () use ($request, $receipt) {
+                FiscalReceiptLog::create([
+                    'type' => 'standalone',
+                    'standalone_receipt_id' => $receipt->id,
+                    'location_id' => $receipt->location_id,
+                    'filename' => $request->filename,
+                    'status' => $request->status,
+                    'error_message' => $request->error_message,
+                ]);
 
-        if ($request->status === 'success' && !$receipt->isPaid()) {
-            $receipt->update([
-                'paid_at' => now(),
-                'payment_status' => 'paid',
-                'payment_method' => $request->payment_method ?? null,
+                if ($request->status === 'success' && !$receipt->isPaid()) {
+                    $updateData = [
+                        'paid_at' => now(),
+                        'payment_status' => 'paid',
+                        'payment_method' => $request->payment_method ?? null,
+                    ];
+                    $voucherId = $request->input('voucher_id');
+                    $voucherAmountUsed = $request->input('voucher_amount_used') !== null ? (float) $request->input('voucher_amount_used') : null;
+                    if ($voucherId && $voucherAmountUsed > 0) {
+                        $voucher = Voucher::withoutGlobalScope('location')->where('id', $voucherId)->where('location_id', $receipt->location_id)->first();
+                        if ($voucher && $voucher->type === 'amount') {
+                            $voucher->use($voucherAmountUsed, $receipt);
+                            $updateData['voucher_id'] = $voucher->id;
+                        }
+                    }
+                    $receipt->update($updateData);
+                }
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Log salvat cu succes',
             ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
         }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Log salvat cu succes',
-        ]);
     }
 
     /**
@@ -241,14 +278,62 @@ class StandaloneReceiptController extends Controller
         }
 
         $request->validate([
-            'payment_method' => 'required|in:CASH,CARD',
+            'payment_method' => 'nullable|in:CASH,CARD',
+            'voucher_code' => 'nullable|string|max:32',
+            'voucher_id' => 'nullable|exists:vouchers,id',
+            'voucher_amount_used' => 'nullable|numeric|min:0',
         ]);
 
-        $standaloneReceipt->update([
-            'paid_at' => now(),
-            'payment_status' => 'paid',
-            'payment_method' => $request->payment_method,
-        ]);
+        try {
+            $standaloneReceipt->loadMissing('location');
+            $voucher = app(VoucherService::class)->resolveVoucherFromRequest($standaloneReceipt->location, $request, 'amount');
+
+            $paymentMethod = $request->input('payment_method');
+            $voucherAmountUsed = $request->input('voucher_amount_used') !== null
+                ? (float) $request->input('voucher_amount_used')
+                : null;
+
+            if (!$paymentMethod) {
+                $coveredAmount = $voucherAmountUsed;
+                if ($coveredAmount === null && $voucher) {
+                    $coveredAmount = min((float) $voucher->remaining_value, (float) $standaloneReceipt->total_amount);
+                }
+
+                if ($coveredAmount === null || $coveredAmount < (float) $standaloneReceipt->total_amount) {
+                    throw new \InvalidArgumentException('Selectați o metodă de plată.');
+                }
+            }
+
+            DB::transaction(function () use ($standaloneReceipt, $request, $voucher) {
+                $updateData = [
+                    'paid_at' => now(),
+                    'payment_status' => 'paid',
+                    'payment_method' => $request->payment_method ?: null,
+                ];
+
+                if ($voucher) {
+                    $amountToUse = $request->input('voucher_amount_used') !== null
+                        ? (float) $request->input('voucher_amount_used')
+                        : min((float) $voucher->remaining_value, (float) $standaloneReceipt->total_amount);
+
+                    if ($amountToUse > (float) $standaloneReceipt->total_amount) {
+                        throw new \InvalidArgumentException('Valoarea voucherului nu poate depăși totalul bonului.');
+                    }
+
+                    if ($amountToUse <= 0) {
+                        throw new \InvalidArgumentException('Voucherul nu are sold.');
+                    }
+
+                    $voucher->use($amountToUse, $standaloneReceipt);
+                    $updateData['voucher_id'] = $voucher->id;
+                    $updateData['payment_status'] = 'paid_voucher';
+                }
+
+                $standaloneReceipt->update($updateData);
+            });
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
 
         return response()->json(['success' => true]);
     }

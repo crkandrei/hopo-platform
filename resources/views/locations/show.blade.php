@@ -10,10 +10,10 @@
         <div class="flex justify-between items-center">
             <div>
                 <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ $location->name }} 📍</h1>
-                <p class="text-gray-600 text-lg">Detalii locație și statistici</p>
+                <p class="text-gray-600 text-lg">Hub de configurare pentru locația selectată</p>
             </div>
             <div class="flex gap-3">
-                @if(Auth::user() && Auth::user()->isSuperAdmin())
+                @if(Auth::user() && (Auth::user()->isSuperAdmin() || Auth::user()->isCompanyAdmin()))
                 <a href="{{ route('pricing.index', ['location_id' => $location->id]) }}" 
                    class="inline-flex items-center px-6 py-3 rounded-lg font-medium shadow-md transition-all duration-200 bg-indigo-600 text-white hover:bg-indigo-700 border border-indigo-700">
                     <i class="fas fa-dollar-sign mr-2" aria-hidden="true"></i>
@@ -141,19 +141,34 @@
         </div>
     </div>
 
-    <!-- Users -->
-    <!-- Configurare Zile de Naștere -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Configurare Zile de Naștere</h2>
+        <h2 class="text-xl font-bold text-gray-900 mb-2">Catalog și Monetizare</h2>
+        <p class="text-sm text-gray-600 mb-4">Gestionează produsele, tarifele și resursele folosite în fluxurile de plată pentru această locație.</p>
+        <div class="flex flex-wrap gap-4 items-center mb-4">
+            <a href="{{ route('products.index') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium">
+                <i class="fas fa-box mr-2"></i>Produse
+            </a>
+            <a href="{{ route('pricing.index', ['location_id' => $location->id]) }}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium">
+                <i class="fas fa-dollar-sign mr-2"></i>Tarife
+            </a>
+            <a href="{{ route('locations.packages.index', $location) }}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium">
+                <i class="fas fa-file-invoice-dollar mr-2"></i>Pachete Bon Specific
+            </a>
+            <a href="{{ route('locations.vouchers.index', $location) }}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium">
+                <i class="fas fa-ticket-alt mr-2"></i>Vouchere
+            </a>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-2">Aniversări și Booking</h2>
+        <p class="text-sm text-gray-600 mb-4">Configurează oferta de aniversări și urmărește rezervările pentru locația curentă.</p>
         <div class="flex flex-wrap gap-4 items-center mb-4">
             <a href="{{ route('locations.birthday-halls.index', $location) }}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium">
                 <i class="fas fa-door-open mr-2"></i>Gestionează săli
             </a>
             <a href="{{ route('locations.birthday-packages.index', $location) }}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium">
                 <i class="fas fa-gift mr-2"></i>Gestionează pachete
-            </a>
-            <a href="{{ route('locations.packages.index', $location) }}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium">
-                <i class="fas fa-file-invoice-dollar mr-2"></i>Pachete Bon Specific
             </a>
             <a href="{{ route('birthday-reservations.index') }}?location_id={{ $location->id }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 font-medium">
                 <i class="fas fa-calendar-check mr-2"></i>Vezi rezervări

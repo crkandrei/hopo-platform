@@ -14,9 +14,9 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
-            <button type="button" onclick="openBonSpecificModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-md transition flex items-center gap-2">
+            <a href="{{ route('standalone-receipts.create') }}" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-md transition flex items-center gap-2">
                 <i class="fas fa-receipt"></i>Bon Specific
-            </button>
+            </a>
             <div>
                 <label class="text-sm text-gray-600 mr-2" for="dateFilter">Dată</label>
                 <input id="dateFilter" type="date" class="px-3 py-2 border border-gray-300 rounded-md">
@@ -70,151 +70,7 @@
     </div>
 </div>
 
-<!-- Fiscal Receipt Modal -->
-<div id="fiscal-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-    <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
-        <!-- Modal Header -->
-        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <h3 class="text-xl font-bold text-gray-900">Bon Fiscal</h3>
-            <button onclick="closeFiscalModal()" class="text-gray-400 hover:text-gray-600">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-
-        <!-- Modal Body -->
-        <div class="px-6 py-4">
-            <!-- Step 1: Payment Type Selection -->
-            <div id="fiscal-modal-step-1">
-                <p class="text-gray-700 mb-4">Cum se plătește?</p>
-                <div class="flex gap-4 mb-6">
-                    <button 
-                        data-payment-btn="CASH"
-                        onclick="selectPaymentType('CASH')"
-                        class="flex-1 px-6 py-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors">
-                        <i class="fas fa-money-bill-wave mr-2"></i>
-                        Cash
-                    </button>
-                    <button 
-                        data-payment-btn="CARD"
-                        onclick="selectPaymentType('CARD')"
-                        class="flex-1 px-6 py-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors">
-                        <i class="fas fa-credit-card mr-2"></i>
-                        Card
-                    </button>
-                </div>
-                
-                <!-- Voucher Toggle -->
-                <div class="mb-6 pt-4 border-t border-gray-200">
-                    <label class="flex items-center cursor-pointer">
-                        <input type="checkbox" 
-                               id="voucher-toggle"
-                               onchange="toggleVoucherInput()"
-                               class="mr-3 w-5 h-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-                        <span class="text-gray-700 font-medium">Folosește Voucher</span>
-                    </label>
-                    
-                    <!-- Voucher Hours Input (hidden by default) -->
-                    <div id="voucher-input-container" class="hidden mt-3">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Ore Voucher <span class="text-red-500">*</span>
-                        </label>
-                        <input type="number" 
-                               id="voucher-hours-input"
-                               min="0"
-                               step="0.5"
-                               value="0"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                               placeholder="Ex: 1">
-                        <p class="mt-1 text-xs text-gray-500">Introduceți numărul de ore de pe voucher</p>
-                    </div>
-                </div>
-                
-                <div class="flex justify-end gap-3">
-                    <button onclick="closeFiscalModal()" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-                        Anulează
-                    </button>
-                    <button 
-                        id="fiscal-continue-btn"
-                        onclick="goToConfirmStep()"
-                        disabled
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                        Continuă
-                    </button>
-                </div>
-            </div>
-
-            <!-- Step 2: Confirmation -->
-            <div id="fiscal-modal-step-2" class="hidden">
-                <p class="text-gray-700 mb-4 font-medium">Se va scoate bonul fiscal pentru:</p>
-                
-                <!-- Virtual Receipt Preview -->
-                <div id="fiscal-receipt-preview" class="bg-white border-2 border-gray-300 rounded-lg p-4 mb-6 shadow-sm max-h-96 overflow-y-auto">
-                    <!-- Receipt Header -->
-                    <div class="text-center border-b border-gray-300 pb-2 mb-3">
-                        <h4 id="receipt-tenant-name" class="font-bold text-lg text-gray-900">-</h4>
-                        <p class="text-xs text-gray-500 mt-1">Bon Fiscal</p>
-                    </div>
-                    
-                    <!-- Receipt Items -->
-                    <div id="receipt-items" class="space-y-2 mb-3">
-                        <!-- Time item will be inserted here -->
-                    </div>
-                    
-                    <!-- Receipt Totals -->
-                    <div class="border-t border-gray-300 pt-2 mt-2">
-                        <div class="flex justify-between text-base font-bold">
-                            <span class="text-gray-900">TOTAL:</span>
-                            <span id="receipt-total-price" class="text-indigo-600">-</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Payment Method -->
-                    <div class="mt-3 pt-3 border-t border-gray-300">
-                        <div class="flex justify-between text-sm">
-                            <span class="text-gray-600">Plată:</span>
-                            <span id="receipt-payment-method" class="font-semibold text-gray-900">-</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="flex justify-end gap-3">
-                    <button onclick="closeFiscalModal()" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-                        Anulează
-                    </button>
-                    <button 
-                        onclick="confirmAndPrint()"
-                        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                        <i class="fas fa-check mr-2"></i>
-                        Confirmă și Emite
-                    </button>
-                </div>
-            </div>
-
-            <!-- Step 3: Loading -->
-            <div id="fiscal-modal-step-3" class="hidden">
-                <div class="text-center py-8">
-                    <i class="fas fa-spinner fa-spin text-4xl text-indigo-600 mb-4"></i>
-                    <p class="text-gray-700 text-lg">Se emite bonul fiscal...</p>
-                    <p class="text-gray-500 text-sm mt-2">Vă rugăm să așteptați</p>
-                </div>
-            </div>
-
-            <!-- Step 4: Result (Success/Error) -->
-            <div id="fiscal-modal-step-4" class="hidden">
-                <div id="fiscal-result-content" class="text-center py-6">
-                    <!-- Success or Error icon and message will be inserted here -->
-                </div>
-                <div class="flex justify-end gap-3 mt-4">
-                    <button 
-                        onclick="closeFiscalModal()"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                        Închide
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+@include('partials.payment-wizard')
 
 <!-- Stop Session Confirmation Modal -->
 <div id="stop-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
@@ -303,107 +159,6 @@
         animation: session-stopping-fade 1s ease-out forwards;
     }
 </style>
-
-<!-- Bon Specific Modal -->
-<div id="bon-specific-modal" class="hidden fixed inset-0 bg-black/20 z-50 flex items-center justify-center">
-    <div class="bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 max-h-[90vh] flex flex-col">
-        <!-- Modal Header -->
-        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
-            <h3 class="text-xl font-bold text-gray-900"><i class="fas fa-receipt mr-2 text-indigo-600"></i>Bon Specific</h3>
-            <button onclick="closeBonSpecificModal()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
-        </div>
-
-        <!-- Step 1: Select items -->
-        <div id="bs-step-1" class="px-6 py-4 overflow-y-auto flex-1">
-            <div id="bs-loading" class="text-center py-8">
-                <i class="fas fa-spinner fa-spin text-2xl text-indigo-600"></i>
-                <p class="text-gray-500 mt-2">Se încarcă...</p>
-            </div>
-            <div id="bs-content" class="hidden">
-                <div id="bs-packages-section" class="hidden mb-6">
-                    <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">Pachete</h4>
-                    <div id="bs-packages-list" class="space-y-2"></div>
-                </div>
-                <div id="bs-products-section" class="hidden mb-6">
-                    <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">Produse</h4>
-                    <div id="bs-products-list" class="space-y-2"></div>
-                </div>
-                <div id="bs-empty" class="hidden text-center py-8 text-gray-500">
-                    <i class="fas fa-box-open text-3xl mb-2"></i>
-                    <p>Nu există pachete sau produse active.</p>
-                </div>
-                <div class="border-t border-gray-200 pt-4 mt-4 flex items-center justify-between">
-                    <div class="text-lg font-bold text-gray-900">Total: <span id="bs-total" class="text-indigo-600">0.00</span> RON</div>
-                    <div class="flex gap-3">
-                        <button onclick="closeBonSpecificModal()" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Anulează</button>
-                        <button id="bs-next-btn" onclick="bsGoToPreview()" disabled class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium disabled:opacity-50">
-                            Continuă
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Step 2: Receipt preview -->
-        <div id="bs-step-2" class="hidden px-6 py-4 overflow-y-auto flex-1">
-            <p class="text-gray-700 mb-4 font-medium">Verifică bonul:</p>
-            <div class="bg-white border-2 border-gray-300 rounded-lg p-4 mb-6 shadow-sm">
-                <div class="text-center border-b border-gray-300 pb-2 mb-3">
-                    <h4 id="bs-preview-location" class="font-bold text-lg text-gray-900">-</h4>
-                    <p class="text-xs text-gray-500 mt-1">Bon Specific</p>
-                </div>
-                <div id="bs-preview-items" class="space-y-2 mb-3"></div>
-                <div class="border-t border-gray-300 pt-2 mt-2">
-                    <div class="flex justify-between text-base font-bold">
-                        <span class="text-gray-900">TOTAL:</span>
-                        <span id="bs-preview-total" class="text-indigo-600">-</span>
-                    </div>
-                </div>
-            </div>
-            <div class="flex justify-end gap-3">
-                <button onclick="bsBackToItems()" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Înapoi</button>
-                <button onclick="bsGoToPaymentMethod()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium">
-                    Continuă
-                </button>
-            </div>
-        </div>
-
-        <!-- Step 3: Payment method -->
-        <div id="bs-step-3" class="hidden px-6 py-4">
-            <p class="text-gray-700 mb-4">Cum se plătește?</p>
-            <div class="flex gap-4 mb-6">
-                <button type="button" data-bs-pay="CASH" onclick="bsSelectPayment('CASH')" class="flex-1 px-6 py-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors">
-                    <i class="fas fa-money-bill-wave mr-2"></i>Cash
-                </button>
-                <button type="button" data-bs-pay="CARD" onclick="bsSelectPayment('CARD')" class="flex-1 px-6 py-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors">
-                    <i class="fas fa-credit-card mr-2"></i>Card
-                </button>
-            </div>
-            <div class="flex justify-end gap-3">
-                <button onclick="bsBackToPreview()" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Înapoi</button>
-                <button id="bs-confirm-btn" onclick="bsConfirmPayment()" disabled class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium disabled:opacity-50">
-                    <i class="fas fa-check mr-2"></i>Confirmă și Emite
-                </button>
-            </div>
-        </div>
-
-        <!-- Step 4: Loading -->
-        <div id="bs-step-4" class="hidden px-6 py-4">
-            <div class="text-center py-8">
-                <i class="fas fa-spinner fa-spin text-4xl text-indigo-600 mb-4"></i>
-                <p class="text-gray-700 text-lg">Se procesează...</p>
-            </div>
-        </div>
-
-        <!-- Step 5: Result -->
-        <div id="bs-step-5" class="hidden px-6 py-4">
-            <div id="bs-result-content" class="text-center py-6"></div>
-            <div class="flex justify-end mt-4">
-                <button onclick="closeBonSpecificModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg">Închide</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 @endsection
 
@@ -746,7 +501,7 @@
                     ${row.ended_at ? `
                         ${row.is_paid ? `
                             <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-800 inline-flex items-center w-fit">
-                                <i class="fas fa-check-circle mr-1"></i>${row.payment_status === 'paid_voucher' ? 'Plătit (Voucher)' : 'Plătit'}
+                                <i class="fas fa-check-circle mr-1"></i>${(() => { const hasVoucher = row.payment_status === 'paid_voucher' || (row.voucher_hours && row.voucher_hours > 0); const method = row.payment_method === 'CASH' ? 'Cash' : (row.payment_method === 'CARD' ? 'Card' : null); if (hasVoucher && method) return `Plătit (Voucher + ${method})`; if (hasVoucher) return 'Plătit (Voucher)'; if (method) return `Plătit (${method})`; return 'Plătit'; })()}
                             </span>
                         ` : `
                             <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-800 inline-flex items-center w-fit">
@@ -761,7 +516,7 @@
                             <i class="fas fa-eye mr-1"></i>Detalii
                         </a>
                         ${row.ended_at && !row.is_paid && !row.is_free && row.session_type !== 'birthday' ? `
-                            <button onclick="openFiscalModal(${row.id}, ${row.fiscal_enabled ? 'true' : 'false'})" class="px-2 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs transition-colors">
+                            <button onclick="window.PaymentWizard && window.PaymentWizard.open({ type: 'session', sessionId: ${row.id}, locationId: ${row.location_id || 'null'}, fiscalEnabled: ${row.fiscal_enabled !== false} })" class="px-2 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs transition-colors">
                                 <i class="fas fa-receipt mr-1"></i>${row.fiscal_enabled ? 'Bon' : 'Plată'}
                             </button>
                         ` : ''}
@@ -776,6 +531,7 @@
                     </div>
                 </td>
             `;
+            if (row.location_id) window.sessionIdToLocationId[row.id] = row.location_id;
             tbody.appendChild(tr);
             startLiveTimer(row);
             
@@ -1080,983 +836,202 @@
             alert('Selectați minim 2 sesiuni pentru bon combinat');
             return;
         }
-        
-        fiscalModalSessionId = null; // Clear single session ID
-        fiscalModalCurrentStep = 1;
-        fiscalModalPaymentType = null;
-        fiscalModalData = null;
-        fiscalModalReceiptData = null;
-        
-        // Reset modal state
-        document.getElementById('fiscal-modal-step-1').classList.remove('hidden');
-        document.getElementById('fiscal-modal-step-2').classList.add('hidden');
-        document.getElementById('fiscal-modal-step-3').classList.add('hidden');
-        document.getElementById('fiscal-modal-step-4').classList.add('hidden');
-        
-        // Reset continue button state
-        const continueBtn = document.getElementById('fiscal-continue-btn');
-        if (continueBtn) {
-            continueBtn.disabled = true;
-            continueBtn.innerHTML = 'Continuă';
-        }
-        
-        // Reset payment buttons selection
-        document.querySelectorAll('[data-payment-btn]').forEach(btn => {
-            btn.classList.remove('bg-indigo-600', 'ring-2', 'ring-indigo-500');
-            btn.classList.add('bg-gray-200', 'hover:bg-gray-300');
-        });
-        
-        // Reset voucher toggle and input
-        const voucherToggle = document.getElementById('voucher-toggle');
-        const voucherInput = document.getElementById('voucher-hours-input');
-        const voucherContainer = document.getElementById('voucher-input-container');
-        if (voucherToggle) {
-            voucherToggle.checked = false;
-        }
-        if (voucherInput) {
-            voucherInput.value = '0';
-        }
-        if (voucherContainer) {
-            voucherContainer.classList.add('hidden');
-        }
-        
-        // Show modal
-        document.getElementById('fiscal-modal').classList.remove('hidden');
-    }
-    
-    // ===== FISCAL RECEIPT MODAL =====
-
-    let fiscalModalCurrentStep = 1;
-    let fiscalModalSessionId = null;
-    let fiscalModalPaymentType = null;
-    let fiscalModalData = null;
-    let fiscalModalReceiptData = null;
-    let fiscalEnabled = true;
-
-    function openFiscalModal(sessionId, sessionFiscalEnabled = true) {
-        fiscalModalSessionId = sessionId;
-        fiscalEnabled = sessionFiscalEnabled;
-        fiscalModalCurrentStep = 1;
-        fiscalModalPaymentType = null;
-        fiscalModalData = null;
-        fiscalModalReceiptData = null;
-        
-        // Reset modal state
-        document.getElementById('fiscal-modal-step-1').classList.remove('hidden');
-        document.getElementById('fiscal-modal-step-2').classList.add('hidden');
-        document.getElementById('fiscal-modal-step-3').classList.add('hidden');
-        document.getElementById('fiscal-modal-step-4').classList.add('hidden');
-        
-        // Reset continue button state
-        const continueBtn = document.getElementById('fiscal-continue-btn');
-        if (continueBtn) {
-            continueBtn.disabled = true;
-            continueBtn.innerHTML = 'Continuă';
-        }
-        
-        // Reset payment buttons selection
-        document.querySelectorAll('[data-payment-btn]').forEach(btn => {
-            btn.classList.remove('bg-indigo-600', 'ring-2', 'ring-indigo-500');
-            btn.classList.add('bg-gray-200', 'hover:bg-gray-300');
-        });
-        
-        // Reset voucher toggle and input
-        const voucherToggle = document.getElementById('voucher-toggle');
-        const voucherInput = document.getElementById('voucher-hours-input');
-        const voucherContainer = document.getElementById('voucher-input-container');
-        if (voucherToggle) {
-            voucherToggle.checked = false;
-        }
-        if (voucherInput) {
-            voucherInput.value = '0';
-        }
-        if (voucherContainer) {
-            voucherContainer.classList.add('hidden');
-        }
-        
-        // Show modal
-        document.getElementById('fiscal-modal').classList.remove('hidden');
-    }
-
-    function closeFiscalModal() {
-        document.getElementById('fiscal-modal').classList.add('hidden');
-        fiscalModalCurrentStep = 1;
-        // Don't clear fiscalModalSessionId if it was a combined receipt (it's already null)
-        // Only clear if it was a single session receipt
-        if (fiscalModalSessionId !== null) {
-            fiscalModalSessionId = null;
-        }
-        fiscalModalPaymentType = null;
-        fiscalModalData = null;
-        fiscalModalReceiptData = null;
-        
-        // Reset continue button state
-        const continueBtn = document.getElementById('fiscal-continue-btn');
-        if (continueBtn) {
-            continueBtn.disabled = true;
-            continueBtn.innerHTML = 'Continuă';
+        const firstId = Array.from(selectedSessions)[0];
+        const locationId = window.sessionIdToLocationId[firstId] || null;
+        if (window.PaymentWizard) {
+            window.PaymentWizard.open({ type: 'combined', sessionIds: Array.from(selectedSessions), locationId: locationId, fiscalEnabled: true });
         }
     }
 
-    function toggleVoucherInput() {
-        const voucherToggle = document.getElementById('voucher-toggle');
-        const voucherContainer = document.getElementById('voucher-input-container');
-        const voucherInput = document.getElementById('voucher-hours-input');
-        
-        if (voucherToggle && voucherContainer) {
-            if (voucherToggle.checked) {
-                voucherContainer.classList.remove('hidden');
-                if (voucherInput) {
-                    voucherInput.focus();
-                }
-            } else {
-                voucherContainer.classList.add('hidden');
-                if (voucherInput) {
-                    voucherInput.value = '0';
-                }
+    window.sessionIdToLocationId = window.sessionIdToLocationId || {};
+    window.PaymentWizardConfig = {
+        getLocationId: function(ctx) {
+            if (ctx.type === 'session') return ctx.locationId || window.sessionIdToLocationId[ctx.sessionId] || null;
+            if (ctx.type === 'combined') return ctx.locationId || null;
+            if (ctx.type === 'standalone') return ctx.locationId || null;
+            return null;
+        },
+        getVoucherValidationType: function(ctx) {
+            if (ctx.type === 'standalone') return 'amount';
+            return null;
+        },
+        prepare: function(ctx, paymentType, voucherCode) {
+            if (ctx.type === 'session') {
+                return { url: `/sessions/${ctx.sessionId}/prepare-fiscal-print`, body: { paymentType: paymentType, voucher_code: voucherCode || null } };
             }
-        }
-    }
-
-    function selectPaymentType(type) {
-        fiscalModalPaymentType = type;
-        
-        // Update UI
-        document.querySelectorAll('[data-payment-btn]').forEach(btn => {
-            btn.classList.remove('bg-indigo-600', 'ring-2', 'ring-indigo-500');
-            btn.classList.add('bg-gray-200', 'hover:bg-gray-300');
-        });
-        
-        const selectedBtn = document.querySelector(`[data-payment-btn="${type}"]`);
-        if (selectedBtn) {
-            selectedBtn.classList.remove('bg-gray-200', 'hover:bg-gray-300');
-            selectedBtn.classList.add('bg-indigo-600', 'ring-2', 'ring-indigo-500');
-        }
-        
-        // Enable continue button
-        document.getElementById('fiscal-continue-btn').disabled = false;
-    }
-
-    async function goToConfirmStep() {
-        if (!fiscalModalPaymentType) {
-            alert('Selectați o metodă de plată');
-            return;
-        }
-        
-        // Check if single session or multiple sessions
-        const isCombined = !fiscalModalSessionId && selectedSessions.size >= 2;
-        const isSingle = fiscalModalSessionId !== null;
-        
-        if (!isSingle && !isCombined) {
-            alert(isCombined ? 'Selectați minim 2 sesiuni' : 'Sesiune invalidă');
-            return;
-        }
-        
-        // Get voucher hours if voucher is enabled
-        const voucherToggle = document.getElementById('voucher-toggle');
-        const voucherInput = document.getElementById('voucher-hours-input');
-        let voucherHours = 0;
-        
-        if (voucherToggle && voucherToggle.checked && voucherInput) {
-            voucherHours = parseFloat(voucherInput.value) || 0;
-            if (voucherHours < 0) {
-                alert('Orele de voucher trebuie să fie pozitive');
+            if (ctx.type === 'combined') {
+                return { url: '/sessions/prepare-combined-fiscal-print', body: { session_ids: ctx.sessionIds, paymentType: paymentType, voucher_code: voucherCode || null } };
+            }
+            if (ctx.type === 'standalone') {
+                return { url: `/standalone-receipts/${ctx.receiptId}/prepare-fiscal-print`, body: { paymentType: paymentType, voucher_code: voucherCode || null } };
+            }
+            return { url: null, body: {} };
+        },
+        noReceiptNeeded: function(receipt) { return receipt && receipt.noReceiptNeeded === true; },
+        markPaidWithVoucherOnly: async function(ctx, voucherCode, showResult) {
+            const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            if (ctx.type === 'session') {
+                const res = await fetch(`/sessions/${ctx.sessionId}/mark-paid-with-voucher`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }, body: JSON.stringify(voucherCode ? { voucher_code: voucherCode } : {}) });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Eroare');
+                showResult('success', 'Valoarea a fost acoperită de voucher. Sesiunea a fost marcată plătită fără bon fiscal.', null);
+                setTimeout(() => { fetchData(); if (window.PaymentWizard) window.PaymentWizard.close(); }, 5000);
                 return;
             }
-        }
-        
-        // Show loading state
-        const continueBtn = document.getElementById('fiscal-continue-btn');
-        const originalBtnText = continueBtn.innerHTML;
-        continueBtn.disabled = true;
-        continueBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Se încarcă...';
-        
-        try {
-            // Get prepared data from server
-            const url = isCombined 
-                ? '/sessions/prepare-combined-fiscal-print'
-                : `/sessions/${fiscalModalSessionId}/prepare-fiscal-print`;
-            
-            const body = isCombined
-                ? {
-                    session_ids: Array.from(selectedSessions),
-                    paymentType: fiscalModalPaymentType,
-                    voucherHours: voucherHours > 0 ? voucherHours : null
-                }
-                : {
-                    paymentType: fiscalModalPaymentType,
-                    voucherHours: voucherHours > 0 ? voucherHours : null
-                };
-            
-            const prepareResponse = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(body)
-            });
-
-            if (!prepareResponse.ok) {
-                const errorData = await prepareResponse.json();
-                throw new Error(errorData.message || 'Eroare la pregătirea datelor');
-            }
-
-            const prepareData = await prepareResponse.json();
-            
-            if (!prepareData.success || !prepareData.data) {
-                throw new Error('Date invalide de la server');
-            }
-
-            fiscalModalData = prepareData.data;
-            fiscalModalReceiptData = prepareData.receipt || {};
-
-            // Check if no receipt is needed (voucher covers everything)
-            if (fiscalModalReceiptData.noReceiptNeeded) {
-                // Mark as paid with voucher directly
-                await markPaidWithVoucherDirectly(voucherHours);
+            if (ctx.type === 'combined') {
+                const res = await fetch('/sessions/mark-combined-paid-with-voucher', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }, body: JSON.stringify({ session_ids: ctx.sessionIds, voucher_code: voucherCode || null }) });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Eroare');
+                showResult('success', 'Valoarea a fost acoperită de voucher. Sesiunile au fost marcate plătite fără bon fiscal.', null);
+                setTimeout(() => { selectedSessions.clear(); updateCombinedButton(); fetchData(); if (window.PaymentWizard) window.PaymentWizard.close(); }, 5000);
                 return;
             }
-
-            // Update receipt preview with data
-            const receipt = fiscalModalReceiptData;
-            
-            // Tenant name
-            document.getElementById('receipt-tenant-name').textContent = receipt.tenantName || '-';
-            
-            // Receipt items
-            const receiptItems = document.getElementById('receipt-items');
-            receiptItems.innerHTML = '';
-            
-            // For combined receipts, show all original time items with full hours and prices
-            // Then show subtotal, voucher (if any), and final total
-            // For single receipts, show single time item
-            if (isCombined && receipt.originalTimeItems) {
-                // Show all original time items with full hours (before voucher)
-                const originalTimeItems = receipt.originalTimeItems;
-                
-                originalTimeItems.forEach((timeItem) => {
-                    const timeItemDiv = document.createElement('div');
-                    timeItemDiv.className = 'flex justify-between text-sm';
-                    timeItemDiv.innerHTML = `
-                        <div>
-                            <span class="font-medium text-gray-900">Ora de joacă (${timeItem.duration})</span>
-                            <span class="text-gray-500 ml-2 text-xs">- ${timeItem.childName}</span>
-                        </div>
-                        <span class="font-semibold text-gray-900">${parseFloat(timeItem.price).toFixed(2)} RON</span>
-                    `;
-                    receiptItems.appendChild(timeItemDiv);
+            if (ctx.type === 'standalone') {
+                const payload = { payment_method: null, voucher_code: voucherCode || null };
+                if (ctx.voucherId) payload.voucher_id = ctx.voucherId;
+                if (ctx.voucherAmountUsed != null) payload.voucher_amount_used = ctx.voucherAmountUsed;
+                const res = await fetch(`/standalone-receipts/${ctx.receiptId}/mark-paid-no-fiscal`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }, body: JSON.stringify(payload) });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Eroare');
+                showResult('success', 'Valoarea a fost acoperită de voucher. Bonul a fost marcat plătit.', null);
+                if (ctx.onStandaloneSuccess) ctx.onStandaloneSuccess();
+                return;
+            }
+        },
+        renderReceiptPreview: function(receipt, data, itemsEl, tenantEl, totalEl, methodEl) {
+            if (!itemsEl) return;
+            itemsEl.innerHTML = '';
+            if (tenantEl) tenantEl.textContent = (receipt && receipt.locationName) || (receipt && receipt.tenantName) || '-';
+            if (methodEl) methodEl.textContent = data.paymentType === 'CASH' ? 'Cash' : 'Card';
+            if (receipt && receipt.originalTimeItems) {
+                receipt.originalTimeItems.forEach(function(t) {
+                    const d = document.createElement('div');
+                    d.className = 'flex justify-between text-sm';
+                    d.innerHTML = '<div><span class="font-medium text-gray-900">Ora de joacă (' + t.duration + ')</span><span class="text-gray-500 ml-2 text-xs">- ' + (t.childName || '') + '</span></div><span class="font-semibold text-gray-900">' + parseFloat(t.price).toFixed(2) + ' RON</span>';
+                    itemsEl.appendChild(d);
                 });
-                
-                // Show products items
-                if (receipt.products && receipt.products.length > 0) {
-                    receipt.products.forEach(product => {
-                        const productItem = document.createElement('div');
-                        productItem.className = 'flex justify-between text-sm';
-                        productItem.innerHTML = `
-                            <div>
-                                <span class="font-medium text-gray-900">${product.name}</span>
-                                <span class="text-gray-500 ml-2">×${product.quantity}</span>
-                            </div>
-                            <span class="font-semibold text-gray-900">${parseFloat(product.total_price).toFixed(2)} RON</span>
-                        `;
-                        receiptItems.appendChild(productItem);
+                if (receipt.products && receipt.products.length) {
+                    receipt.products.forEach(function(p) {
+                        const d = document.createElement('div');
+                        d.className = 'flex justify-between text-sm';
+                        d.innerHTML = '<div><span class="font-medium text-gray-900">' + p.name + '</span><span class="text-gray-500 ml-2">×' + p.quantity + '</span></div><span class="font-semibold text-gray-900">' + parseFloat(p.total_price).toFixed(2) + ' RON</span>';
+                        itemsEl.appendChild(d);
                     });
                 }
-                
-                // Show subtotal (before voucher)
-                const subtotalDiv = document.createElement('div');
-                subtotalDiv.className = 'flex justify-between text-sm border-t border-gray-300 pt-2 mt-2';
-                subtotalDiv.innerHTML = `
-                    <span class="font-medium text-gray-700">Subtotal:</span>
-                    <span class="font-semibold text-gray-900">${parseFloat(receipt.totalPrice || 0).toFixed(2)} RON</span>
-                `;
-                receiptItems.appendChild(subtotalDiv);
-                
-                // Show voucher discount (if any)
-                if (receipt.voucherHours > 0 && receipt.voucherPrice > 0) {
-                    const voucherDiv = document.createElement('div');
-                    voucherDiv.className = 'flex justify-between text-sm text-green-600';
-                    voucherDiv.innerHTML = `
-                        <span class="font-medium">Voucher (${receipt.voucherHours}h):</span>
-                        <span class="font-semibold">-${parseFloat(receipt.voucherPrice).toFixed(2)} RON</span>
-                    `;
-                    receiptItems.appendChild(voucherDiv);
+                const sub = document.createElement('div');
+                sub.className = 'flex justify-between text-sm border-t border-gray-300 pt-2 mt-2';
+                sub.innerHTML = '<span class="font-medium text-gray-700">Subtotal:</span><span class="font-semibold text-gray-900">' + parseFloat(receipt.totalPrice || 0).toFixed(2) + ' RON</span>';
+                itemsEl.appendChild(sub);
+                if ((receipt.voucherHours > 0 || receipt.voucher_id) && receipt.voucherPrice > 0) {
+                    const v = document.createElement('div');
+                    v.className = 'flex justify-between text-sm text-green-600';
+                    v.innerHTML = '<span class="font-medium">Voucher' + (receipt.voucherHours > 0 ? ' (' + receipt.voucherHours + 'h):' : ':') + '</span><span class="font-semibold">-' + parseFloat(receipt.voucherPrice).toFixed(2) + ' RON</span>';
+                    itemsEl.appendChild(v);
                 }
-                
-                // Set total price for combined receipt
-                document.getElementById('receipt-total-price').textContent = `${parseFloat(receipt.finalPrice || prepareData.data.price || 0).toFixed(2)} RON`;
             } else {
-                // Single receipt - show time item
-                // Time item - ALWAYS show original price (timePrice) with original duration (durationFiscalized) in preview
-                // This is the price BEFORE voucher discount
-                // Even if voucher covers all time, show it in preview (but it won't appear on actual receipt)
-                if (receipt.timePrice > 0) {
-                    const timeItem = document.createElement('div');
-                    timeItem.className = 'flex justify-between text-sm';
-                    timeItem.innerHTML = `
-                        <div>
-                            <span class="font-medium text-gray-900">${prepareData.data.productName}</span>
-                            <span class="text-gray-500 ml-2">${receipt.durationFiscalized || prepareData.data.duration}</span>
-                        </div>
-                        <span class="font-semibold text-gray-900">${parseFloat(receipt.timePrice || 0).toFixed(2)} RON</span>
-                    `;
-                    receiptItems.appendChild(timeItem);
+                if (receipt && receipt.timePrice > 0) {
+                    const d = document.createElement('div');
+                    d.className = 'flex justify-between text-sm';
+                    d.innerHTML = '<div><span class="font-medium text-gray-900">' + (data.productName || 'Ora de joacă') + '</span><span class="text-gray-500 ml-2">' + (receipt.durationFiscalized || data.duration || '') + '</span></div><span class="font-semibold text-gray-900">' + parseFloat(receipt.timePrice).toFixed(2) + ' RON</span>';
+                    itemsEl.appendChild(d);
                 }
-                
-                // Single receipt - also show products items
-                if (receipt.products && receipt.products.length > 0) {
-                    receipt.products.forEach(product => {
-                        const productItem = document.createElement('div');
-                        productItem.className = 'flex justify-between text-sm';
-                        productItem.innerHTML = `
-                            <div>
-                                <span class="font-medium text-gray-900">${product.name}</span>
-                                <span class="text-gray-500 ml-2">×${product.quantity}</span>
-                            </div>
-                            <span class="font-semibold text-gray-900">${parseFloat(product.total_price).toFixed(2)} RON</span>
-                        `;
-                        receiptItems.appendChild(productItem);
+                if (receipt && receipt.products && receipt.products.length) {
+                    receipt.products.forEach(function(p) {
+                        const d = document.createElement('div');
+                        d.className = 'flex justify-between text-sm';
+                        d.innerHTML = '<div><span class="font-medium text-gray-900">' + p.name + '</span><span class="text-gray-500 ml-2">×' + p.quantity + '</span></div><span class="font-semibold text-gray-900">' + parseFloat(p.total_price).toFixed(2) + ' RON</span>';
+                        itemsEl.appendChild(d);
                     });
                 }
-                
-                // Single receipt - show voucher discount line if voucher was used
-                if (receipt.voucherHours > 0 && receipt.voucherPrice > 0) {
-                    const voucherItem = document.createElement('div');
-                    voucherItem.className = 'flex justify-between text-sm text-green-600 border-t border-gray-300 pt-2 mt-2';
-                    voucherItem.innerHTML = `
-                        <div>
-                            <span class="font-medium">Voucher (${receipt.voucherHours}h)</span>
-                        </div>
-                        <span class="font-semibold">-${parseFloat(receipt.voucherPrice).toFixed(2)} RON</span>
-                    `;
-                    receiptItems.appendChild(voucherItem);
+                if (receipt && (receipt.voucherHours > 0 || receipt.voucher_id) && receipt.voucherPrice > 0) {
+                    const v = document.createElement('div');
+                    v.className = 'flex justify-between text-sm text-green-600 border-t border-gray-300 pt-2 mt-2';
+                    v.innerHTML = '<div><span class="font-medium">Voucher' + (receipt.voucherHours > 0 ? ' (' + receipt.voucherHours + 'h)' : '') + '</span></div><span class="font-semibold">-' + parseFloat(receipt.voucherPrice).toFixed(2) + ' RON</span>';
+                    itemsEl.appendChild(v);
                 }
-                
-                // Total price (final price after voucher) - this is what will be on the receipt
-                document.getElementById('receipt-total-price').textContent = `${parseFloat(receipt.finalPrice || prepareData.data.price || 0).toFixed(2)} RON`;
             }
-            
-            // Payment method
-            document.getElementById('receipt-payment-method').textContent = fiscalModalPaymentType === 'CASH' ? 'Cash' : 'Card';
-            
-            // Go to confirmation step
-            fiscalModalCurrentStep = 2;
-            document.getElementById('fiscal-modal-step-1').classList.add('hidden');
-            document.getElementById('fiscal-modal-step-2').classList.remove('hidden');
-        } catch (error) {
-            console.error('Error:', error);
-            // Show error in modal instead of alert
-            showFiscalResult('error', error.message, null);
-            continueBtn.disabled = false;
-            continueBtn.innerHTML = originalBtnText;
-        }
-    }
-
-    async function markPaidWithVoucherDirectly(voucherHours) {
-        try {
-            const response = await fetch(`/sessions/${fiscalModalSessionId}/mark-paid-with-voucher`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    voucher_hours: voucherHours
-                })
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Eroare la marcarea sesiunii ca plătită');
+            if (data && data.items && data.items.length) {
+                data.items.forEach(function(item) {
+                    var d = document.createElement('div');
+                    d.className = 'flex justify-between text-sm';
+                    var lineTotal = (item.quantity || 1) * (parseFloat(item.price) || 0);
+                    d.innerHTML = '<div><span class="font-medium text-gray-900">' + (item.name || '') + '</span><span class="text-gray-500 ml-2">×' + (item.quantity || 1) + '</span></div><span class="font-semibold text-gray-900">' + lineTotal.toFixed(2) + ' RON</span>';
+                    itemsEl.appendChild(d);
+                });
+                if (receipt && receipt.discount_amount > 0) {
+                    var v = document.createElement('div');
+                    v.className = 'flex justify-between text-sm text-green-600 border-t border-gray-300 pt-2 mt-2';
+                    v.innerHTML = '<span class="font-medium">Voucher</span><span class="font-semibold">-' + parseFloat(receipt.discount_amount).toFixed(2) + ' RON</span>';
+                    itemsEl.appendChild(v);
+                }
             }
+            var total = (receipt && receipt.finalPrice != null) ? receipt.finalPrice : (data && data.price != null ? data.price : 0);
+            if (totalEl) totalEl.textContent = parseFloat(total).toFixed(2) + ' RON';
+        },
+        confirmAndPrint: async function(ctx, opts) {
+            const paymentType = opts.paymentType;
+            const preparedData = opts.preparedData;
+            const receiptData = opts.receiptData || {};
+            const getVoucherCode = opts.getVoucherCode;
+            const csrfToken = opts.csrfToken;
+            const bridgeUrl = opts.bridgeUrl;
+            const showResult = opts.showResult;
+            const isCombined = ctx.type === 'combined';
+            const isSingle = ctx.type === 'session';
+            const fiscalEnabled = ctx.type === 'standalone' ? (ctx.fiscalEnabled !== false) : (ctx.fiscalEnabled !== false);
 
-            const result = await response.json();
-            
-            if (result.success) {
-                showFiscalResult('success', 'Valoarea orelor a fost acoperită de voucher. Sesiunea va fi trecută plătită fără a mai scoate bon fiscal.', null);
-                setTimeout(() => {
-                    fetchData();
-                    closeFiscalModal();
-                }, 5000); // 5 seconds to allow operator to read the message
-            } else {
-                throw new Error(result.message || 'Eroare necunoscută');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            showFiscalResult('error', error.message, null);
-        }
-    }
-
-    async function confirmAndPrint() {
-        if (!fiscalModalPaymentType || !fiscalModalData) {
-            alert('Date incomplete');
-            return;
-        }
-
-        // Check if single session or multiple sessions
-        const isCombined = !fiscalModalSessionId && selectedSessions.size >= 2;
-        const isSingle = fiscalModalSessionId !== null;
-
-        if (!isSingle && !isCombined) {
-            alert('Date incomplete');
-            return;
-        }
-
-        // Go to loading step
-        fiscalModalCurrentStep = 3;
-        document.getElementById('fiscal-modal-step-2').classList.add('hidden');
-        document.getElementById('fiscal-modal-step-3').classList.remove('hidden');
-
-        // If fiscal is disabled for this location, skip the bridge entirely
-        if (!fiscalEnabled) {
-            try {
-                const voucherHours = fiscalModalData.voucherHours || 0;
+            if (!fiscalEnabled) {
+                const voucherHours = preparedData.voucherHours || 0;
+                const voucherId = preparedData.voucher_id || null;
+                const voucherCode = preparedData.voucher_code || (getVoucherCode && getVoucherCode()) || null;
+                const voucherAmountUsed = preparedData.voucher_discount_amount || null;
                 let url, body;
-
                 if (isCombined) {
                     url = '/sessions/mark-combined-paid-no-fiscal';
-                    body = {
-                        session_ids: Array.from(selectedSessions),
-                        payment_method: fiscalModalPaymentType,
-                        voucher_hours: voucherHours > 0 ? voucherHours : null,
-                    };
+                    body = { session_ids: ctx.sessionIds, payment_method: paymentType, voucher_hours: voucherHours > 0 ? voucherHours : null, voucher_id: voucherId, voucher_code: voucherCode, voucher_amount_used: voucherAmountUsed > 0 ? voucherAmountUsed : null };
+                } else if (ctx.type === 'standalone') {
+                    url = `/standalone-receipts/${ctx.receiptId}/mark-paid-no-fiscal`;
+                    body = { payment_method: paymentType, voucher_code: voucherCode || null, voucher_id: preparedData.voucher_id || null, voucher_amount_used: (preparedData.voucher_discount_amount || 0) > 0 ? preparedData.voucher_discount_amount : null };
                 } else {
-                    url = `/sessions/${fiscalModalSessionId}/mark-paid-no-fiscal`;
-                    body = {
-                        payment_method: fiscalModalPaymentType,
-                        voucher_hours: voucherHours > 0 ? voucherHours : null,
-                    };
+                    url = `/sessions/${ctx.sessionId}/mark-paid-no-fiscal`;
+                    body = { payment_method: paymentType, voucher_hours: voucherHours > 0 ? voucherHours : null, voucher_id: voucherId, voucher_code: voucherCode, voucher_amount_used: voucherAmountUsed > 0 ? voucherAmountUsed : null };
                 }
-
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(body)
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Eroare la marcarea sesiunii ca plătită');
-                }
-
-                const result = await response.json();
-                if (result.success) {
-                    showFiscalResult('success', 'Plata a fost înregistrată cu succes.', null);
-                    if (isCombined) {
-                        selectedSessions.clear();
-                        updateCombinedButton();
-                    }
-                    fetchData();
-                } else {
-                    throw new Error(result.message || 'Eroare necunoscută');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showFiscalResult('error', error.message, null);
-                fetchData();
+                const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }, body: JSON.stringify(body) });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Eroare');
+                showResult('success', 'Plata a fost înregistrată cu succes.', null);
+                if (isCombined) { selectedSessions.clear(); updateCombinedButton(); }
+                if (ctx.type === 'standalone' && ctx.onStandaloneSuccess) ctx.onStandaloneSuccess();
+                else fetchData();
+                return;
             }
-            return;
-        }
-
-        try {
-            // Use already prepared data from goToConfirmStep
-            const prepareData = {
-                success: true,
-                data: fiscalModalData
-            };
-
-            // Step 2: Send directly to local bridge from browser
-            const bridgeUrl = '{{ config("services.fiscal_bridge.url", "http://localhost:9000") }}';
-            const bridgeResponse = await fetch(`${bridgeUrl}/print`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(prepareData.data)
-            });
-
-            if (!bridgeResponse.ok) {
-                const errorText = await bridgeResponse.text();
-                let errorData;
-                try {
-                    errorData = JSON.parse(errorText);
-                } catch {
-                    throw new Error(`Eroare HTTP ${bridgeResponse.status}: ${errorText.substring(0, 100)}`);
-                }
-                throw new Error(errorData.message || errorData.details || 'Eroare de la bridge-ul fiscal');
-            }
-
-            const bridgeData = await bridgeResponse.json();
-
-            // Save log to database
-            try {
-                const voucherHours = fiscalModalData.voucherHours || 0;
-                if (isCombined) {
-                    await saveCombinedFiscalReceiptLog({
-                        play_session_ids: Array.from(selectedSessions),
-                        filename: bridgeData.file || null,
-                        status: bridgeData.status === 'success' ? 'success' : 'error',
-                        error_message: bridgeData.status === 'success' ? null : (bridgeData.message || bridgeData.details || 'Eroare necunoscută'),
-                        voucher_hours: voucherHours > 0 ? voucherHours : null,
-                        payment_status: voucherHours > 0 ? 'paid_voucher' : 'paid',
-                        payment_method: fiscalModalPaymentType,
-                    });
-                } else {
-                    await saveFiscalReceiptLog({
-                        play_session_id: fiscalModalSessionId,
-                        filename: bridgeData.file || null,
-                        status: bridgeData.status === 'success' ? 'success' : 'error',
-                        error_message: bridgeData.status === 'success' ? null : (bridgeData.message || bridgeData.details || 'Eroare necunoscută'),
-                        voucher_hours: voucherHours > 0 ? voucherHours : null,
-                        payment_status: voucherHours > 0 ? 'paid_voucher' : 'paid',
-                        payment_method: fiscalModalPaymentType,
-                    });
-                }
-            } catch (logError) {
-                console.error('Error saving log:', logError);
-                // Don't block the UI if log saving fails
-            }
-
-            // Show result in modal
-            if (bridgeData.status === 'success') {
-                showFiscalResult('success', 'Bon fiscal emis cu succes!', bridgeData.file || null);
-                // Clear selected sessions if combined receipt
-                if (isCombined) {
-                    selectedSessions.clear();
-                    updateCombinedButton();
-                }
-                // Refresh table to reflect payment status changes
-                fetchData();
-            } else {
-                const errorMessage = bridgeData.message || bridgeData.details || 'Eroare necunoscută';
-                showFiscalResult('error', errorMessage, null);
-                // Refresh table even on error to ensure consistency
-                fetchData();
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            
-            // Save error log to database
-            try {
-                const voucherHours = fiscalModalData?.voucherHours || 0;
-                if (isCombined) {
-                    await saveCombinedFiscalReceiptLog({
-                        play_session_ids: Array.from(selectedSessions),
-                        filename: null,
-                        status: 'error',
-                        error_message: error.message.includes('Failed to fetch') || error.message.includes('NetworkError')
-                            ? 'Nu s-a putut conecta la bridge-ul fiscal local. Verifică că serviciul Node.js rulează pe calculatorul tău.'
-                            : error.message,
-                        voucher_hours: voucherHours > 0 ? voucherHours : null,
-                        payment_status: voucherHours > 0 ? 'paid_voucher' : 'paid',
-                        payment_method: fiscalModalPaymentType,
-                    });
-                } else {
-                    await saveFiscalReceiptLog({
-                        play_session_id: fiscalModalSessionId,
-                        filename: null,
-                        status: 'error',
-                        error_message: error.message.includes('Failed to fetch') || error.message.includes('NetworkError')
-                            ? 'Nu s-a putut conecta la bridge-ul fiscal local. Verifică că serviciul Node.js rulează pe calculatorul tău.'
-                            : error.message,
-                        voucher_hours: voucherHours > 0 ? voucherHours : null,
-                        payment_status: voucherHours > 0 ? 'paid_voucher' : 'paid',
-                        payment_method: fiscalModalPaymentType,
-                    });
-                }
-            } catch (logError) {
-                console.error('Error saving log:', logError);
-                // Don't block the UI if log saving fails
-            }
-            
-            // Show error in modal
-            const errorMessage = error.message.includes('Failed to fetch') || error.message.includes('NetworkError')
-                ? 'Nu s-a putut conecta la bridge-ul fiscal local. Verifică că serviciul Node.js rulează pe calculatorul tău.'
-                : error.message;
-            
-            showFiscalResult('error', errorMessage, null);
-            // Refresh table even on error to ensure consistency
-            fetchData();
-        }
-    }
-
-    async function saveFiscalReceiptLog(data) {
-        try {
-            const response = await fetch('{{ route("sessions.save-fiscal-receipt-log") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Eroare la salvarea logului');
-            }
-
-            const result = await response.json();
-            return result;
-        } catch (error) {
-            console.error('Error saving fiscal receipt log:', error);
-            throw error;
-        }
-    }
-
-    async function saveCombinedFiscalReceiptLog(data) {
-        try {
-            const response = await fetch('{{ route("sessions.save-combined-fiscal-receipt-log") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Eroare la salvarea logului');
-            }
-
-            const result = await response.json();
-            return result;
-        } catch (error) {
-            console.error('Error saving combined fiscal receipt log:', error);
-            throw error;
-        }
-    }
-
-function showFiscalResult(type, message, file) {
-    fiscalModalCurrentStep = 4;
-    
-    // Hide all steps
-    document.getElementById('fiscal-modal-step-1').classList.add('hidden');
-    document.getElementById('fiscal-modal-step-2').classList.add('hidden');
-    document.getElementById('fiscal-modal-step-3').classList.add('hidden');
-    document.getElementById('fiscal-modal-step-4').classList.remove('hidden');
-    
-    // Build result content
-    const resultContent = document.getElementById('fiscal-result-content');
-    
-    if (type === 'success') {
-        resultContent.innerHTML = `
-            <div class="mb-4">
-                <i class="fas fa-check-circle text-5xl text-green-500 mb-4"></i>
-            </div>
-            <h3 class="text-xl font-bold text-gray-900 mb-2">Bon fiscal emis cu succes!</h3>
-            <p class="text-gray-700 mb-2">${message}</p>
-            ${file ? `<p class="text-sm text-gray-500">Fișier: ${file}</p>` : ''}
-        `;
-    } else {
-        resultContent.innerHTML = `
-            <div class="mb-4">
-                <i class="fas fa-exclamation-circle text-5xl text-red-500 mb-4"></i>
-            </div>
-            <h3 class="text-xl font-bold text-gray-900 mb-2">Eroare</h3>
-            <p class="text-gray-700">${message}</p>
-        `;
-    }
-}
-
-// ===== BON SPECIFIC MODAL =====
-
-let bsPaymentMethod = null;
-let bsReceiptId = null;
-let bsFiscalEnabled = true;
-let bsLocationName = '';
-
-function openBonSpecificModal() {
-    bsPaymentMethod = null;
-    bsReceiptId = null;
-    bsShowStep(1);
-    document.getElementById('bon-specific-modal').classList.remove('hidden');
-    loadBonSpecificItems();
-}
-
-function closeBonSpecificModal() {
-    document.getElementById('bon-specific-modal').classList.add('hidden');
-}
-
-function bsShowStep(step) {
-    for (let i = 1; i <= 5; i++) {
-        document.getElementById(`bs-step-${i}`).classList.toggle('hidden', i !== step);
-    }
-}
-
-async function loadBonSpecificItems() {
-    document.getElementById('bs-loading').classList.remove('hidden');
-    document.getElementById('bs-content').classList.add('hidden');
-    try {
-        const res = await fetch('{{ route("standalone-receipts.available-items") }}', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } });
-        const data = await res.json();
-        if (!data.success) throw new Error(data.message || 'Eroare');
-        bsFiscalEnabled = data.fiscal_enabled !== false;
-        bsLocationName = data.location_name || '';
-        renderBsItems(data.packages || [], data.products || []);
-    } catch (e) {
-        document.getElementById('bs-loading').innerHTML = `<p class="text-red-600">${e.message}</p>`;
-    }
-}
-
-function renderBsItems(packages, products) {
-    const pkgSection = document.getElementById('bs-packages-section');
-    const prodSection = document.getElementById('bs-products-section');
-    const emptyEl = document.getElementById('bs-empty');
-    const pkgList = document.getElementById('bs-packages-list');
-    const prodList = document.getElementById('bs-products-list');
-
-    pkgList.innerHTML = '';
-    prodList.innerHTML = '';
-
-    if (packages.length === 0 && products.length === 0) {
-        emptyEl.classList.remove('hidden');
-        pkgSection.classList.add('hidden');
-        prodSection.classList.add('hidden');
-    } else {
-        emptyEl.classList.add('hidden');
-        if (packages.length > 0) {
-            pkgSection.classList.remove('hidden');
-            packages.forEach(p => {
-                pkgList.innerHTML += buildItemRow('package', p.id, p.name, p.price);
-            });
-        } else {
-            pkgSection.classList.add('hidden');
-        }
-        if (products.length > 0) {
-            prodSection.classList.remove('hidden');
-            products.forEach(p => {
-                prodList.innerHTML += buildItemRow('product', p.id, p.name, p.price);
-            });
-        } else {
-            prodSection.classList.add('hidden');
-        }
-    }
-
-    document.querySelectorAll('.bs-qty').forEach(input => {
-        input.addEventListener('input', updateBsTotal);
-        input.addEventListener('change', updateBsTotal);
-    });
-    updateBsTotal();
-
-    document.getElementById('bs-loading').classList.add('hidden');
-    document.getElementById('bs-content').classList.remove('hidden');
-}
-
-function buildItemRow(type, id, name, price) {
-    return `<div class="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
-        <div>
-            <span class="font-medium text-gray-900">${name}</span>
-            <span class="text-gray-500 text-sm ml-2">${parseFloat(price).toFixed(2)} RON</span>
-        </div>
-        <input type="number" min="0" value="0" data-type="${type}" data-id="${id}" data-price="${price}" data-name="${name}"
-               class="bs-qty w-16 px-2 py-1 border border-gray-300 rounded-md text-center text-sm">
-    </div>`;
-}
-
-function updateBsTotal() {
-    let total = 0;
-    document.querySelectorAll('.bs-qty').forEach(input => {
-        const qty = parseInt(input.value, 10) || 0;
-        total += qty * (parseFloat(input.dataset.price) || 0);
-    });
-    document.getElementById('bs-total').textContent = total.toFixed(2);
-    document.getElementById('bs-next-btn').disabled = total <= 0;
-}
-
-function getBsSelectedItems() {
-    const items = [];
-    document.querySelectorAll('.bs-qty').forEach(input => {
-        const qty = parseInt(input.value, 10) || 0;
-        if (qty > 0) {
-            items.push({
-                source_type: input.dataset.type,
-                source_id: parseInt(input.dataset.id),
-                quantity: qty,
-                name: input.dataset.name,
-                unit_price: parseFloat(input.dataset.price)
-            });
-        }
-    });
-    return items;
-}
-
-function bsGoToPreview() {
-    const items = getBsSelectedItems();
-    if (items.length === 0) return;
-
-    // Build preview
-    document.getElementById('bs-preview-location').textContent = bsLocationName || 'Loc de Joacă';
-    const previewItems = document.getElementById('bs-preview-items');
-    previewItems.innerHTML = '';
-    let total = 0;
-
-    items.forEach(item => {
-        const lineTotal = item.unit_price * item.quantity;
-        total += lineTotal;
-        const div = document.createElement('div');
-        div.className = 'flex justify-between text-sm';
-        div.innerHTML = `
-            <div>
-                <span class="font-medium text-gray-900">${item.name}</span>
-                <span class="text-gray-500 ml-2">×${item.quantity}</span>
-            </div>
-            <span class="font-semibold text-gray-900">${lineTotal.toFixed(2)} RON</span>
-        `;
-        previewItems.appendChild(div);
-    });
-
-    document.getElementById('bs-preview-total').textContent = total.toFixed(2) + ' RON';
-    bsShowStep(2);
-}
-
-function bsBackToItems() {
-    const btn = document.getElementById('bs-next-btn');
-    btn.disabled = false;
-    btn.innerHTML = 'Continuă';
-    bsShowStep(1);
-}
-
-async function bsGoToPaymentMethod() {
-    const items = getBsSelectedItems();
-    if (items.length === 0) return;
-
-    // Create the receipt on the server
-    const btn = event.target;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Se creează...';
-
-    try {
-        const apiItems = items.map(i => ({ source_type: i.source_type, source_id: i.source_id, quantity: i.quantity }));
-        const res = await fetch('{{ route("standalone-receipts.store") }}', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' },
-            body: JSON.stringify({ items: apiItems })
-        });
-        const data = await res.json();
-        if (!res.ok || !data.success) throw new Error(data.message || 'Eroare la crearea bonului');
-        bsReceiptId = data.receipt_id;
-
-        // Reset payment selection
-        bsPaymentMethod = null;
-        document.querySelectorAll('[data-bs-pay]').forEach(b => {
-            b.classList.add('bg-gray-200', 'hover:bg-gray-300');
-            b.classList.remove('bg-indigo-600', 'ring-2', 'ring-indigo-500', 'text-white');
-        });
-        document.getElementById('bs-confirm-btn').disabled = true;
-
-        bsShowStep(3);
-    } catch (e) {
-        alert(e.message);
-    }
-    btn.disabled = false;
-    btn.innerHTML = 'Continuă';
-}
-
-function bsBackToPreview() {
-    bsShowStep(2);
-}
-
-function bsSelectPayment(method) {
-    bsPaymentMethod = method;
-    document.querySelectorAll('[data-bs-pay]').forEach(btn => {
-        if (btn.dataset.bsPay === method) {
-            btn.classList.remove('bg-gray-200', 'hover:bg-gray-300');
-            btn.classList.add('bg-indigo-600', 'ring-2', 'ring-indigo-500', 'text-white');
-        } else {
-            btn.classList.add('bg-gray-200', 'hover:bg-gray-300');
-            btn.classList.remove('bg-indigo-600', 'ring-2', 'ring-indigo-500', 'text-white');
-        }
-    });
-    document.getElementById('bs-confirm-btn').disabled = false;
-}
-
-async function bsConfirmPayment() {
-    if (!bsPaymentMethod || !bsReceiptId) return;
-    bsShowStep(4);
-    const csrf = document.querySelector('meta[name="csrf-token"]').content;
-
-    try {
-        if (!bsFiscalEnabled) {
-            const res = await fetch(`/standalone-receipts/${bsReceiptId}/mark-paid-no-fiscal`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
-                body: JSON.stringify({ payment_method: bsPaymentMethod })
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.message || 'Eroare');
-            bsShowResult('success', 'Plata a fost înregistrată cu succes.');
-        } else {
-            const prepRes = await fetch(`/standalone-receipts/${bsReceiptId}/prepare-fiscal-print`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
-                body: JSON.stringify({ paymentType: bsPaymentMethod })
-            });
-            const prepData = await prepRes.json();
-            if (!prepRes.ok || !prepData.success) throw new Error(prepData.message || 'Eroare la pregătire');
-
-            const bridgeUrl = '{{ config("services.fiscal_bridge.url", "http://localhost:9000") }}';
-            const bridgeRes = await fetch(`${bridgeUrl}/print`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(prepData.data)
-            });
+            const bridgeRes = await fetch(bridgeUrl + '/print', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(preparedData) });
             if (!bridgeRes.ok) {
-                const errText = await bridgeRes.text();
-                let errMsg = errText;
-                try { errMsg = JSON.parse(errText).message || errMsg; } catch (_) {}
-                throw new Error(errMsg);
+                var errText = await bridgeRes.text();
+                try { var err = JSON.parse(errText); errText = err.message || err.details || errText; } catch (_) {}
+                throw new Error(errText || 'Eroare bridge');
             }
             const bridgeData = await bridgeRes.json();
-
-            await fetch('{{ route("standalone-receipts.save-fiscal-receipt-log") }}', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
-                body: JSON.stringify({
-                    standalone_receipt_id: bsReceiptId,
-                    filename: bridgeData.file || null,
-                    status: bridgeData.status === 'success' ? 'success' : 'error',
-                    error_message: bridgeData.status === 'success' ? null : (bridgeData.message || bridgeData.details),
-                    payment_method: bsPaymentMethod
-                })
-            });
-
+            var saveLogUrl = ctx.type === 'standalone' ? '{{ route("standalone-receipts.save-fiscal-receipt-log") }}' : (isCombined ? '{{ route("sessions.save-combined-fiscal-receipt-log") }}' : '{{ route("sessions.save-fiscal-receipt-log") }}');
+            var logBody = ctx.type === 'standalone' ? { standalone_receipt_id: ctx.receiptId, filename: bridgeData.file || null, status: bridgeData.status === 'success' ? 'success' : 'error', error_message: bridgeData.status === 'success' ? null : (bridgeData.message || bridgeData.details), payment_method: paymentType, voucher_id: preparedData.voucher_id || null, voucher_amount_used: preparedData.voucher_discount_amount || null } : (isCombined ? { play_session_ids: ctx.sessionIds, filename: bridgeData.file || null, status: bridgeData.status === 'success' ? 'success' : 'error', error_message: bridgeData.status === 'success' ? null : (bridgeData.message || bridgeData.details), voucher_hours: (preparedData.voucherHours || 0) > 0 ? preparedData.voucherHours : null, voucher_id: preparedData.voucher_id || null, voucher_amount_used: preparedData.voucher_discount_amount || null, payment_status: (preparedData.voucher_id || (preparedData.voucherHours || 0) > 0) ? 'paid_voucher' : 'paid', payment_method: paymentType } : { play_session_id: ctx.sessionId, filename: bridgeData.file || null, status: bridgeData.status === 'success' ? 'success' : 'error', error_message: bridgeData.status === 'success' ? null : (bridgeData.message || bridgeData.details), voucher_hours: (preparedData.voucherHours || 0) > 0 ? preparedData.voucherHours : null, voucher_id: preparedData.voucher_id || null, voucher_amount_used: preparedData.voucher_discount_amount || null, payment_status: (preparedData.voucher_id || (preparedData.voucherHours || 0) > 0) ? 'paid_voucher' : 'paid', payment_method: paymentType });
+            await fetch(saveLogUrl, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }, body: JSON.stringify(logBody) });
             if (bridgeData.status === 'success') {
-                bsShowResult('success', 'Bon fiscal emis cu succes!');
+                showResult('success', 'Bon fiscal emis cu succes!', bridgeData.file || null);
+                if (isCombined) { selectedSessions.clear(); updateCombinedButton(); }
+                if (ctx.type === 'standalone' && ctx.onStandaloneSuccess) ctx.onStandaloneSuccess();
             } else {
-                bsShowResult('error', bridgeData.message || bridgeData.details || 'Eroare la printare');
+                showResult('error', bridgeData.message || bridgeData.details || 'Eroare', null);
             }
-        }
-    } catch (e) {
-        const msg = e.message.includes('Failed to fetch') || e.message.includes('NetworkError')
-            ? 'Nu s-a putut conecta la bridge-ul fiscal. Verifică că serviciul rulează.'
-            : e.message;
-        bsShowResult('error', msg);
-    }
-}
-
-function bsShowResult(type, message) {
-    bsShowStep(5);
-    const el = document.getElementById('bs-result-content');
-    if (type === 'success') {
-        el.innerHTML = `<div class="mb-4"><i class="fas fa-check-circle text-5xl text-green-500"></i></div>
-            <h3 class="text-xl font-bold text-gray-900 mb-2">Succes</h3><p class="text-gray-700">${message}</p>`;
-    } else {
-        el.innerHTML = `<div class="mb-4"><i class="fas fa-exclamation-circle text-5xl text-red-500"></i></div>
-            <h3 class="text-xl font-bold text-gray-900 mb-2">Eroare</h3><p class="text-gray-700">${message}</p>`;
-    }
-}
-
+            if (ctx.type !== 'standalone') fetchData();
+        },
+        onSuccess: function() {
+            fetchData();
+        },
+        showError: function(msg) { alert(msg); }
+    };
+</script>
+@include('partials.payment-wizard-script')
+<script>
 </script>
 @endsection
 

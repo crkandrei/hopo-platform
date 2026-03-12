@@ -18,6 +18,7 @@ class StandaloneReceipt extends Model
         'payment_status',
         'paid_at',
         'total_amount',
+        'voucher_id',
         'notes',
     ];
 
@@ -41,8 +42,41 @@ class StandaloneReceipt extends Model
         return $this->hasMany(StandaloneReceiptItem::class);
     }
 
+    public function voucher(): BelongsTo
+    {
+        return $this->belongsTo(Voucher::class);
+    }
+
+    public function voucherUsages(): HasMany
+    {
+        return $this->hasMany(VoucherUsage::class, 'standalone_receipt_id');
+    }
+
     public function isPaid(): bool
     {
         return $this->paid_at !== null;
+    }
+
+    /**
+     * Apply voucher (amount only) to this receipt.
+     */
+    public function applyVoucher(Voucher $voucher, float $amount): VoucherUsage
+    {
+        $usage = $voucher->use($amount, $this);
+        $this->update(['voucher_id' => $voucher->id]);
+        return $usage;
+    }
+
+    public function getVoucherDiscount(): float
+    {
+        if (!$this->voucher_id) {
+            return 0.0;
+        }
+        return (float) $this->voucherUsages()->where('voucher_id', $this->voucher_id)->sum('amount_used');
+    }
+
+    public function getFinalPrice(): float
+    {
+        return max(0, (float) $this->total_amount - $this->getVoucherDiscount());
     }
 }
