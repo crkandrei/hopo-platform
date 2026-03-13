@@ -39,4 +39,8 @@ return [
         'url' => env('FISCAL_BRIDGE_URL', 'http://localhost:9000'),
     ],
 
+    'contact' => [
+        'recipient' => env('CONTACT_FORM_RECIPIENT', env('MAIL_FROM_ADDRESS', 'contact@hopo.ro')),
+    ],
+
 ];

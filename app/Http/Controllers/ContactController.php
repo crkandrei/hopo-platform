@@ -16,7 +16,7 @@ class ContactController extends Controller
     {
         try {
             // Get the email address from environment or use default
-            $recipientEmail = env('CONTACT_FORM_RECIPIENT', env('MAIL_FROM_ADDRESS', 'contact@hopo.ro'));
+            $recipientEmail = config('services.contact.recipient');
             
             // Queue email for background processing
             Mail::to($recipientEmail)->queue(new ContactFormMail($request->validated()));
