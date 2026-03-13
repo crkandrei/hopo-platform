@@ -4,6 +4,7 @@ namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -29,7 +30,7 @@ class ContactFormMail extends Mailable
     {
         return new Envelope(
             subject: 'Nouă cerere de contact - ' . ($this->contactData['playground_name'] ?? 'Hopo Platform'),
-            from: env('MAIL_FROM_ADDRESS', 'noreply@hopo.ro'),
+            from: new Address(config('mail.from.address', 'contact@hopo.ro'), config('mail.from.name', 'Hopo')),
             replyTo: $this->contactData['email'],
         );
     }
