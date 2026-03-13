@@ -284,7 +284,7 @@
                 
                 <!-- CTA -->
                 <div class="flex items-center space-x-4">
-                    <a href="/login" class="text-gray-600 hover:text-hopo-purple transition-colors text-sm font-medium">Autentificare</a>
+                    <a href="https://app.hopo.ro/login" class="text-gray-600 hover:text-hopo-purple transition-colors text-sm font-medium">Autentificare</a>
                     <a href="#contact" class="bg-hopo-purple hover:bg-hopo-purple-dark text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                         Solicită demo
                     </a>

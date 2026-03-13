@@ -28,6 +28,8 @@ Route::domain('www.hopo.ro')->group(function () {
 Route::domain('hopo.ro')->group(function () {
     Route::get('/', [WebController::class, 'index']);
     Route::post('/contact', [ContactController::class, 'store']);
+    Route::get('/login', fn() => redirect('https://app.hopo.ro/login'));
+    Route::get('/dashboard', fn() => redirect('https://app.hopo.ro/dashboard'));
 });
 
 // Landing page default (pentru local development sau când nu există subdomain)
