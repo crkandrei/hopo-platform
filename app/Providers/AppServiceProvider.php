@@ -5,6 +5,10 @@ namespace App\Providers;
 use App\Events\BirthdayReservationCreated;
 use App\Listeners\SendNewReservationNotificationToAdmins;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
+use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use App\Models\User;
@@ -50,5 +54,25 @@ class AppServiceProvider extends ServiceProvider
             BirthdayReservationCreated::class,
             SendNewReservationNotificationToAdmins::class,
         );
+
+        Queue::failing(function (JobFailed $event) {
+            $adminEmail = config('mail.from.address', 'contact@hopo.ro');
+            $jobName = get_class($event->job);
+            $error = $event->exception->getMessage();
+
+            Log::error('Queue job failed', ['job' => $jobName, 'error' => $error]);
+
+            try {
+                Mail::raw(
+                    "Job esuat: {$jobName}\n\nEroare: {$error}",
+                    function ($message) use ($adminEmail, $jobName) {
+                        $message->to($adminEmail)
+                                ->subject("[HOPO] Queue job esuat: {$jobName}");
+                    }
+                );
+            } catch (\Throwable $e) {
+                Log::error('Failed to send job failure notification', ['error' => $e->getMessage()]);
+            }
+        });
     }
 }
