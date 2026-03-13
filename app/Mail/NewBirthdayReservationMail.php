@@ -4,13 +4,13 @@ namespace App\Mail;
 
 use App\Models\BirthdayReservation;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class NewBirthdayReservationMail extends Mailable implements ShouldQueue
+class NewBirthdayReservationMail extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -21,7 +21,7 @@ class NewBirthdayReservationMail extends Mailable implements ShouldQueue
         return new Envelope(
             subject: '🎂 Rezervare nouă – ' . $this->reservation->child_name . ' · ' .
                      $this->reservation->reservation_date->format('d.m.Y'),
-            from: env('MAIL_FROM_ADDRESS', 'noreply@hopo.ro'),
+            from: new Address(config('mail.from.address', 'contact@hopo.ro'), config('mail.from.name', 'Hopo')),
         );
     }
 

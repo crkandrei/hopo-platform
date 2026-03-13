@@ -2,9 +2,6 @@
 
 namespace App\Providers;
 
-use App\Events\BirthdayReservationCreated;
-use App\Listeners\SendNewReservationNotificationToAdmins;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
@@ -50,11 +47,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Event::listen(
-            BirthdayReservationCreated::class,
-            SendNewReservationNotificationToAdmins::class,
-        );
-
         Queue::failing(function (JobFailed $event) {
             $adminEmail = config('mail.from.address', 'contact@hopo.ro');
             $jobName = get_class($event->job);
