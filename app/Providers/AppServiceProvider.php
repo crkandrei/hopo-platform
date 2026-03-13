@@ -18,6 +18,7 @@ use App\Repositories\Contracts\ChildRepositoryInterface;
 use App\Repositories\Eloquent\ChildRepository;
 use App\Repositories\Contracts\AuditLogRepositoryInterface;
 use App\Repositories\Eloquent\AuditLogRepository;
+use App\Services\SubscriptionService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -40,6 +41,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PlaySessionRepositoryInterface::class, PlaySessionRepository::class);
         $this->app->bind(ChildRepositoryInterface::class, ChildRepository::class);
         $this->app->bind(AuditLogRepositoryInterface::class, AuditLogRepository::class);
+        $this->app->singleton(SubscriptionService::class);
     }
 
     /**

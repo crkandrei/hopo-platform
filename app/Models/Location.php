@@ -105,6 +105,11 @@ class Location extends Model
         return $this->hasMany(StandaloneReceipt::class);
     }
 
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(LocationSubscription::class);
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';

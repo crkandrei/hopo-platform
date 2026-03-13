@@ -65,16 +65,17 @@
                 <!-- Email -->
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-                        Email
+                        Email <span id="email-required-indicator" style="display:none"><span class="text-red-500">*</span></span>
                     </label>
-                    <input type="email" 
-                           name="email" 
+                    <input type="email"
+                           name="email"
                            id="email"
                            value="{{ old('email', $user->email) }}"
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                     @error('email')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
+                    <p id="email-hint" class="mt-1 text-xs text-gray-500" style="display:none">Obligatoriu pentru Company Admin (necesar pentru notificări abonament)</p>
                 </div>
 
                 <!-- Password -->
@@ -215,31 +216,42 @@
     // Get all location options (store original options)
     const allLocationOptions = Array.from(locationSelect.options).filter(opt => opt.value !== '');
     
+    const emailRequiredIndicator = document.getElementById('email-required-indicator');
+    const emailHint = document.getElementById('email-hint');
+
     function updateFieldsVisibility() {
         const roleText = roleSelect.options[roleSelect.selectedIndex]?.text || '';
-        
+
         if (roleText.includes('SUPER_ADMIN')) {
             companyField.style.display = 'none';
             locationField.style.display = 'none';
             companySelect.value = '';
             locationSelect.value = '';
+            emailRequiredIndicator.style.display = 'none';
+            emailHint.style.display = 'none';
         } else if (roleText.includes('COMPANY_ADMIN')) {
             companyField.style.display = 'block';
             locationField.style.display = 'none';
             locationSelect.value = '';
             // Reset locations when switching to COMPANY_ADMIN
             resetLocations();
+            emailRequiredIndicator.style.display = 'inline';
+            emailHint.style.display = 'block';
         } else if (roleText.includes('STAFF')) {
             companyField.style.display = 'none';
             locationField.style.display = 'block';
             companySelect.value = '';
             // Show all available locations for STAFF
             showAllLocations();
+            emailRequiredIndicator.style.display = 'none';
+            emailHint.style.display = 'none';
         } else {
             companyField.style.display = 'block';
             locationField.style.display = 'block';
             // Filter by company if one is selected
             filterLocations();
+            emailRequiredIndicator.style.display = 'none';
+            emailHint.style.display = 'none';
         }
     }
     

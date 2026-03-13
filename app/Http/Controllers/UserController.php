@@ -81,10 +81,15 @@ class UserController extends Controller
             abort(403, 'Acces interzis');
         }
         
+        $roleForEmail = Role::find($request->input('role_id'));
+        $emailRule = ($roleForEmail && $roleForEmail->name === 'COMPANY_ADMIN')
+            ? 'required|email|max:255'
+            : 'nullable|email|max:255';
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'username' => 'required|string|min:3|max:255|regex:/^[a-zA-Z0-9_]+$/|unique:users,username',
-            'email' => 'nullable|email|max:255',
+            'email' => $emailRule,
             'password' => 'required|string|min:8|confirmed',
             'role_id' => 'required|exists:roles,id',
             'company_id' => [
@@ -225,6 +230,11 @@ class UserController extends Controller
             }
         }
         
+        $roleForEmail = Role::find($request->input('role_id'));
+        $emailRule = ($roleForEmail && $roleForEmail->name === 'COMPANY_ADMIN')
+            ? 'required|email|max:255'
+            : 'nullable|email|max:255';
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'username' => [
@@ -235,7 +245,7 @@ class UserController extends Controller
                 'regex:/^[a-zA-Z0-9_]+$/',
                 Rule::unique('users')->ignore($user->id),
             ],
-            'email' => 'nullable|email|max:255',
+            'email' => $emailRule,
             'password' => 'nullable|string|min:8|confirmed',
             'role_id' => 'required|exists:roles,id',
             'company_id' => [
