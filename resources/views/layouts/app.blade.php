@@ -359,13 +359,21 @@
                         <span class="sidebar-text">Companii</span>
                     </a>
                     
-                    <a href="{{ route('locations.index') }}" 
+                    <a href="{{ route('locations.index') }}"
                        data-title="Locații"
                        class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('locations.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                         <i class="fas fa-map-marker-alt sidebar-icon mr-3"></i>
                         <span class="sidebar-text">Locații</span>
                     </a>
-                    
+
+                    <a href="{{ route('admin.subscriptions.index') }}"
+                       data-title="Abonamente"
+                       class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
+                              {{ request()->routeIs('admin.subscriptions.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                        <i class="fas fa-credit-card sidebar-icon mr-3"></i>
+                        <span class="sidebar-text">Abonamente</span>
+                    </a>
+
                     <a href="{{ route('users.index') }}" 
                        data-title="Utilizatori"
                        class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('users.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
@@ -506,6 +514,17 @@
                     </div>
                 </div>
             </header>
+
+            {{-- Grace Period Banner --}}
+            @if(app()->bound('subscription.grace') && app('subscription.grace'))
+            <div class="bg-amber-50 border-b-2 border-amber-400 px-4 md:px-6 py-3 flex items-center gap-3">
+                <span class="text-lg">⚠️</span>
+                <span class="text-amber-800 text-sm">
+                    <strong>Abonamentul locației {{ app('subscription.grace_location') }} a expirat pe {{ app('subscription.grace_expires_at')?->format('d M Y') }}.</strong>
+                    Mai aveți <strong>{{ app('subscription.grace_days') }} zile</strong> până la blocarea accesului. Contactați administratorul pentru reînnoire.
+                </span>
+            </div>
+            @endif
 
             <!-- Page Content -->
             <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50">

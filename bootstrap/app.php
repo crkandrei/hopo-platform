@@ -3,6 +3,7 @@
 use App\Support\ActionLogger;
 use App\Http\Middleware\LogRequests;
 use App\Http\Middleware\RefreshRememberToken;
+use App\Http\Middleware\CheckLocationSubscription;
 use App\Http\Middleware\SetLocationContext;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -23,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             LogRequests::class,
             SetLocationContext::class,
+            CheckLocationSubscription::class,
         ]);
         
         // NOTE: RefreshRememberToken middleware removed because Auth::login() 

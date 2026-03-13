@@ -3,6 +3,8 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BirthdayReservationActionController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\SubscriptionExpiredController;
 use App\Http\Controllers\WebController;
 use Illuminate\Support\Facades\Route;
 
@@ -76,6 +78,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/location-context/set', [App\Http\Controllers\LocationContextController::class, 'setLocation'])->name('location-context.set');
     Route::get('/location-context/locations', [App\Http\Controllers\LocationContextController::class, 'getLocations'])->name('location-context.locations');
 });
+
+Route::middleware('auth')->get('/subscription/blocked', [SubscriptionExpiredController::class, 'show'])
+    ->name('subscription.blocked');
 
 // Protected routes
 Route::middleware('auth')->group(function () {
@@ -204,6 +209,12 @@ Route::middleware('auth')->group(function () {
     
     // Locations management (super admin and company admin)
     Route::resource('locations', App\Http\Controllers\LocationController::class);
+
+    // Subscriptions management (super admin only)
+    Route::get('/admin/subscriptions', [SubscriptionController::class, 'index'])->name('admin.subscriptions.index');
+    Route::get('/admin/subscriptions/{location}/create', [SubscriptionController::class, 'create'])->name('admin.subscriptions.create');
+    Route::post('/admin/subscriptions/{location}', [SubscriptionController::class, 'store'])->name('admin.subscriptions.store');
+    Route::get('/admin/subscriptions/{location}/history', [SubscriptionController::class, 'history'])->name('admin.subscriptions.history');
 
     // Vouchers (per location)
     Route::get('/locations/{location}/vouchers/report', [App\Http\Controllers\VoucherController::class, 'report'])->name('locations.vouchers.report');
