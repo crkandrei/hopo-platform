@@ -36,7 +36,7 @@
                         </a>
                         <input type="date" name="date" value="{{ \Carbon\Carbon::parse($date)->format('Y-m-d') }}"
                                onchange="this.form.submit()"
-                               class="px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm">
+                               class="px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm min-w-0 flex-1">
                         <a href="{{ route('birthday-reservations.dashboard', array_merge(request()->query(), ['date' => \Carbon\Carbon::parse($date)->addDay()->format('Y-m-d')])) }}"
                            class="p-2.5 border border-gray-300 rounded-xl hover:bg-gray-50 text-gray-600">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
