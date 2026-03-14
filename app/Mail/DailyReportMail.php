@@ -17,8 +17,8 @@ class DailyReportMail extends Mailable
     use Queueable, SerializesModels;
 
     public function __construct(
-        public readonly int $companyId,
-        public readonly string $date,
+        public int $companyId,
+        public string $date,
     ) {}
 
     public function envelope(): Envelope
