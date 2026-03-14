@@ -43,8 +43,8 @@ class SendDailyReports extends Command
             try {
                 $reportData = $this->reportService->generateForCompany($company, $date);
 
-                if (!$reportData->hasActivity) {
-                    $this->line("- {$company->name}: Fara activitate");
+                if (!$reportData->hasActivity && !$reportData->hasReservations) {
+                    $this->line("- {$company->name}: Fara activitate si fara rezervari azi");
                     $skipped++;
                     continue;
                 }

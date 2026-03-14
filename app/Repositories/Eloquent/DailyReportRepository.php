@@ -2,6 +2,8 @@
 
 namespace App\Repositories\Eloquent;
 
+use App\Models\BirthdayReservation;
+use App\Models\Company;
 use App\Models\Location;
 use App\Models\PlaySession;
 use App\Models\StandaloneReceipt;
@@ -31,6 +33,18 @@ class DailyReportRepository implements DailyReportRepositoryInterface
             ->whereNotNull('paid_at')
             ->whereBetween('paid_at', [$startOfDay, $endOfDay])
             ->with(['items', 'voucherUsages'])
+            ->get();
+    }
+
+    public function getReservationsForCompany(Company $company, Carbon $date): Collection
+    {
+        $locationIds = $company->locations()->where('is_active', true)->pluck('id');
+
+        return BirthdayReservation::whereIn('location_id', $locationIds)
+            ->whereDate('reservation_date', $date)
+            ->whereNotIn('status', ['cancelled'])
+            ->with(['location', 'birthdayPackage', 'birthdayHall', 'timeSlot'])
+            ->orderBy('reservation_time')
             ->get();
     }
 }

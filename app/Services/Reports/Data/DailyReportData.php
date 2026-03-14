@@ -12,7 +12,17 @@ class DailyReportData
         public readonly Company $company,
         public readonly Carbon $date,
         public readonly Collection $locationReports,
-        public readonly float $grandTotalMoney,
+
+        // Grand totals across all locations
+        public readonly float $grandCash,
+        public readonly float $grandCard,
+        public readonly float $grandVoucher,
+        public readonly float $grandTotal,
+
         public readonly bool $hasActivity,
+
+        // Today's reservations (date the email is sent)
+        public readonly Collection $todayReservations,
+        public readonly bool $hasReservations,
     ) {}
 }
