@@ -34,7 +34,7 @@ class DailyReportService
             }
 
             $hasActivity = $locationReports->contains(
-                fn(LocationReportData $r) => $r->totalSessions > 0 || $r->productsTotal > 0 || $r->packagesTotal > 0
+                fn(LocationReportData $r) => $r->totalSessions > 0 || $r->grandTotal > 0
             );
 
             $today = Carbon::today();

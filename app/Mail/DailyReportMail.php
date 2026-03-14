@@ -2,7 +2,9 @@
 
 namespace App\Mail;
 
-use App\Services\Reports\Data\DailyReportData;
+use App\Models\Company;
+use App\Services\Reports\DailyReportService;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Address;
@@ -15,22 +17,31 @@ class DailyReportMail extends Mailable
     use Queueable, SerializesModels;
 
     public function __construct(
-        public readonly DailyReportData $reportData,
+        public readonly int $companyId,
+        public readonly string $date,
     ) {}
 
     public function envelope(): Envelope
     {
+        $company = Company::find($this->companyId);
+        $dateFormatted = Carbon::parse($this->date)->format('d.m.Y');
+
         return new Envelope(
-            subject: "Raport zilnic {$this->reportData->company->name} — {$this->reportData->date->format('d.m.Y')}",
+            subject: "Raport zilnic {$company->name} — {$dateFormatted}",
             from: new Address(config('mail.from.address'), config('mail.from.name')),
         );
     }
 
     public function content(): Content
     {
+        $company = Company::with('locations')->find($this->companyId);
+        $date = Carbon::parse($this->date);
+
+        $reportData = app(DailyReportService::class)->generateForCompany($company, $date);
+
         return new Content(
             view: 'emails.daily-report',
-            with: ['reportData' => $this->reportData],
+            with: ['reportData' => $reportData],
         );
     }
 

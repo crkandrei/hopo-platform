@@ -21,7 +21,10 @@ class SendDailyReportEmail
             return;
         }
 
-        Mail::to($email)->queue(new DailyReportMail($reportData));
+        Mail::to($email)->queue(new DailyReportMail(
+            companyId: $company->id,
+            date: $reportData->date->toDateString(),
+        ));
 
         Log::info('Daily report email queued', [
             'company_id' => $company->id,
