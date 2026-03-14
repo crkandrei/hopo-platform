@@ -190,7 +190,11 @@ class DailyReportService
                 $itemCard = $receipt->payment_method === 'CARD' ? $itemCollected : 0.0;
 
                 $isPackage = str_contains(strtolower($item->source_type ?? ''), 'package');
-                $groups = &($isPackage ? $packageGroups : $productGroups);
+                if ($isPackage) {
+                    $groups = &$packageGroups;
+                } else {
+                    $groups = &$productGroups;
+                }
 
                 $name = $item->name;
                 if (!isset($groups[$name])) {
