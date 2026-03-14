@@ -31,7 +31,7 @@
         @endif
 
         @if(session('success'))
-            <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg auto-hide-alert">
                 <p class="text-green-800">{{ session('success') }}</p>
             </div>
         @endif

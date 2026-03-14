@@ -530,14 +530,14 @@
             <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50">
                 <div class="container mx-auto px-3 md:px-4 lg:px-6 py-4 md:py-6 lg:py-8">
                     @if(session('success'))
-                        <div class="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center">
+                        <div class="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center auto-hide-alert">
                             <i class="fas fa-check-circle mr-2"></i>
                             {{ session('success') }}
                         </div>
                     @endif
 
                     @if(session('error'))
-                        <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center">
+                        <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center auto-hide-alert">
                             <i class="fas fa-exclamation-circle mr-2"></i>
                             {{ session('error') }}
                         </div>
@@ -725,7 +725,7 @@
 
         // Auto-hide alerts after 5 seconds
         setTimeout(function() {
-            const alerts = document.querySelectorAll('.bg-green-50, .bg-red-50');
+            const alerts = document.querySelectorAll('.auto-hide-alert');
             alerts.forEach(function(alert) {
                 alert.style.transition = 'opacity 0.5s ease';
                 alert.style.opacity = '0';

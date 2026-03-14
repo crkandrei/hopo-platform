@@ -15,7 +15,7 @@
 
     {{-- Flash messages --}}
     @if(session('success'))
-        <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800 text-sm">
+        <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800 text-sm auto-hide-alert">
             {{ session('success') }}
         </div>
     @endif

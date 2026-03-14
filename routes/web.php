@@ -215,6 +215,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/subscriptions/{location}/create', [SubscriptionController::class, 'create'])->name('admin.subscriptions.create');
     Route::post('/admin/subscriptions/{location}', [SubscriptionController::class, 'store'])->name('admin.subscriptions.store');
     Route::get('/admin/subscriptions/{location}/history', [SubscriptionController::class, 'history'])->name('admin.subscriptions.history');
+    Route::get('/admin/subscriptions/{subscription}/edit', [SubscriptionController::class, 'edit'])->name('admin.subscriptions.edit');
+    Route::put('/admin/subscriptions/{subscription}', [SubscriptionController::class, 'update'])->name('admin.subscriptions.update');
 
     // Vouchers (per location)
     Route::get('/locations/{location}/vouchers/report', [App\Http\Controllers\VoucherController::class, 'report'])->name('locations.vouchers.report');

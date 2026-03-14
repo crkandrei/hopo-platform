@@ -118,6 +118,47 @@ class SubscriptionController extends Controller
             ->with('success', "Abonamentul pentru {$location->name} a fost activat cu succes.");
     }
 
+    public function edit(LocationSubscription $subscription)
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isSuperAdmin()) {
+            abort(403, 'Acces interzis.');
+        }
+
+        $subscription->load('location.company');
+
+        return view('subscriptions.edit', compact('subscription'));
+    }
+
+    public function update(Request $request, LocationSubscription $subscription)
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isSuperAdmin()) {
+            abort(403, 'Acces interzis.');
+        }
+
+        $validated = $request->validate([
+            'starts_at'      => 'required|date',
+            'expires_at'     => 'required|date|after:starts_at',
+            'price_paid'     => 'nullable|numeric|min:0',
+            'payment_method' => 'nullable|in:bank_transfer,cash,card,other',
+            'notes'          => 'nullable|string',
+        ]);
+
+        $expiresAt = Carbon::parse($validated['expires_at'])->setTime(2, 0, 0);
+
+        $subscription->update([
+            'starts_at'      => $validated['starts_at'],
+            'expires_at'     => $expiresAt,
+            'price_paid'     => $validated['price_paid'] ?? null,
+            'payment_method' => $validated['payment_method'] ?? null,
+            'notes'          => $validated['notes'] ?? null,
+        ]);
+
+        return redirect()->route('admin.subscriptions.history', $subscription->location)
+            ->with('success', 'Abonamentul a fost actualizat cu succes.');
+    }
+
     public function history(Location $location)
     {
         $user = Auth::user();
