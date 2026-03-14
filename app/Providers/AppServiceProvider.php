@@ -65,6 +65,9 @@ class AppServiceProvider extends ServiceProvider
             UsedDiskSpaceCheck::new()->warnWhenUsedSpaceIsAbovePercentage(70),
             QueueCheck::new(),
         ]);
+        Gate::define('viewPulse', function ($user) {
+            return $user->isSuperAdmin(); 
+        });
 
         Queue::failing(function (JobFailed $event) {
             $adminEmail = config('mail.from.address', 'contact@hopo.ro');
