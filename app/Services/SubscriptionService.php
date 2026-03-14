@@ -54,7 +54,7 @@ class SubscriptionService
             ->whereRaw('starts_at = (SELECT MAX(ls2.starts_at) FROM location_subscriptions ls2 WHERE ls2.location_id = location_subscriptions.location_id AND ls2.starts_at <= ?)', [$now])
             ->where('expires_at', '>=', $now)
             ->whereDate('expires_at', $now->copy()->addDays($days)->toDateString())
-            ->with(['location.company.users'])
+            ->with(['location.company.users.role'])
             ->get();
     }
 }
