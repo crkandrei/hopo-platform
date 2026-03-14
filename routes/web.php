@@ -7,6 +7,10 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SubscriptionExpiredController;
 use App\Http\Controllers\WebController;
 use Illuminate\Support\Facades\Route;
+use Spatie\Health\Http\Controllers\HealthCheckJsonResultsController;
+
+// Health check endpoint pentru monitoring extern
+Route::get('/health-check-results', HealthCheckJsonResultsController::class);
 
 // Contact form route - trebuie să fie accesibilă de oriunde (mutată înainte de rutele cu domeniu)
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
@@ -260,6 +264,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/anomalies', [App\Http\Controllers\AnomaliesController::class, 'index'])->name('anomalies.index');
     Route::post('/anomalies/scan', [App\Http\Controllers\AnomaliesController::class, 'scan'])->name('anomalies.scan');
     Route::get('/anomalies/{type}/sessions', [App\Http\Controllers\AnomaliesController::class, 'getSessions'])->name('anomalies.sessions');
+
+    // Monitoring dashboard (super admin only)
+    Route::get('/admin/monitoring', [App\Http\Controllers\Admin\MonitoringController::class, 'index'])->name('admin.monitoring.index');
     
     // Superadmin reports (super admin only)
     Route::get('/superadmin-reports', [App\Http\Controllers\SuperAdminReportsController::class, 'index'])->name('superadmin-reports.index');

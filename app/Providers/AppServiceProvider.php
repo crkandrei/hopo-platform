@@ -22,6 +22,11 @@ use App\Repositories\Eloquent\ChildRepository;
 use App\Repositories\Contracts\AuditLogRepositoryInterface;
 use App\Repositories\Eloquent\AuditLogRepository;
 use App\Services\SubscriptionService;
+use Spatie\Health\Facades\Health;
+use Spatie\Health\Checks\Checks\DatabaseCheck;
+use Spatie\Health\Checks\Checks\ScheduleCheck;
+use Spatie\Health\Checks\Checks\UsedDiskSpaceCheck;
+use Spatie\Health\Checks\Checks\QueueCheck;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -54,6 +59,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Health::checks([
+            DatabaseCheck::new(),
+            ScheduleCheck::new(),
+            UsedDiskSpaceCheck::new()->warnWhenUsedSpaceIsAbovePercentage(70),
+            QueueCheck::new(),
+        ]);
+
         Queue::failing(function (JobFailed $event) {
             $adminEmail = config('mail.from.address', 'contact@hopo.ro');
             $jobName = get_class($event->job);

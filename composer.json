@@ -8,9 +8,12 @@
     "require": {
         "php": "^8.2",
         "laravel/framework": "^12.0",
+        "laravel/pulse": "^1.7",
         "laravel/telescope": "^5.15",
         "laravel/tinker": "^2.10.1",
-        "resend/resend-laravel": "^1.1"
+        "resend/resend-laravel": "^1.1",
+        "sentry/sentry-laravel": "^4.22",
+        "spatie/laravel-health": "^1.39"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

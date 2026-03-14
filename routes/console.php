@@ -10,6 +10,12 @@ Artisan::command('inspire', function () {
 
 // Cron necesar pe server:
 // * * * * * php artisan schedule:run >> /dev/null 2>&1
+
+// Monitoring
+Schedule::command('pulse:check')->everyMinute();
+Schedule::command('health:queue-check-heartbeat')->everyMinute();
+Schedule::command('health:check')->everyMinute();
+
 Schedule::command('subscriptions:notify-expiring')->daily();
 
 Schedule::command('reports:send-daily')
