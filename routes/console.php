@@ -11,3 +11,17 @@ Artisan::command('inspire', function () {
 // Cron necesar pe server:
 // * * * * * php artisan schedule:run >> /dev/null 2>&1
 Schedule::command('subscriptions:notify-expiring')->daily();
+
+Schedule::command('reports:send-daily')
+    ->dailyAt('07:00')
+    ->timezone('Europe/Bucharest')
+    ->onSuccess(function () {
+        \Illuminate\Support\Facades\Log::info('Daily reports sent successfully');
+    })
+    ->onFailure(function () {
+        \Illuminate\Support\Facades\Log::error('Daily reports command failed');
+        \Illuminate\Support\Facades\Mail::raw(
+            'Daily reports command failed',
+            fn($m) => $m->to(config('mail.from.address'))->subject('[HOPO] Daily reports failed')
+        );
+    });

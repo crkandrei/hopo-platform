@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PlaySession;
-use App\Models\StandaloneReceipt;
 use App\Models\FiscalReceiptLog;
+use App\Models\PlaySession;
 use App\Models\PlaySessionProduct;
+use App\Models\StandaloneReceipt;
+use App\Models\User;
+use App\Models\Location;
 use App\Services\PricingService;
+use App\Services\Reports\DailyReportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -14,12 +17,10 @@ use Carbon\Carbon;
 
 class EndOfDayController extends Controller
 {
-    protected $pricingService;
-
-    public function __construct(PricingService $pricingService)
-    {
-        $this->pricingService = $pricingService;
-    }
+    public function __construct(
+        private PricingService $pricingService,
+        private DailyReportService $reportService,
+    ) {}
 
     /**
      * Show the end of day statistics page
@@ -31,11 +32,7 @@ class EndOfDayController extends Controller
             abort(403, 'Trebuie să fiți autentificat');
         }
 
-        // Get location - super admin can see all, others see their location
-        $locationId = null;
-        if (!$user->isSuperAdmin() && $user->location) {
-            $locationId = $user->location->id;
-        }
+        $location = $this->getLocation($user);
 
         // Get selected date or default to today
         $selectedDate = $request->input('date', Carbon::today()->format('Y-m-d'));
@@ -45,115 +42,40 @@ class EndOfDayController extends Controller
             $date = Carbon::today();
         }
 
-        // Get date range for selected date
+        $locationReport = $this->reportService->calculateLocationReport($location, $date);
+
+        // Also fetch standalone receipts for the view (standalone total is displayed separately)
         $startOfDay = $date->copy()->startOfDay();
         $endOfDay = $date->copy()->endOfDay();
-
-        // Get all sessions started today
-        $sessionsQuery = PlaySession::where('started_at', '>=', $startOfDay)
-            ->where('started_at', '<=', $endOfDay);
-
-        if ($locationId) {
-            $sessionsQuery->where('location_id', $locationId);
-        }
-
-        $sessionsToday = $sessionsQuery->get();
-
-        // Calculate statistics
-        $totalSessions = $sessionsToday->count();
-        
-        // Calculate payment breakdown: cash, card, voucher
-        $cashTotal = 0;
-        $cardTotal = 0;
-        $voucherTotal = 0;
-        
-        $endedSessions = $sessionsToday->whereNotNull('ended_at')->whereNotNull('calculated_price');
-        
-        foreach ($endedSessions as $session) {
-            if ($session->isPaid() && !$session->is_free) {
-                // Get total price (time + products)
-                $timePrice = $session->calculated_price ?? $session->calculatePrice();
-                $productsPrice = $session->getProductsTotalPrice();
-                $totalPrice = $timePrice + $productsPrice;
-                
-                $voucherPrice = $session->getVoucherPrice();
-                
-                // Add voucher value
-                if ($voucherPrice > 0) {
-                    $voucherTotal += $voucherPrice;
-                }
-                
-                // Amount collected = total price - voucher (voucher applies only to time)
-                $amountCollected = $totalPrice - $voucherPrice;
-                
-                // Add cash/card amount based on payment method
-                if ($session->payment_method === 'CASH') {
-                    $cashTotal += $amountCollected;
-                } elseif ($session->payment_method === 'CARD') {
-                    $cardTotal += $amountCollected;
-                } else {
-                    // If no payment method specified but session is paid, assume it's cash
-                    // This handles legacy data or sessions paid without fiscal receipt
-                    if ($amountCollected > 0) {
-                        $cashTotal += $amountCollected;
-                    }
-                }
-            }
-        }
-        
-        // Add standalone receipts (Bon Specific) paid on this date
-        $standaloneQuery = StandaloneReceipt::whereNotNull('paid_at')
-            ->whereBetween('paid_at', [$startOfDay, $endOfDay]);
-        if ($locationId) {
-            $standaloneQuery->where('location_id', $locationId);
-        }
-        $standaloneReceipts = $standaloneQuery->with(['items', 'voucherUsages'])->orderBy('paid_at')->get();
-        $standaloneTotal = $standaloneReceipts->sum('total_amount');
-        foreach ($standaloneReceipts as $receipt) {
-            $voucherDiscount = $receipt->getVoucherDiscount();
-            $amountCollected = max(0, (float) $receipt->total_amount - $voucherDiscount);
-
-            if ($voucherDiscount > 0) {
-                $voucherTotal += $voucherDiscount;
-            }
-
-            if ($receipt->payment_method === 'CASH') {
-                $cashTotal += $amountCollected;
-            } elseif ($receipt->payment_method === 'CARD') {
-                $cardTotal += $amountCollected;
-            } else {
-                if ($amountCollected > 0) {
-                    $cashTotal += $amountCollected;
-                }
-            }
-        }
-
-        // Total money = cash + card + voucher (total value, not just collected)
-        $totalMoney = $cashTotal + $cardTotal + $voucherTotal;
-
-        // Calculate total billed hours
-        $totalBilledHours = 0;
-        foreach ($sessionsToday as $session) {
-            if ($session->ended_at) {
-                $durationInHours = $this->pricingService->getDurationInHours($session);
-                $roundedHours = $this->pricingService->roundToHalfHour($durationInHours);
-                $totalBilledHours += $roundedHours;
-            }
-        }
+        $standaloneReceipts = StandaloneReceipt::where('location_id', $location->id)
+            ->whereNotNull('paid_at')
+            ->whereBetween('paid_at', [$startOfDay, $endOfDay])
+            ->with(['items', 'voucherUsages'])
+            ->orderBy('paid_at')
+            ->get();
+        $standaloneTotal = round($standaloneReceipts->sum('total_amount'), 2);
 
         return view('end-of-day.index', [
-            'totalSessions' => $totalSessions,
-            'totalMoney' => $totalMoney,
-            'totalBilledHours' => $totalBilledHours,
-            'cashTotal' => round($cashTotal, 2),
-            'cardTotal' => round($cardTotal, 2),
-            'voucherTotal' => round($voucherTotal, 2),
+            'totalSessions' => $locationReport->totalSessions,
+            'totalMoney' => $locationReport->totalMoney,
+            'totalBilledHours' => $locationReport->totalBilledHours,
+            'cashTotal' => $locationReport->cashTotal,
+            'cardTotal' => $locationReport->cardTotal,
+            'voucherTotal' => $locationReport->voucherTotal,
             'standaloneReceipts' => $standaloneReceipts,
-            'standaloneTotal' => round($standaloneTotal, 2),
-            'locationId' => $locationId,
+            'standaloneTotal' => $standaloneTotal,
+            'locationId' => $location->id,
             'selectedDate' => $date->format('Y-m-d'),
             'selectedDateFormatted' => $date->format('d.m.Y'),
         ]);
+    }
+
+    private function getLocation(User $user): Location
+    {
+        if (!$user->isSuperAdmin() && $user->location) {
+            return $user->location;
+        }
+        abort(403, 'Acces interzis');
     }
 
     /**

@@ -69,6 +69,24 @@
                 <label class="block text-sm font-medium text-gray-500 mb-1">Data creării</label>
                 <p class="text-lg text-gray-900">{{ $company->created_at->format('d.m.Y H:i') }}</p>
             </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-500 mb-1">Raport zilnic</label>
+                @if($company->daily_report_enabled)
+                    <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        Activ
+                    </span>
+                    @if($company->daily_report_last_sent_at)
+                        <p class="text-xs text-gray-600 mt-1">
+                            Ultima trimitere: {{ $company->daily_report_last_sent_at->format('d.m.Y H:i') }}
+                        </p>
+                    @endif
+                @else
+                    <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                        Inactiv
+                    </span>
+                @endif
+            </div>
         </div>
     </div>
 

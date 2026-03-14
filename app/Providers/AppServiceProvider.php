@@ -2,6 +2,12 @@
 
 namespace App\Providers;
 
+use App\Events\DailyReportGenerated;
+use App\Listeners\SendDailyReportEmail;
+use App\Repositories\Contracts\DailyReportRepositoryInterface;
+use App\Repositories\Eloquent\DailyReportRepository;
+use App\Services\Reports\DailyReportService;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
@@ -41,7 +47,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PlaySessionRepositoryInterface::class, PlaySessionRepository::class);
         $this->app->bind(ChildRepositoryInterface::class, ChildRepository::class);
         $this->app->bind(AuditLogRepositoryInterface::class, AuditLogRepository::class);
+        $this->app->bind(DailyReportRepositoryInterface::class, DailyReportRepository::class);
         $this->app->singleton(SubscriptionService::class);
+        $this->app->singleton(DailyReportService::class);
     }
 
     /**
@@ -49,6 +57,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Event::listen(DailyReportGenerated::class, SendDailyReportEmail::class);
+
         Queue::failing(function (JobFailed $event) {
             $adminEmail = config('mail.from.address', 'contact@hopo.ro');
             $jobName = get_class($event->job);

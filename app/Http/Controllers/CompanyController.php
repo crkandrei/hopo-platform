@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use App\Support\ActionLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -43,8 +44,13 @@ class CompanyController extends Controller
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:255',
             'is_active' => 'boolean',
+            'daily_report_enabled' => 'boolean',
         ]);
-        
+
+        if (!Auth::user()->isSuperAdmin() && !Auth::user()->isCompanyAdmin()) {
+            unset($validated['daily_report_enabled']);
+        }
+
         $validated['slug'] = Str::slug($validated['name']);
         $validated['is_active'] = $validated['is_active'] ?? true;
         
@@ -96,8 +102,20 @@ class CompanyController extends Controller
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:255',
             'is_active' => 'boolean',
+            'daily_report_enabled' => 'boolean',
         ]);
-        
+
+        if (!Auth::user()->isSuperAdmin() && !Auth::user()->isCompanyAdmin()) {
+            unset($validated['daily_report_enabled']);
+        }
+
+        if (isset($validated['daily_report_enabled']) && $validated['daily_report_enabled'] !== $company->daily_report_enabled) {
+            ActionLogger::log('daily_report_enabled_changed', 'Company', $company->id, [
+                'from' => $company->daily_report_enabled,
+                'to' => $validated['daily_report_enabled'],
+            ]);
+        }
+
         // Update slug if name changed
         if ($company->name !== $validated['name']) {
             $newSlug = Str::slug($validated['name']);

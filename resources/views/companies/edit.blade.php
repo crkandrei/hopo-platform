@@ -76,14 +76,33 @@
                 <!-- Is Active -->
                 <div>
                     <label class="flex items-center">
-                        <input type="checkbox" 
-                               name="is_active" 
+                        <input type="checkbox"
+                               name="is_active"
                                value="1"
                                {{ old('is_active', $company->is_active) ? 'checked' : '' }}
                                class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
                         <span class="ml-2 text-sm text-gray-700">Companie activă</span>
                     </label>
                 </div>
+
+                <!-- Daily Report Enabled -->
+                @if(Auth::user()->isSuperAdmin() || Auth::user()->isCompanyAdmin())
+                <div class="mt-2 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <label class="flex items-center">
+                        <input type="checkbox"
+                               name="daily_report_enabled"
+                               value="1"
+                               {{ old('daily_report_enabled', $company->daily_report_enabled) ? 'checked' : '' }}
+                               class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <span class="ml-3">
+                            <span class="block text-sm font-medium text-gray-900">Activează raport zilnic pe email</span>
+                            <span class="block text-xs text-gray-600 mt-1">
+                                Raportul zilei precedente va fi trimis zilnic la 07:00 pe adresa de email a companiei
+                            </span>
+                        </span>
+                    </label>
+                </div>
+                @endif
 
                 <!-- Submit Button -->
                 <div class="flex justify-end gap-4">

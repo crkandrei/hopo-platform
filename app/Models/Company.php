@@ -15,10 +15,14 @@ class Company extends Model
         'email',
         'phone',
         'is_active',
+        'daily_report_enabled',
+        'daily_report_email',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'daily_report_enabled' => 'boolean',
+        'daily_report_last_sent_at' => 'datetime',
     ];
 
     public function locations(): HasMany
@@ -33,8 +37,23 @@ class Company extends Model
     
     public function admins(): HasMany
     {
-        return $this->users()->whereHas('role', fn($q) => 
+        return $this->users()->whereHas('role', fn($q) =>
             $q->where('name', 'COMPANY_ADMIN')
         );
+    }
+
+    public function isDailyReportEnabled(): bool
+    {
+        return $this->daily_report_enabled;
+    }
+
+    public function getDailyReportEmail(): ?string
+    {
+        return $this->daily_report_email ?? $this->email;
+    }
+
+    public function markDailyReportSent(): void
+    {
+        $this->update(['daily_report_last_sent_at' => now()]);
     }
 }
