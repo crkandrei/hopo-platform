@@ -38,6 +38,9 @@ return [
     'fiscal_bridge' => [
         'url' => env('FISCAL_BRIDGE_URL', 'http://localhost:9000'),
     ],
+    'sentry' => [
+        'org_url' => env('SENTRY_ORG_URL', 'https://sentry.io/organizations/hopo'),
+    ],
 
     'contact' => [
         'recipient' => env('CONTACT_FORM_RECIPIENT', env('MAIL_FROM_ADDRESS', 'contact@hopo.ro')),

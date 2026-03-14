@@ -282,8 +282,8 @@
                 <span class="text-xs font-medium text-gray-700 text-center">Health JSON</span>
             </a>
 
-            @if(env('SENTRY_ORG_URL'))
-            <a href="{{ env('SENTRY_ORG_URL') }}" target="_blank" rel="noopener noreferrer"
+            @if(config('services.sentry.org_url'))
+            <a href="{{ config('services.sentry.org_url') }}" target="_blank" rel="noopener noreferrer"
                class="flex flex-col items-center gap-2 p-4 rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-colors group">
                 <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center group-hover:bg-purple-200 transition-colors">
                     <i class="fas fa-bug text-purple-600"></i>
@@ -296,7 +296,7 @@
                     <i class="fas fa-bug text-gray-400"></i>
                 </div>
                 <span class="text-xs font-medium text-gray-400 text-center">Sentry</span>
-                <span class="text-[10px] text-gray-400">(SENTRY_ORG_URL lipsă)</span>
+                <span class="text-[10px] text-gray-400">(SENTRY_ORG_URL nesetat)</span>
             </div>
             @endif
 
