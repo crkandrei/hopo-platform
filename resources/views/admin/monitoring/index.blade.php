@@ -266,14 +266,6 @@
                 <span class="text-xs font-medium text-gray-700 text-center">Pulse Dashboard</span>
             </a>
 
-            <a href="/telescope" target="_blank"
-               class="flex flex-col items-center gap-2 p-4 rounded-lg border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition-colors group">
-                <div class="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center group-hover:bg-indigo-200 transition-colors">
-                    <i class="fas fa-telescope text-indigo-600"></i>
-                </div>
-                <span class="text-xs font-medium text-gray-700 text-center">Telescope</span>
-            </a>
-
             <a href="/health-check-results" target="_blank"
                class="flex flex-col items-center gap-2 p-4 rounded-lg border border-gray-200 hover:border-green-300 hover:bg-green-50 transition-colors group">
                 <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center group-hover:bg-green-200 transition-colors">
