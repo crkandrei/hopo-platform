@@ -366,13 +366,29 @@
                         <span class="sidebar-text">Locații</span>
                     </a>
 
-                    <a href="{{ route('admin.subscriptions.index') }}"
-                       data-title="Abonamente"
-                       class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
-                              {{ request()->routeIs('admin.subscriptions.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
-                        <i class="fas fa-credit-card sidebar-icon mr-3"></i>
-                        <span class="sidebar-text">Abonamente</span>
-                    </a>
+                    <!-- Abonamente Menu -->
+                    <div class="relative" id="subscriptions-menu">
+                        <button id="subscriptions-menu-btn"
+                                class="w-full flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.subscriptions.*') || request()->routeIs('admin.subscription-plans.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                            <div class="flex items-center">
+                                <i class="fas fa-credit-card sidebar-icon mr-3"></i>
+                                <span class="sidebar-text">Abonamente</span>
+                            </div>
+                            <i id="subscriptions-menu-arrow" class="fas fa-chevron-down text-xs transition-transform {{ request()->routeIs('admin.subscriptions.*') || request()->routeIs('admin.subscription-plans.*') ? 'rotate-180' : '' }}"></i>
+                        </button>
+                        <div id="subscriptions-submenu" class="ml-4 mt-2 space-y-1 {{ request()->routeIs('admin.subscriptions.*') || request()->routeIs('admin.subscription-plans.*') ? '' : 'hidden' }}">
+                            <a href="{{ route('admin.subscriptions.index') }}"
+                               class="flex items-center px-4 py-2 text-sm rounded-lg transition-colors {{ request()->routeIs('admin.subscriptions.*') ? 'bg-sky-500 text-white' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
+                                <i class="fas fa-map-marker-alt mr-2 text-xs"></i>
+                                <span class="sidebar-text">Locații</span>
+                            </a>
+                            <a href="{{ route('admin.subscription-plans.index') }}"
+                               class="flex items-center px-4 py-2 text-sm rounded-lg transition-colors {{ request()->routeIs('admin.subscription-plans.*') ? 'bg-sky-500 text-white' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
+                                <i class="fas fa-layer-group mr-2 text-xs"></i>
+                                <span class="sidebar-text">Planuri</span>
+                            </a>
+                        </div>
+                    </div>
 
                     <a href="{{ route('users.index') }}" 
                        data-title="Utilizatori"
@@ -479,7 +495,24 @@
                             @endif
                         </div>
                         @endif
-                        
+
+                        <!-- Documentation Button -->
+                        @php
+                            $docsUrl = null;
+                            if ($currentUser && $currentUser->isStaff()) {
+                                $docsUrl = config('docs.agent_url');
+                            } elseif ($currentUser && $currentUser->isCompanyAdmin()) {
+                                $docsUrl = config('docs.company_admin_url');
+                            }
+                        @endphp
+                        @if($docsUrl)
+                        <a href="{{ $docsUrl }}" target="_blank" rel="noopener noreferrer"
+                           title="Documentație"
+                           class="flex items-center justify-center w-8 h-8 text-gray-500 hover:text-sky-600 hover:bg-gray-100 rounded-full transition-colors">
+                            <i class="fas fa-question-circle text-lg"></i>
+                        </a>
+                        @endif
+
                         <!-- User Menu -->
                         <div class="relative">
                             <button id="user-menu-button" class="flex items-center space-x-2 md:space-x-3 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">
@@ -739,6 +772,21 @@
                 }, 500);
             });
         }, 5000);
+
+        // Abonamente menu toggle
+        const subscriptionsMenuBtn = document.getElementById('subscriptions-menu-btn');
+        const subscriptionsSubmenu = document.getElementById('subscriptions-submenu');
+        const subscriptionsMenuArrow = document.getElementById('subscriptions-menu-arrow');
+
+        if (subscriptionsMenuBtn && subscriptionsSubmenu) {
+            subscriptionsMenuBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                subscriptionsSubmenu.classList.toggle('hidden');
+                if (subscriptionsMenuArrow) {
+                    subscriptionsMenuArrow.classList.toggle('rotate-180');
+                }
+            });
+        }
 
         // Loguri menu toggle
         const logsMenuBtn = document.getElementById('logs-menu-btn');

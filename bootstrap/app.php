@@ -34,9 +34,11 @@ return Application::configure(basePath: dirname(__DIR__))
         
         // Exclude dashboard-api and reports-api routes from CSRF verification
         // scan-api routes now require CSRF token (session no longer regenerates)
+        // stripe/webhook uses its own signature verification
         $middleware->validateCsrfTokens(except: [
             'dashboard-api/*',
             'reports-api/*',
+            'stripe/webhook',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

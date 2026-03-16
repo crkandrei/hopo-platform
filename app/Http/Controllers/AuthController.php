@@ -18,9 +18,9 @@ class AuthController extends Controller
         if (Auth::check()) {
             $user = Auth::user();
             if ($user->isStaff()) {
-                return redirect(($user->location && !$user->location->bracelet_required) ? 'https://app.hopo.ro/start-session' : 'https://app.hopo.ro/scan');
+                return redirect(($user->location && !$user->location->bracelet_required) ? url('/start-session') : url('/scan'));
             }
-            return redirect('https://app.hopo.ro/dashboard');
+            return redirect(url('/dashboard'));
         }
 
         return view('auth.login');
@@ -59,11 +59,11 @@ class AuthController extends Controller
         
         // Redirect bazat pe rol
         if ($user->isStaff()) {
-            $destination = ($user->location && !$user->location->bracelet_required) ? 'https://app.hopo.ro/start-session' : 'https://app.hopo.ro/scan';
+            $destination = ($user->location && !$user->location->bracelet_required) ? url('/start-session') : url('/scan');
             return redirect()->intended($destination);
         }
 
-        return redirect()->intended('https://app.hopo.ro/dashboard');
+        return redirect()->intended(url('/dashboard'));
     }
 
     /**
@@ -76,7 +76,7 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         
-        return redirect('https://app.hopo.ro/login');
+        return redirect(url('/login'));
     }
 
     /**

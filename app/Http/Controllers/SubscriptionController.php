@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\SubscriptionActivated;
 use App\Models\Location;
 use App\Models\LocationSubscription;
 use App\Services\SubscriptionService;
@@ -61,6 +62,7 @@ class SubscriptionController extends Controller
                 'status'         => $status,
                 'expires_at'     => $expiresAt,
                 'days_remaining' => $daysRemaining,
+                'payment_source' => $subscription?->payment_source,
             ];
         });
 
@@ -103,16 +105,19 @@ class SubscriptionController extends Controller
 
         $expiresAt = Carbon::parse($validated['expires_at'])->setTime(2, 0, 0);
 
-        LocationSubscription::create([
+        $subscription = LocationSubscription::create([
             'location_id'    => $location->id,
             'plan_type'      => 'standard',
             'starts_at'      => $validated['starts_at'],
             'expires_at'     => $expiresAt,
             'price_paid'     => $validated['price_paid'] ?? null,
             'payment_method' => $validated['payment_method'] ?? null,
+            'payment_source' => 'manual',
             'notes'          => $validated['notes'] ?? null,
             'created_by'     => Auth::id(),
         ]);
+
+        SubscriptionActivated::dispatch($subscription, 'manual');
 
         return redirect()->route('admin.subscriptions.index')
             ->with('success', "Abonamentul pentru {$location->name} a fost activat cu succes.");

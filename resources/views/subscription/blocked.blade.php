@@ -23,6 +23,15 @@
             <p class="text-gray-600 mb-6">Niciun abonament activ găsit.</p>
         @endif
 
+        @if(auth()->user()->isCompanyAdmin())
+            <div class="mb-6">
+                <a href="{{ route('checkout.plans') }}"
+                   class="w-full inline-block px-4 py-3 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 transition-colors">
+                    Reînnoiește abonamentul
+                </a>
+            </div>
+        @endif
+
         <div class="bg-gray-50 rounded-xl p-4 mb-6 text-sm text-gray-600">
             <p class="font-semibold text-gray-800 mb-1">Contact pentru reînnoire abonament:</p>
             <p>contact@hopo.ro &middot; 0700 000 000</p>

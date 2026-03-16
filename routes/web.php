@@ -1,8 +1,11 @@
 <?php
 
+use App\Http\Controllers\Admin\SubscriptionPlanController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BirthdayReservationActionController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SubscriptionExpiredController;
 use App\Http\Controllers\WebController;
@@ -271,6 +274,21 @@ Route::middleware('auth')->group(function () {
     // Superadmin reports (super admin only)
     Route::get('/superadmin-reports', [App\Http\Controllers\SuperAdminReportsController::class, 'index'])->name('superadmin-reports.index');
     Route::get('/superadmin-reports/data', [App\Http\Controllers\SuperAdminReportsController::class, 'data'])->name('superadmin-reports.data');
+});
+
+// Stripe Webhook (public, no auth, no CSRF — verified via Stripe signature)
+Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle'])->name('stripe.webhook');
+
+// Checkout (company admin)
+Route::middleware('auth')->group(function () {
+    Route::get('/checkout/plans', [CheckoutController::class, 'plans'])->name('checkout.plans');
+    Route::post('/checkout/session', [CheckoutController::class, 'createSession'])->name('checkout.session');
+    Route::get('/payment/success', [CheckoutController::class, 'success'])->name('payment.success');
+});
+
+// Admin subscription plan management (super admin)
+Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
+    Route::resource('subscription-plans', SubscriptionPlanController::class);
 });
 
 // Legal documents accessible without authentication

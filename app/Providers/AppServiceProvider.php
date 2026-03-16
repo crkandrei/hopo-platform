@@ -2,9 +2,17 @@
 
 namespace App\Providers;
 
+use App\Contracts\PaymentGatewayInterface;
+use App\Events\SubscriptionActivated;
+use App\Events\SubscriptionPaymentFailed;
+use App\Listeners\LogSubscriptionActivation;
+use App\Listeners\NotifyAdminOnPaymentFailed;
+use App\Listeners\NotifyAdminOnSubscriptionActivated;
 use App\Repositories\Contracts\DailyReportRepositoryInterface;
 use App\Repositories\Eloquent\DailyReportRepository;
 use App\Services\Reports\DailyReportService;
+use App\Services\StripePaymentService;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
@@ -52,6 +60,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(DailyReportRepositoryInterface::class, DailyReportRepository::class);
         $this->app->singleton(SubscriptionService::class);
         $this->app->singleton(DailyReportService::class);
+        $this->app->singleton(PaymentGatewayInterface::class, StripePaymentService::class);
     }
 
     /**
@@ -59,6 +68,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Event::listen(SubscriptionActivated::class, NotifyAdminOnSubscriptionActivated::class);
+        Event::listen(SubscriptionActivated::class, LogSubscriptionActivation::class);
+        Event::listen(SubscriptionPaymentFailed::class, NotifyAdminOnPaymentFailed::class);
+
         Health::checks([
             DatabaseCheck::new(),
             ScheduleCheck::new(),

@@ -33,6 +33,9 @@ class CheckLocationSubscription
             'legal.*',
             'location-context.*',
             'admin.subscriptions.*',
+            'checkout.*',
+            'payment.*',
+            'stripe.*',
         ];
 
         if ($request->routeIs(...$excludedRoutes)) {

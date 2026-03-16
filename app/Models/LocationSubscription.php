@@ -9,11 +9,15 @@ class LocationSubscription extends Model
 {
     protected $fillable = [
         'location_id',
+        'plan_id',
         'plan_type',
         'starts_at',
         'expires_at',
         'price_paid',
         'payment_method',
+        'payment_source',
+        'stripe_session_id',
+        'stripe_payment_id',
         'notes',
         'created_by',
     ];
