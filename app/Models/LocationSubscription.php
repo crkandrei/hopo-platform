@@ -33,6 +33,11 @@ class LocationSubscription extends Model
         return $this->belongsTo(Location::class);
     }
 
+    public function plan(): BelongsTo
+    {
+        return $this->belongsTo(SubscriptionPlan::class, 'plan_id');
+    }
+
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

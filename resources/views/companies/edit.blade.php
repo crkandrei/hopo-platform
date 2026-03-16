@@ -104,6 +104,33 @@
                 </div>
                 @endif
 
+                <!-- Planuri abonament disponibile (super admin only) -->
+                @if(Auth::user()->isSuperAdmin() && $allPlans->isNotEmpty())
+                <div class="mt-2 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                    <label class="block text-sm font-medium text-gray-900 mb-1">
+                        Planuri de abonament disponibile
+                    </label>
+                    <p class="text-xs text-gray-500 mb-3">
+                        Selectează ce planuri poate alege această companie la checkout. Dacă nu selectezi nimic, vor fi disponibile toate planurile active.
+                    </p>
+                    <div class="space-y-2">
+                        @foreach($allPlans as $plan)
+                            <label class="flex items-center gap-3">
+                                <input type="checkbox"
+                                       name="subscription_plan_ids[]"
+                                       value="{{ $plan->id }}"
+                                       {{ in_array($plan->id, $selectedPlanIds) ? 'checked' : '' }}
+                                       class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                <span class="text-sm text-gray-700">
+                                    <span class="font-medium">{{ $plan->name }}</span>
+                                    <span class="text-gray-400 ml-1">— {{ number_format($plan->price, 0, ',', '.') }} RON / {{ $plan->duration_months }} {{ $plan->duration_months === 1 ? 'lună' : 'luni' }}</span>
+                                </span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
                 <!-- Submit Button -->
                 <div class="flex justify-end gap-4">
                     <a href="{{ route('companies.index') }}" 

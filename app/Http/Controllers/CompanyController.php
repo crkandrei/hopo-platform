@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use App\Models\SubscriptionPlan;
 use App\Support\ActionLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -86,8 +87,11 @@ class CompanyController extends Controller
     public function edit(Company $company)
     {
         $this->authorize('update', $company);
-        
-        return view('companies.edit', compact('company'));
+
+        $allPlans = SubscriptionPlan::active()->orderBy('sort_order')->get();
+        $selectedPlanIds = $company->subscriptionPlans()->pluck('subscription_plan_id')->toArray();
+
+        return view('companies.edit', compact('company', 'allPlans', 'selectedPlanIds'));
     }
 
     /**
@@ -103,6 +107,8 @@ class CompanyController extends Controller
             'phone' => 'nullable|string|max:255',
             'is_active' => 'boolean',
             'daily_report_enabled' => 'boolean',
+            'subscription_plan_ids' => 'nullable|array',
+            'subscription_plan_ids.*' => 'integer|exists:subscription_plans,id',
         ]);
 
         if (!Auth::user()->isSuperAdmin() && !Auth::user()->isCompanyAdmin()) {
@@ -127,9 +133,14 @@ class CompanyController extends Controller
             }
             $validated['slug'] = $newSlug;
         }
-        
+
         $company->update($validated);
-        
+
+        // Sync planuri abonament (doar super admin)
+        if (Auth::user()->isSuperAdmin()) {
+            $company->subscriptionPlans()->sync($validated['subscription_plan_ids'] ?? []);
+        }
+
         return redirect()->route('companies.index')
             ->with('success', 'Compania a fost actualizată cu succes');
     }

@@ -4,7 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\SubscriptionPlan;
 
 class Company extends Model
 {
@@ -28,6 +30,11 @@ class Company extends Model
     public function locations(): HasMany
     {
         return $this->hasMany(Location::class);
+    }
+
+    public function subscriptionPlans(): BelongsToMany
+    {
+        return $this->belongsToMany(SubscriptionPlan::class, 'company_subscription_plans');
     }
 
     public function users(): HasMany

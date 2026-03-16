@@ -22,7 +22,18 @@ class CheckoutController extends Controller
             abort(403, 'Acces interzis.');
         }
 
-        $plans = SubscriptionPlan::active()->orderBy('sort_order')->get();
+        $company = app('current.company');
+
+        // Dacă compania are planuri specifice configurate, le arătăm doar pe alea
+        // Altfel fallback la toate planurile active
+        if ($company && $company->subscriptionPlans()->exists()) {
+            $plans = $company->subscriptionPlans()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->get();
+        } else {
+            $plans = SubscriptionPlan::active()->orderBy('sort_order')->get();
+        }
 
         return view('checkout.plans', compact('plans'));
     }
