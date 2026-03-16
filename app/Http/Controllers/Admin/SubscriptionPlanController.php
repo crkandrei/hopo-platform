@@ -93,6 +93,7 @@ class SubscriptionPlanController extends Controller
         ]);
 
         $priceChanged = (float) $subscriptionPlan->price !== (float) $validated['price'];
+        $nameChanged  = $subscriptionPlan->name !== $validated['name'];
 
         $subscriptionPlan->update([
             'name'            => $validated['name'],
@@ -102,23 +103,26 @@ class SubscriptionPlanController extends Controller
             'sort_order'      => $validated['sort_order'] ?? $subscriptionPlan->sort_order,
         ]);
 
-        if ($priceChanged) {
-            try {
-                // Archive old price, create new one
+        try {
+            if ($priceChanged) {
+                // Arhivează prețul vechi și creează produs+preț nou
                 $this->gateway->archivePlan($subscriptionPlan);
                 $stripeIds = $this->gateway->createPlan($subscriptionPlan->fresh());
                 $subscriptionPlan->update([
                     'stripe_product_id' => $stripeIds['product_id'],
                     'stripe_price_id'   => $stripeIds['price_id'],
                 ]);
-            } catch (\Throwable $e) {
-                Log::error('SubscriptionPlanController: Stripe sync failed on update', [
-                    'plan_id' => $subscriptionPlan->id,
-                    'error'   => $e->getMessage(),
-                ]);
-                return redirect()->route('admin.subscription-plans.index')
-                    ->with('warning', "Planul a fost actualizat local, dar sincronizarea cu Stripe a eșuat: {$e->getMessage()}");
+            } elseif ($nameChanged) {
+                // Actualizează doar numele produsului în Stripe
+                $this->gateway->updatePlanName($subscriptionPlan->fresh());
             }
+        } catch (\Throwable $e) {
+            Log::error('SubscriptionPlanController: Stripe sync failed on update', [
+                'plan_id' => $subscriptionPlan->id,
+                'error'   => $e->getMessage(),
+            ]);
+            return redirect()->route('admin.subscription-plans.index')
+                ->with('warning', "Planul a fost actualizat local, dar sincronizarea cu Stripe a eșuat: {$e->getMessage()}");
         }
 
         return redirect()->route('admin.subscription-plans.index')

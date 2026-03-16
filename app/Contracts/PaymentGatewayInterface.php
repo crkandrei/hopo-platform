@@ -20,6 +20,11 @@ interface PaymentGatewayInterface
     public function createPlan(SubscriptionPlan $plan): array;
 
     /**
+     * Update the product name on the payment gateway.
+     */
+    public function updatePlanName(SubscriptionPlan $plan): void;
+
+    /**
      * Archive/deactivate a plan on the payment gateway.
      */
     public function archivePlan(SubscriptionPlan $plan): void;

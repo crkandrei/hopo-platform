@@ -80,6 +80,26 @@ class StripePaymentService implements PaymentGatewayInterface
         }
     }
 
+    public function updatePlanName(SubscriptionPlan $plan): void
+    {
+        if (!$plan->stripe_product_id) {
+            return;
+        }
+
+        try {
+            Product::update($plan->stripe_product_id, [
+                'name'        => $plan->name,
+                'description' => "Abonament {$plan->name} — {$plan->duration_months} luni",
+            ]);
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            Log::error('Stripe updatePlanName failed', [
+                'plan_id' => $plan->id,
+                'error'   => $e->getMessage(),
+            ]);
+            throw $e;
+        }
+    }
+
     public function archivePlan(SubscriptionPlan $plan): void
     {
         try {
