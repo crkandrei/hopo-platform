@@ -65,6 +65,7 @@
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
                 @forelse($locations as $item)
+                    @php $status = $item['status']; @endphp
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="font-semibold text-gray-900">{{ $item['location']->name }}</div>
@@ -74,7 +75,6 @@
                             {{ $item['location']->company->name ?? '—' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            @php $status = $item['status']; @endphp
                             @if($status === 'active')
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">● Activ</span>
                             @elseif($status === 'grace')
@@ -100,15 +100,35 @@
                                 <span class="text-gray-400 text-sm">—</span>
                             @endif
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                            <a href="{{ route('admin.subscriptions.history', $item['location']) }}"
-                               class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">
-                                Istoric
-                            </a>
-                            <a href="{{ route('admin.subscriptions.create', $item['location']) }}"
-                               class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">
-                                + Abonament
-                            </a>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="flex items-center justify-end gap-2">
+                                <a href="{{ route('admin.subscriptions.history', $item['location']) }}"
+                                   class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">
+                                    Istoric
+                                </a>
+
+                                @if($item['subscription'] && in_array($status, ['active', 'grace']))
+                                    <a href="{{ route('admin.subscriptions.edit', $item['subscription']) }}"
+                                       class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium border border-indigo-300 text-indigo-700 hover:bg-indigo-50 transition-colors">
+                                        ✏️ Editează
+                                    </a>
+
+                                    <form method="POST"
+                                          action="{{ route('admin.subscriptions.suspend', $item['subscription']) }}"
+                                          onsubmit="return confirm('Ești sigur că vrei să suspendezi abonamentul pentru {{ addslashes($item['location']->name) }}?')">
+                                        @csrf
+                                        <button type="submit"
+                                                class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium border border-red-300 text-red-700 hover:bg-red-50 transition-colors">
+                                            ⏸ Suspendă
+                                        </button>
+                                    </form>
+                                @endif
+
+                                <a href="{{ route('admin.subscriptions.create', $item['location']) }}"
+                                   class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">
+                                    + Abonament
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 @empty

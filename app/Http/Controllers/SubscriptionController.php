@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\SubscriptionActivated;
 use App\Models\Location;
 use App\Models\LocationSubscription;
+use App\Models\SubscriptionPlan;
 use App\Services\SubscriptionService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -59,6 +60,7 @@ class SubscriptionController extends Controller
 
             return [
                 'location'       => $location,
+                'subscription'   => $subscription,
                 'status'         => $status,
                 'expires_at'     => $expiresAt,
                 'days_remaining' => $daysRemaining,
@@ -84,8 +86,9 @@ class SubscriptionController extends Controller
         }
 
         $location->load('company');
+        $plans = SubscriptionPlan::active()->orderBy('sort_order')->get();
 
-        return view('subscriptions.create', compact('location'));
+        return view('subscriptions.create', compact('location', 'plans'));
     }
 
     public function store(Request $request, Location $location)
@@ -96,21 +99,23 @@ class SubscriptionController extends Controller
         }
 
         $validated = $request->validate([
+            'plan_id'        => 'required|exists:subscription_plans,id',
             'starts_at'      => 'required|date',
             'expires_at'     => 'required|date|after:starts_at',
-            'price_paid'     => 'nullable|numeric|min:0',
             'payment_method' => 'nullable|in:bank_transfer,cash,card,other',
             'notes'          => 'nullable|string',
         ]);
 
+        $plan = SubscriptionPlan::findOrFail($validated['plan_id']);
         $expiresAt = Carbon::parse($validated['expires_at'])->setTime(2, 0, 0);
 
         $subscription = LocationSubscription::create([
             'location_id'    => $location->id,
+            'plan_id'        => $plan->id,
             'plan_type'      => 'standard',
             'starts_at'      => $validated['starts_at'],
             'expires_at'     => $expiresAt,
-            'price_paid'     => $validated['price_paid'] ?? null,
+            'price_paid'     => $plan->price,
             'payment_method' => $validated['payment_method'] ?? null,
             'payment_source' => 'manual',
             'notes'          => $validated['notes'] ?? null,
@@ -131,8 +136,9 @@ class SubscriptionController extends Controller
         }
 
         $subscription->load('location.company');
+        $plans = SubscriptionPlan::active()->orderBy('sort_order')->get();
 
-        return view('subscriptions.edit', compact('subscription'));
+        return view('subscriptions.edit', compact('subscription', 'plans'));
     }
 
     public function update(Request $request, LocationSubscription $subscription)
@@ -143,25 +149,43 @@ class SubscriptionController extends Controller
         }
 
         $validated = $request->validate([
+            'plan_id'        => 'required|exists:subscription_plans,id',
             'starts_at'      => 'required|date',
             'expires_at'     => 'required|date|after:starts_at',
-            'price_paid'     => 'nullable|numeric|min:0',
             'payment_method' => 'nullable|in:bank_transfer,cash,card,other',
             'notes'          => 'nullable|string',
         ]);
 
+        $plan = SubscriptionPlan::findOrFail($validated['plan_id']);
         $expiresAt = Carbon::parse($validated['expires_at'])->setTime(2, 0, 0);
 
         $subscription->update([
+            'plan_id'        => $plan->id,
             'starts_at'      => $validated['starts_at'],
             'expires_at'     => $expiresAt,
-            'price_paid'     => $validated['price_paid'] ?? null,
+            'price_paid'     => $plan->price,
             'payment_method' => $validated['payment_method'] ?? null,
             'notes'          => $validated['notes'] ?? null,
         ]);
 
         return redirect()->route('admin.subscriptions.history', $subscription->location)
             ->with('success', 'Abonamentul a fost actualizat cu succes.');
+    }
+
+    public function suspend(LocationSubscription $subscription)
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isSuperAdmin()) {
+            abort(403, 'Acces interzis.');
+        }
+
+        // Set expires_at in the past to immediately expire (outside grace period)
+        $subscription->update([
+            'expires_at' => Carbon::now()->subDays(8)->setTime(2, 0, 0),
+        ]);
+
+        return redirect()->route('admin.subscriptions.index')
+            ->with('success', "Abonamentul pentru {$subscription->location->name} a fost suspendat.");
     }
 
     public function history(Location $location)

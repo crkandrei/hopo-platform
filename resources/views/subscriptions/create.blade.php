@@ -28,6 +28,36 @@
         <form method="POST" action="{{ route('admin.subscriptions.store', $location) }}">
             @csrf
 
+            {{-- Plan selector --}}
+            <div class="mb-6">
+                <label for="plan_id" class="block text-sm font-medium text-gray-700 mb-1">
+                    Plan abonament <span class="text-red-500">*</span>
+                </label>
+                @if($plans->isEmpty())
+                    <div class="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+                        Nu există planuri active. Adăugați planuri în secțiunea Abonamente → Planuri.
+                    </div>
+                @else
+                    <select id="plan_id" name="plan_id" required
+                            onchange="onPlanChange(this)"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('plan_id') border-red-500 @enderror">
+                        <option value="">— Selectați un plan —</option>
+                        @foreach($plans as $plan)
+                            <option value="{{ $plan->id }}"
+                                    data-price="{{ $plan->price }}"
+                                    data-months="{{ $plan->duration_months }}"
+                                    {{ old('plan_id') == $plan->id ? 'selected' : '' }}>
+                                {{ $plan->name }} — {{ number_format($plan->price, 2) }} RON / {{ $plan->duration_months }} luni
+                            </option>
+                        @endforeach
+                    </select>
+                    <div id="plan-info" class="hidden mt-2 px-3 py-2 bg-indigo-50 border border-indigo-200 rounded-lg text-sm text-indigo-800"></div>
+                @endif
+                @error('plan_id')
+                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
                 {{-- starts_at --}}
@@ -38,6 +68,7 @@
                     <input type="date" id="starts_at" name="starts_at"
                            value="{{ old('starts_at', now()->toDateString()) }}"
                            required
+                           onchange="autoSetExpiry()"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('starts_at') border-red-500 @enderror">
                     @error('starts_at')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
@@ -54,34 +85,6 @@
                            required
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('expires_at') border-red-500 @enderror">
                     @error('expires_at')
-                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                    @enderror
-                    <div class="mt-2 flex gap-2">
-                        <button type="button" onclick="setDuration(1)"
-                                class="px-3 py-1 text-xs font-medium rounded-md border border-indigo-300 text-indigo-700 hover:bg-indigo-50 transition-colors">
-                            1 lună
-                        </button>
-                        <button type="button" onclick="setDuration(2)"
-                                class="px-3 py-1 text-xs font-medium rounded-md border border-indigo-300 text-indigo-700 hover:bg-indigo-50 transition-colors">
-                            2 luni
-                        </button>
-                        <button type="button" onclick="setDuration(12)"
-                                class="px-3 py-1 text-xs font-medium rounded-md border border-indigo-300 text-indigo-700 hover:bg-indigo-50 transition-colors">
-                            1 an
-                        </button>
-                    </div>
-                </div>
-
-                {{-- price_paid --}}
-                <div>
-                    <label for="price_paid" class="block text-sm font-medium text-gray-700 mb-1">
-                        Preț plătit (RON)
-                    </label>
-                    <input type="number" id="price_paid" name="price_paid"
-                           value="{{ old('price_paid') }}"
-                           step="0.01" min="0"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('price_paid') border-red-500 @enderror">
-                    @error('price_paid')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
@@ -136,11 +139,31 @@
 </div>
 
 <script>
-function setDuration(months) {
+let selectedMonths = null;
+
+function onPlanChange(select) {
+    const option = select.options[select.selectedIndex];
+    const price = option.dataset.price;
+    const months = option.dataset.months;
+    const info = document.getElementById('plan-info');
+
+    if (select.value) {
+        selectedMonths = parseInt(months);
+        info.textContent = `Preț: ${parseFloat(price).toFixed(2)} RON · Durată: ${months} luni`;
+        info.classList.remove('hidden');
+        autoSetExpiry();
+    } else {
+        selectedMonths = null;
+        info.classList.add('hidden');
+    }
+}
+
+function autoSetExpiry() {
+    if (!selectedMonths) return;
     const start = document.getElementById('starts_at').value;
     if (!start) return;
     const date = new Date(start);
-    date.setMonth(date.getMonth() + months);
+    date.setMonth(date.getMonth() + selectedMonths);
     document.getElementById('expires_at').value = date.toISOString().split('T')[0];
 }
 </script>

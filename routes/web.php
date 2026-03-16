@@ -224,6 +224,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/subscriptions/{location}/history', [SubscriptionController::class, 'history'])->name('admin.subscriptions.history');
     Route::get('/admin/subscriptions/{subscription}/edit', [SubscriptionController::class, 'edit'])->name('admin.subscriptions.edit');
     Route::put('/admin/subscriptions/{subscription}', [SubscriptionController::class, 'update'])->name('admin.subscriptions.update');
+    Route::post('/admin/subscriptions/{subscription}/suspend', [SubscriptionController::class, 'suspend'])->name('admin.subscriptions.suspend');
 
     // Vouchers (per location)
     Route::get('/locations/{location}/vouchers/report', [App\Http\Controllers\VoucherController::class, 'report'])->name('locations.vouchers.report');
