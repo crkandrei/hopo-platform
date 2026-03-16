@@ -137,15 +137,11 @@
 
             {{-- Footer --}}
             <div class="mt-8 flex items-center justify-between gap-3">
-                <form method="POST"
-                      action="{{ route('admin.subscriptions.suspend', $subscription) }}"
-                      onsubmit="return confirm('Ești sigur că vrei să suspendezi acest abonament?')">
-                    @csrf
-                    <button type="submit"
-                            class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium border border-red-300 text-red-700 hover:bg-red-50 transition-colors">
-                        ⏸ Suspendă abonament
-                    </button>
-                </form>
+                <button type="submit" form="suspend-form"
+                        onclick="return confirm('Ești sigur că vrei să suspendezi acest abonament?')"
+                        class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium border border-red-300 text-red-700 hover:bg-red-50 transition-colors">
+                    ⏸ Suspendă abonament
+                </button>
 
                 <div class="flex items-center gap-3">
                     <a href="{{ route('admin.subscriptions.history', $subscription->location) }}"
@@ -159,6 +155,12 @@
                 </div>
             </div>
 
+        </form>
+
+        {{-- Suspend form — outside main form to avoid nesting --}}
+        <form id="suspend-form" method="POST"
+              action="{{ route('admin.subscriptions.suspend', $subscription) }}">
+            @csrf
         </form>
     </div>
 
