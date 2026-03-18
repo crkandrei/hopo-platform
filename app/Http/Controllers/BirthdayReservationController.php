@@ -100,28 +100,41 @@ class BirthdayReservationController extends Controller
                 $dayEnd   = max($defaultEnd,   collect($intervals)->max('end_m')   ?? $defaultEnd);
                 $span     = $dayEnd - $dayStart;
 
-                $segments = [];
-                $pos = $dayStart;
-                foreach ($intervals as $iv) {
-                    if ($pos < $iv['start_m']) {
-                        $segments[] = ['type' => 'free', 'pct' => ($iv['start_m'] - $pos) / $span * 100];
-                    }
-                    $segments[] = [
-                        'type'       => 'occupied',
-                        'pct'        => ($iv['end_m'] - $iv['start_m']) / $span * 100,
-                        'start_lbl'  => $iv['start_lbl'],
-                        'end_lbl'    => $iv['end_lbl'],
-                        'child_name' => $iv['child_name'],
-                        'status'     => $iv['status'],
+                if ($span <= 0) {
+                    return [
+                        'columns'   => [['type' => 'free', 'pct' => 100]],
+                        'day_start' => sprintf('%02d:%02d', intdiv($dayStart, 60), $dayStart % 60),
+                        'day_end'   => sprintf('%02d:%02d', intdiv($dayEnd, 60), $dayEnd % 60),
                     ];
-                    $pos = max($pos, $iv['end_m']);
                 }
-                if ($pos < $dayEnd) {
-                    $segments[] = ['type' => 'free', 'pct' => ($dayEnd - $pos) / $span * 100];
+
+                $points = array_unique(array_merge(
+                    [$dayStart, $dayEnd],
+                    array_column($intervals, 'start_m'),
+                    array_column($intervals, 'end_m')
+                ));
+                sort($points);
+
+                $columns = [];
+                for ($i = 0; $i < count($points) - 1; $i++) {
+                    $colStart = $points[$i];
+                    $colEnd   = $points[$i + 1];
+                    $pct      = ($colEnd - $colStart) / $span * 100;
+
+                    $active = array_values(array_filter(
+                        $intervals,
+                        fn ($iv) => $iv['start_m'] <= $colStart && $iv['end_m'] >= $colEnd
+                    ));
+
+                    if (empty($active)) {
+                        $columns[] = ['type' => 'free', 'pct' => $pct];
+                    } else {
+                        $columns[] = ['type' => 'occupied', 'pct' => $pct, 'bands' => $active];
+                    }
                 }
 
                 return [
-                    'segments'  => $segments,
+                    'columns'   => $columns,
                     'day_start' => sprintf('%02d:%02d', intdiv($dayStart, 60), $dayStart % 60),
                     'day_end'   => sprintf('%02d:%02d', intdiv($dayEnd, 60), $dayEnd % 60),
                 ];

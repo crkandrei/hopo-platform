@@ -83,23 +83,27 @@
                     @if($timelineByHall->count() > 1)
                         <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{{ $hallName }}</p>
                     @endif
-                    <div class="relative w-full h-14 rounded-xl overflow-hidden flex border border-gray-200">
-                        @foreach($data['segments'] as $seg)
-                            @if($seg['type'] === 'free')
-                                <div style="width: {{ $seg['pct'] }}%" class="bg-emerald-100 flex-shrink-0"></div>
+                    <div class="relative w-full h-16 rounded-xl overflow-hidden flex border border-gray-200">
+                        @foreach($data['columns'] as $col)
+                            @if($col['type'] === 'free')
+                                <div style="width: {{ $col['pct'] }}%" class="bg-emerald-100 flex-shrink-0"></div>
                             @else
-                                @php
-                                    $bgClass   = $seg['status'] === 'confirmed' ? 'bg-indigo-500' : 'bg-yellow-400';
-                                    $textClass = $seg['status'] === 'confirmed' ? 'text-white' : 'text-gray-800';
-                                    $tooltip   = $seg['child_name'] . ' · ' . $seg['start_lbl'] . '–' . $seg['end_lbl'];
-                                @endphp
-                                <div style="width: {{ $seg['pct'] }}%"
-                                     class="{{ $bgClass }} flex-shrink-0 relative flex items-center justify-center overflow-hidden cursor-default"
-                                     title="{{ $tooltip }}">
-                                    <div class="absolute inset-0 opacity-20" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,.6) 4px, rgba(255,255,255,.6) 8px);"></div>
-                                    <span class="relative {{ $textClass }} text-xs font-semibold truncate px-2 leading-none text-center">
-                                        {{ $seg['child_name'] }}
-                                    </span>
+                                <div style="width: {{ $col['pct'] }}%" class="flex flex-col flex-shrink-0">
+                                    @foreach($col['bands'] as $band)
+                                        @php
+                                            $bgClass   = $band['status'] === 'confirmed' ? 'bg-indigo-500' : 'bg-yellow-400';
+                                            $textClass = $band['status'] === 'confirmed' ? 'text-white' : 'text-gray-800';
+                                            $tooltip   = $band['child_name'] . ' · ' . $band['start_lbl'] . '–' . $band['end_lbl'];
+                                        @endphp
+                                        <div class="{{ $bgClass }} flex-1 flex items-center justify-center overflow-hidden cursor-default relative"
+                                             style="border-bottom: 1px solid rgba(255,255,255,0.25);"
+                                             title="{{ $tooltip }}">
+                                            <div class="absolute inset-0 opacity-20" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,.6) 4px, rgba(255,255,255,.6) 8px);"></div>
+                                            <span class="relative {{ $textClass }} text-xs font-semibold truncate px-2 leading-none text-center">
+                                                {{ $band['child_name'] }}
+                                            </span>
+                                        </div>
+                                    @endforeach
                                 </div>
                             @endif
                         @endforeach
