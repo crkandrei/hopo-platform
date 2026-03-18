@@ -21,7 +21,7 @@ class ProductController extends Controller
         }
         
         $user = Auth::user();
-        $location = $user->location;
+        $location = app('current.location');
         
         if (!$location) {
             return redirect($this->getHomeRoute())->with('error', 'Utilizatorul nu este asociat cu nicio locație');
@@ -45,7 +45,7 @@ class ProductController extends Controller
         }
         
         $user = Auth::user();
-        $location = $user->location;
+        $location = app('current.location');
         
         if (!$location) {
             return redirect($this->getHomeRoute())->with('error', 'Utilizatorul nu este asociat cu nicio locație');
@@ -65,7 +65,7 @@ class ProductController extends Controller
         }
         
         $user = Auth::user();
-        $location = $user->location;
+        $location = app('current.location');
         
         if (!$location) {
             return ApiResponder::error('Utilizatorul nu este asociat cu nicio locație', 400);
@@ -105,7 +105,7 @@ class ProductController extends Controller
         }
         
         $user = Auth::user();
-        $location = $user->location;
+        $location = app('current.location');
         
         if (!$location) {
             return redirect($this->getHomeRoute())->with('error', 'Utilizatorul nu este asociat cu nicio locație');
@@ -129,7 +129,7 @@ class ProductController extends Controller
         }
         
         $user = Auth::user();
-        $location = $user->location;
+        $location = app('current.location');
         
         if (!$location) {
             return redirect($this->getHomeRoute())->with('error', 'Utilizatorul nu este asociat cu nicio locație');
@@ -153,7 +153,7 @@ class ProductController extends Controller
         }
         
         $user = Auth::user();
-        $location = $user->location;
+        $location = app('current.location');
         
         if (!$location) {
             return ApiResponder::error('Utilizatorul nu este asociat cu nicio locație', 400);
@@ -196,7 +196,7 @@ class ProductController extends Controller
         }
         
         $user = Auth::user();
-        $location = $user->location;
+        $location = app('current.location');
         
         if (!$location) {
             return ApiResponder::error('Utilizatorul nu este asociat cu nicio locație', 400);

@@ -21,27 +21,47 @@ class LocationContextController extends Controller
     {
         $user = Auth::user();
         
-        // Only COMPANY_ADMIN can change location context
-        if (!$user->isCompanyAdmin()) {
+        if (!$user->isCompanyAdmin() && !$user->isSuperAdmin()) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
-        
+
         $locationId = $request->input('location_id');
-        
+
+        // SUPER_ADMIN: store selected location in session only
+        if ($user->isSuperAdmin()) {
+            if (!$locationId) {
+                Session::forget('superadmin_selected_location_id');
+                return response()->json(['success' => true, 'message' => 'Location context cleared']);
+            }
+
+            $location = Location::find($locationId);
+            if (!$location) {
+                return response()->json(['error' => 'Location not found'], 404);
+            }
+
+            Session::put('superadmin_selected_location_id', $locationId);
+
+            return response()->json([
+                'success' => true,
+                'location' => ['id' => $location->id, 'name' => $location->name],
+                'message' => 'Location context updated',
+            ]);
+        }
+
+        // COMPANY_ADMIN flow
         if (!$locationId) {
-            // Clear location_id from user
             $user->location_id = null;
             $user->save();
             Session::forget('selected_location_id');
             return response()->json(['success' => true, 'message' => 'Location context cleared']);
         }
-        
+
         // Verify location belongs to user's company
         $location = Location::where('id', $locationId)
             ->where('company_id', $user->company_id)
             ->where('is_active', true)
             ->first();
-        
+
         if (!$location) {
             return response()->json(['error' => 'Location not found or not accessible'], 404);
         }
@@ -55,17 +75,17 @@ class LocationContextController extends Controller
         // Update user's location_id in database
         $user->location_id = $locationId;
         $user->save();
-        
+
         // Also store in session for immediate use
         Session::put('selected_location_id', $locationId);
-        
+
         return response()->json([
             'success' => true,
             'location' => [
                 'id' => $location->id,
                 'name' => $location->name,
             ],
-            'message' => 'Location context updated'
+            'message' => 'Location context updated',
         ]);
     }
     

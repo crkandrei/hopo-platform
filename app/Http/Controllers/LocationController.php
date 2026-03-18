@@ -103,9 +103,14 @@ class LocationController extends Controller
     public function show(Location $location)
     {
         $this->authorize('view', $location);
-        
+
+        // When SuperAdmin enters a location page, store it in session as active context
+        if (Auth::user()->isSuperAdmin()) {
+            session(['superadmin_selected_location_id' => $location->id]);
+        }
+
         $location->load('company', 'users');
-        
+
         return view('locations.show', compact('location'));
     }
 

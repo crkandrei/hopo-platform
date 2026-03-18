@@ -14,7 +14,16 @@ trait BelongsToLocation
         static::creating(function ($model) {
             if (empty($model->location_id) && auth()->check()) {
                 $user = auth()->user();
-                
+
+                // For SUPER_ADMIN, use current.location from app container (set from session by middleware)
+                if ($user->isSuperAdmin()) {
+                    $currentLocation = app()->bound('current.location') ? app('current.location') : null;
+                    if ($currentLocation) {
+                        $model->location_id = $currentLocation->id;
+                    }
+                    return;
+                }
+
                 // For COMPANY_ADMIN, use location_id from user (set when switching locations)
                 if ($user->isCompanyAdmin() && $user->company_id) {
                     if ($user->location_id) {
@@ -38,7 +47,7 @@ trait BelongsToLocation
                         return;
                     }
                 }
-                
+
                 // For STAFF, use their assigned location
                 if ($user->location_id) {
                     $model->location_id = $user->location_id;
