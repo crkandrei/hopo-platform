@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Hopo – program de gestiune pentru locuri de joacă: cronometrare automată, brățări RFID, bonuri fiscale ANAF, rapoarte zilnice și rezervări online petreceri. Demo gratuit!">
-    <title>Program gestiune & rezervări loc de joacă – Bonuri fiscale & RFID | Hopo</title>
+    <meta name="description" content="Program gestiune loc de joacă: bonuri fiscale ANAF, rezervări petreceri online, rapoarte zilnice și cronometrare automată. Demo gratuit!">
+    <title>Hopo – Gestiune & Rezervări Loc de Joacă | Bonuri Fiscale ANAF</title>
     <link rel="canonical" href="https://hopo.ro/">
     
     <!-- Open Graph / Facebook -->
@@ -271,7 +271,10 @@
             <div class="flex items-center justify-between">
                 <!-- Logo -->
                 <div class="flex items-center">
-                    <img src="{{ asset('images/hopo-logo.png') }}" alt="Hopo - Logo soft gestiune locuri de joacă" loading="eager" class="h-16 w-auto">
+                    <picture>
+                        <source srcset="{{ asset('images/hopo-logo.webp') }}" type="image/webp">
+                        <img src="{{ asset('images/hopo-logo-optimized.png') }}" alt="Hopo - Logo soft gestiune locuri de joacă" loading="eager" fetchpriority="high" width="600" height="281" class="h-16 w-auto">
+                    </picture>
                 </div>
                 
                 <!-- Nav Links -->
