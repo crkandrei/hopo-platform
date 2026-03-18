@@ -89,7 +89,13 @@ class PlaySession extends Model
         if (!$this->isActive()) {
             return false;
         }
-        // Paused = active session with no open interval
+
+        // Use cached collection when already loaded — avoids an extra query per session
+        // when called inside loops that eager-load intervals (e.g. dashboard, pagination).
+        if ($this->relationLoaded('intervals')) {
+            return $this->intervals->whereStrict('ended_at', null)->isEmpty();
+        }
+
         return !$this->intervals()->whereNull('ended_at')->exists();
     }
 

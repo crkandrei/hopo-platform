@@ -12,6 +12,7 @@ class SubscriptionService
     {
         return LocationSubscription::where('location_id', $location->id)
             ->where('starts_at', '<=', now())
+            ->orderByDesc('expires_at')
             ->orderByDesc('starts_at')
             ->first();
     }

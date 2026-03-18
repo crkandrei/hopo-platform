@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -41,6 +42,11 @@ class AuthController extends Controller
 
         // Verifică dacă utilizatorul există și parola este corectă
         if (!$user || !Hash::check($request->password, $user->password)) {
+            Log::warning('Login failed: invalid credentials', [
+                'username' => $request->username,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
             return back()->withErrors([
                 'username' => 'Credențialele furnizate sunt incorecte.',
             ]);
@@ -48,6 +54,11 @@ class AuthController extends Controller
 
         // Verifică dacă utilizatorul este activ
         if (!$user->isActive()) {
+            Log::warning('Login failed: inactive account', [
+                'username' => $request->username,
+                'user_id' => $user->id,
+                'ip_address' => $request->ip(),
+            ]);
             return back()->withErrors([
                 'username' => 'Contul este inactiv.',
             ]);

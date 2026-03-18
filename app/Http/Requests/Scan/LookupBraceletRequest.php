@@ -11,21 +11,33 @@ class LookupBraceletRequest extends FormRequest
         return \Illuminate\Support\Facades\Auth::check();
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('code')) {
+            $sanitized = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', trim($this->input('code', ''))));
+            $this->merge(['code' => $sanitized]);
+        }
+    }
+
     public function rules(): array
     {
         return [
             'code' => [
                 'required',
                 'string',
-                'min:1',
+                'min:9',
                 'max:50',
+                'regex:/^[A-Z0-9]+$/',
             ],
         ];
     }
 
     public function messages(): array
     {
-        return [];
+        return [
+            'code.min' => 'Cod prea scurt — scanați din nou.',
+            'code.regex' => 'Format cod invalid — scanați din nou.',
+        ];
     }
 
     protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)

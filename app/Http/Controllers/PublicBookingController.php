@@ -107,15 +107,22 @@ class PublicBookingController extends Controller
             ->orderBy('start_time')
             ->get();
 
-        $result = $allSlots->map(function ($slot) use ($date) {
+        $concurrent = $location->birthday_concurrent_reservations;
+
+        $result = $allSlots->map(function ($slot) use ($date, $concurrent) {
             if (!$slot->isAvailableOn($date)) {
                 return null;
             }
-            $count = BirthdayReservation::where('time_slot_id', $slot->id)
-                ->whereDate('reservation_date', $date)
-                ->whereIn('status', ['pending', 'confirmed'])
-                ->count();
-            $available = $count < $slot->max_reservations;
+
+            if ($concurrent) {
+                $available = true;
+            } else {
+                $count = BirthdayReservation::where('time_slot_id', $slot->id)
+                    ->whereDate('reservation_date', $date)
+                    ->whereIn('status', ['pending', 'confirmed'])
+                    ->count();
+                $available = $count < $slot->max_reservations;
+            }
 
             return [
                 'id'         => $slot->id,
@@ -177,24 +184,27 @@ class PublicBookingController extends Controller
             $dayEnd = Carbon::parse($slotsForDay->max('end_time'))->format('H:i');
         }
 
-        $reservations = BirthdayReservation::where('birthday_hall_id', $hallId)
-            ->whereDate('reservation_date', $date)
-            ->whereIn('status', ['pending', 'confirmed'])
-            ->with(['timeSlot', 'birthdayPackage'])
-            ->get();
-
         $occupied = [];
-        foreach ($reservations as $r) {
-            if ($r->time_slot_id && $r->timeSlot) {
-                $start = Carbon::parse($r->timeSlot->start_time)->format('H:i');
-                $end = Carbon::parse($r->timeSlot->end_time)->format('H:i');
-            } else {
-                $start = Carbon::parse($r->reservation_time)->format('H:i');
-                $end = Carbon::parse($r->reservation_time)->addMinutes($r->birthdayPackage->duration_minutes ?? 120)->format('H:i');
+
+        if (! $location->birthday_concurrent_reservations) {
+            $reservations = BirthdayReservation::where('birthday_hall_id', $hallId)
+                ->whereDate('reservation_date', $date)
+                ->whereIn('status', ['pending', 'confirmed'])
+                ->with(['timeSlot', 'birthdayPackage'])
+                ->get();
+
+            foreach ($reservations as $r) {
+                if ($r->time_slot_id && $r->timeSlot) {
+                    $start = Carbon::parse($r->timeSlot->start_time)->format('H:i');
+                    $end = Carbon::parse($r->timeSlot->end_time)->format('H:i');
+                } else {
+                    $start = Carbon::parse($r->reservation_time)->format('H:i');
+                    $end = Carbon::parse($r->reservation_time)->addMinutes($r->birthdayPackage->duration_minutes ?? 120)->format('H:i');
+                }
+                $occupied[] = ['start' => $start, 'end' => $end];
             }
-            $occupied[] = ['start' => $start, 'end' => $end];
+            $occupied = $this->mergeIntervals($occupied);
         }
-        $occupied = $this->mergeIntervals($occupied);
 
         return response()->json([
             'day_start' => $dayStart,
@@ -273,29 +283,31 @@ class PublicBookingController extends Controller
             ]);
         }
 
-        $startM = Carbon::parse($validated['reservation_time'])->format('H') * 60 + (int) Carbon::parse($validated['reservation_time'])->format('i');
-        $endM = $startM + (int) $package->duration_minutes;
-        $reservations = BirthdayReservation::where('birthday_hall_id', $hall->id)
-            ->whereDate('reservation_date', $date)
-            ->whereIn('status', ['pending', 'confirmed'])
-            ->with(['timeSlot', 'birthdayPackage'])
-            ->get();
-        $occupied = [];
-        foreach ($reservations as $r) {
-            if ($r->time_slot_id && $r->timeSlot) {
-                $s = Carbon::parse($r->timeSlot->start_time)->format('H') * 60 + (int) Carbon::parse($r->timeSlot->start_time)->format('i');
-                $e = Carbon::parse($r->timeSlot->end_time)->format('H') * 60 + (int) Carbon::parse($r->timeSlot->end_time)->format('i');
-            } else {
-                $s = Carbon::parse($r->reservation_time)->format('H') * 60 + (int) Carbon::parse($r->reservation_time)->format('i');
-                $e = $s + (int) $r->birthdayPackage->duration_minutes;
+        if (! $location->birthday_concurrent_reservations) {
+            $startM = Carbon::parse($validated['reservation_time'])->format('H') * 60 + (int) Carbon::parse($validated['reservation_time'])->format('i');
+            $endM = $startM + (int) $package->duration_minutes;
+            $reservations = BirthdayReservation::where('birthday_hall_id', $hall->id)
+                ->whereDate('reservation_date', $date)
+                ->whereIn('status', ['pending', 'confirmed'])
+                ->with(['timeSlot', 'birthdayPackage'])
+                ->get();
+            $occupied = [];
+            foreach ($reservations as $r) {
+                if ($r->time_slot_id && $r->timeSlot) {
+                    $s = Carbon::parse($r->timeSlot->start_time)->format('H') * 60 + (int) Carbon::parse($r->timeSlot->start_time)->format('i');
+                    $e = Carbon::parse($r->timeSlot->end_time)->format('H') * 60 + (int) Carbon::parse($r->timeSlot->end_time)->format('i');
+                } else {
+                    $s = Carbon::parse($r->reservation_time)->format('H') * 60 + (int) Carbon::parse($r->reservation_time)->format('i');
+                    $e = $s + (int) $r->birthdayPackage->duration_minutes;
+                }
+                $occupied[] = [$s, $e];
             }
-            $occupied[] = [$s, $e];
-        }
-        foreach ($occupied as [$s, $e]) {
-            if ($startM < $e && $endM > $s) {
-                throw ValidationException::withMessages([
-                    'reservation_time' => ['Intervalul ales se suprapune cu o rezervare existentă. Alegeți altă oră.'],
-                ]);
+            foreach ($occupied as [$s, $e]) {
+                if ($startM < $e && $endM > $s) {
+                    throw ValidationException::withMessages([
+                        'reservation_time' => ['Intervalul ales se suprapune cu o rezervare existentă. Alegeți altă oră.'],
+                    ]);
+                }
             }
         }
 

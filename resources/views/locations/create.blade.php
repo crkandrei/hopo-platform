@@ -163,6 +163,23 @@
                     </label>
                 </div>
 
+                <!-- Birthday Concurrent Reservations (Super Admin only) -->
+                @if(Auth::user()->isSuperAdmin())
+                <div>
+                    <label class="flex items-start gap-2">
+                        <input type="checkbox"
+                               name="birthday_concurrent_reservations"
+                               value="1"
+                               {{ old('birthday_concurrent_reservations', false) ? 'checked' : '' }}
+                               class="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <span class="text-sm text-gray-700">
+                            Permite rezervări concomitente pentru zile de naștere
+                            <span class="block text-xs text-gray-400 mt-0.5">Părinții pot rezerva orice oră fără a vedea sau fi blocați de alte rezervări existente în aceeași zi.</span>
+                        </span>
+                    </label>
+                </div>
+                @endif
+
                 <!-- Submit Button -->
                 <div class="flex justify-end gap-4">
                     <a href="{{ route('locations.index') }}" 

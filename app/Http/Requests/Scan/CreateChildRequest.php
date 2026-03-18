@@ -23,8 +23,9 @@ class CreateChildRequest extends FormRequest
             'bracelet_code' => [
                 'nullable',
                 'string',
-                'min:1',
+                'min:9',
                 'max:50',
+                'regex:/^[A-Z0-9]+$/',
             ],
             'session_type' => ['nullable', 'string', 'in:normal,birthday'],
         ];
@@ -32,11 +33,17 @@ class CreateChildRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        // Normalize empty strings to null for guardian optional fields
-        $this->merge([
+        $fields = [
             'guardian_name' => $this->normalizeEmpty($this->input('guardian_name')),
             'guardian_phone' => $this->normalizeEmpty($this->input('guardian_phone')),
-        ]);
+        ];
+
+        if ($this->has('bracelet_code') && $this->input('bracelet_code') !== null) {
+            $sanitized = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', trim($this->input('bracelet_code', ''))));
+            $fields['bracelet_code'] = $sanitized ?: null;
+        }
+
+        $this->merge($fields);
     }
 
     private function normalizeEmpty($value)

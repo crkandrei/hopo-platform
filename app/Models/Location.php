@@ -23,6 +23,7 @@ class Location extends Model
         'is_active',
         'bracelet_required',
         'fiscal_enabled',
+        'birthday_concurrent_reservations',
         'bridge_config',
     ];
 
@@ -30,6 +31,7 @@ class Location extends Model
         'is_active' => 'boolean',
         'bracelet_required' => 'boolean',
         'fiscal_enabled' => 'boolean',
+        'birthday_concurrent_reservations' => 'boolean',
         'price_per_hour' => 'decimal:2',
         'overflow_price_per_hour' => 'decimal:2',
         'bridge_config' => 'array',

@@ -11,14 +11,23 @@ class AssignBraceletRequest extends FormRequest
         return \Illuminate\Support\Facades\Auth::check();
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('bracelet_code') && $this->input('bracelet_code') !== null) {
+            $sanitized = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', trim($this->input('bracelet_code', ''))));
+            $this->merge(['bracelet_code' => $sanitized ?: null]);
+        }
+    }
+
     public function rules(): array
     {
         return [
             'bracelet_code' => [
                 'nullable',
                 'string',
-                'min:1',
+                'min:9',
                 'max:50',
+                'regex:/^[A-Z0-9]+$/',
             ],
             'child_id' => ['required', 'exists:children,id'],
             'session_type' => ['nullable', 'string', 'in:normal,birthday'],

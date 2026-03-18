@@ -149,6 +149,14 @@
 
         <!-- Assignment section (hidden by default) -->
         <div id="assignmentSection" class="hidden bg-white border border-gray-300 rounded-lg p-6">
+            @if($braceletRequired)
+            <!-- Bracelet code indicator -->
+            <div id="assignmentBraceletBadge" class="hidden mb-4 flex items-center gap-2 px-4 py-2 bg-indigo-50 border border-indigo-200 rounded-md">
+                <i class="fas fa-tag text-indigo-500"></i>
+                <span class="text-sm text-gray-600">Brățară:</span>
+                <span id="assignmentBraceletCode" class="font-mono font-semibold text-indigo-900 tracking-wider"></span>
+            </div>
+            @endif
             <!-- Tabs -->
             <div class="mb-4 border-b border-gray-200">
                 <nav class="flex gap-2" role="tablist" aria-label="Assignment tabs">
@@ -620,6 +628,12 @@ function renderBraceletInfo(data) {
 
     if (data.can_assign) {
         assignmentSection.classList.remove('hidden');
+        const badge = document.getElementById('assignmentBraceletBadge');
+        const codeEl = document.getElementById('assignmentBraceletCode');
+        if (badge && codeEl && braceletCode) {
+            codeEl.textContent = braceletCode;
+            badge.classList.remove('hidden');
+        }
         updateAssignButtonState();
     } else {
         assignmentSection.classList.add('hidden');
@@ -1448,7 +1462,8 @@ if (BRACELET_MODE) {
 
     function isValidBraceletCode(code) {
         if (!code || typeof code !== 'string') return false;
-        return code.trim().length > 0 && code.trim().length <= 50;
+        const trimmed = code.trim();
+        return trimmed.length >= 9 && trimmed.length <= 50 && /^[A-Za-z0-9]+$/.test(trimmed);
     }
 
     function updateValidationFeedback(code) {
@@ -1468,7 +1483,17 @@ if (BRACELET_MODE) {
     }
 
     codeInput.addEventListener('focus', function() {
+        this.classList.remove('border-amber-400', 'focus:ring-amber-400/20');
+        updateValidationFeedback(this.value.trim());
         setTimeout(() => { if (codeInput.value.length > 0) codeInput.select(); }, 10);
+    });
+
+    codeInput.addEventListener('blur', function() {
+        if (!isProcessing) {
+            this.classList.remove('border-gray-300', 'border-green-500', 'border-red-500',
+                'focus:ring-gray-900/20', 'focus:ring-green-500/20', 'focus:ring-red-500/20');
+            this.classList.add('border-amber-400', 'focus:ring-amber-400/20');
+        }
     });
 
     codeInput.addEventListener('input', function(e) {
@@ -1535,7 +1560,12 @@ if (BRACELET_MODE) {
 
     searchBtn.addEventListener('click', async function() {
         const code = codeInput.value.trim();
-        if (!code.length || !isValidBraceletCode(code)) return;
+        if (!code.length || !isValidBraceletCode(code) || isProcessing) return;
+        isProcessing = true;
+        clearTimeout(barcodeScanTimeout);
+        codeInput.value = '';
+        codeInput.disabled = true;
+        updateValidationFeedback('');
         this.disabled = true;
         const prev = this.textContent;
         this.textContent = 'Se caută...';
@@ -1549,8 +1579,11 @@ if (BRACELET_MODE) {
             }
             renderBraceletInfo({ success: false, message: extractErrorMessage(err, 'Eroare la căutare') });
         } finally {
+            isProcessing = false;
+            codeInput.disabled = false;
             this.disabled = false;
             this.textContent = prev;
+            codeInput.focus();
         }
     });
 
@@ -1619,6 +1652,14 @@ if (BRACELET_MODE) {
     }
 
     codeInput.focus();
+
+    // Re-focus pe input dacă operatorul dă click pe o zonă neinteractivă
+    document.addEventListener('click', function(e) {
+        if (isProcessing) return;
+        if (!e.target.closest('input, textarea, select, button, a, [tabindex], .choices, [role="dialog"]')) {
+            setTimeout(() => codeInput.focus(), 50);
+        }
+    });
 }
 
 // ============================================================

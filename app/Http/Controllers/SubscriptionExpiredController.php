@@ -20,6 +20,10 @@ class SubscriptionExpiredController extends Controller
         $eligibleLocations = [];
 
         if ($location) {
+            $status = $this->subscriptionService->getStatus($location);
+            if ($status === 'active' || $status === 'grace') {
+                return redirect()->route('dashboard');
+            }
             $subscription = $this->subscriptionService->getActiveSubscription($location);
         }
 

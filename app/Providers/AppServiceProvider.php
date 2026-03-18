@@ -14,6 +14,7 @@ use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use App\Models\User;
+use Opcodes\LogViewer\Facades\LogViewer;
 use App\Models\Voucher;
 use App\Policies\UserPolicy;
 use App\Policies\VoucherPolicy;
@@ -69,15 +70,33 @@ class AppServiceProvider extends ServiceProvider
             QueueCheck::new(),
         ]);
         Gate::define('viewPulse', function ($user) {
-            return $user->isSuperAdmin(); 
+            return $user->isSuperAdmin();
+        });
+
+        LogViewer::auth(function ($request) {
+            return $request->user()?->isSuperAdmin() ?? false;
         });
 
         Queue::failing(function (JobFailed $event) {
             $adminEmail = config('mail.from.address', 'contact@hopo.ro');
             $jobName = get_class($event->job);
             $error = $event->exception->getMessage();
+            $payload = $event->job->payload();
+            $commandData = isset($payload['data']['command'])
+                ? @unserialize($payload['data']['command'])
+                : null;
 
-            Log::error('Queue job failed', ['job' => $jobName, 'error' => $error]);
+            $context = ['job' => $jobName, 'error' => $error];
+            if (is_object($commandData)) {
+                if (property_exists($commandData, 'locationId')) {
+                    $context['location_id'] = $commandData->locationId;
+                }
+                if (property_exists($commandData, 'companyId')) {
+                    $context['company_id'] = $commandData->companyId;
+                }
+            }
+
+            Log::error('Queue job failed', $context);
 
             try {
                 Mail::raw(

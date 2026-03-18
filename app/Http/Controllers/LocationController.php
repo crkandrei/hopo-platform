@@ -66,6 +66,7 @@ class LocationController extends Controller
             'is_active' => 'boolean',
             'bracelet_required' => 'boolean',
             'fiscal_enabled' => 'boolean',
+            'birthday_concurrent_reservations' => 'boolean',
             'bridge_config' => 'nullable|array',
         ]);
 
@@ -78,6 +79,7 @@ class LocationController extends Controller
         $validated['is_active'] = $request->boolean('is_active', true);
         $validated['bracelet_required'] = $request->boolean('bracelet_required', true);
         $validated['fiscal_enabled'] = $request->boolean('fiscal_enabled', true);
+        $validated['birthday_concurrent_reservations'] = $request->boolean('birthday_concurrent_reservations', false);
         
         // Ensure unique slug within company
         $baseSlug = $validated['slug'];
@@ -142,6 +144,7 @@ class LocationController extends Controller
             'is_active' => 'boolean',
             'bracelet_required' => 'boolean',
             'fiscal_enabled' => 'boolean',
+            'birthday_concurrent_reservations' => 'boolean',
             'bridge_config' => 'nullable|array',
         ]);
 
@@ -154,6 +157,7 @@ class LocationController extends Controller
         $validated['is_active'] = $request->boolean('is_active');
         $validated['bracelet_required'] = $request->boolean('bracelet_required');
         $validated['fiscal_enabled'] = $request->boolean('fiscal_enabled');
+        $validated['birthday_concurrent_reservations'] = $request->boolean('birthday_concurrent_reservations');
 
         // Update slug if name changed
         if ($location->name !== $validated['name']) {

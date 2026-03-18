@@ -65,20 +65,31 @@ class GeneralReportController extends Controller
             ->whereNotNull('ended_at')
             ->where('started_at', '>=', $start)
             ->where('started_at', '<=', $end)
-            ->with('products.product')
+            ->with('products.product', 'intervals') // intervals: prevent N+1 on getCurrentDurationMinutes()
             ->get();
         
-        // Calculate total hours played
+        // Calculate total hours played and average duration.
+        // Sessions under 10 minutes are excluded from the average (too short to be meaningful)
+        // but still counted in total sessions and included in total hours.
         $totalMinutes = 0;
+        $sessionsForAvg = 0;
+        $minutesForAvg = 0;
         foreach ($sessions as $session) {
-            $totalMinutes += $session->getCurrentDurationMinutes();
+            $mins = $session->getCurrentDurationMinutes();
+            $totalMinutes += $mins;
+            if ($mins >= 10) {
+                $minutesForAvg += $mins;
+                $sessionsForAvg++;
+            }
         }
         $totalHours = round($totalMinutes / 60, 1);
         
         // Session breakdown
-        $totalSessions = $sessions->count();
-        $normalSessions = $totalSessions;
-        
+        $totalSessions    = $sessions->count();
+        $freeSessions     = $sessions->where('is_free', true)->count();
+        $birthdaySessions = $sessions->where('session_type', 'birthday')->count();
+        $paidSessionsCount = $sessions->filter(fn($s) => $s->isPaid() && !$s->is_free)->count();
+
         // Sales breakdown - only paid sessions (exclude is_free)
         $paidSessions = $sessions->filter(fn($s) => $s->isPaid() && !$s->is_free);
         
@@ -160,11 +171,11 @@ class GeneralReportController extends Controller
         usort($productSales, fn($a, $b) => $b['quantity'] - $a['quantity']);
         $topProducts = array_slice($productSales, 0, 10);
         
-        // Total sales (including voucher value)
-        $totalSales = $cashTotal + $cardTotal + $voucherTotal;
+        // Total = cash + card only (voucher is not real money collected)
+        $totalSales = $cashTotal + $cardTotal;
         
-        // Calculate average session duration
-        $avgMinutes = $totalSessions > 0 ? round($totalMinutes / $totalSessions) : 0;
+        // Average duration excludes sessions under 10 minutes
+        $avgMinutes = $sessionsForAvg > 0 ? round($minutesForAvg / $sessionsForAvg) : 0;
         $avgHours = floor($avgMinutes / 60);
         $avgMins = $avgMinutes % 60;
         $avgDuration = $avgHours > 0 ? "{$avgHours}h {$avgMins}m" : "{$avgMins}m";
@@ -180,8 +191,10 @@ class GeneralReportController extends Controller
                 'avg_per_session' => $avgDuration,
             ],
             'sessions' => [
-                'total' => $totalSessions,
-                'normal' => $normalSessions,
+                'total'    => $totalSessions,
+                'paid'     => $paidSessionsCount,
+                'free'     => $freeSessions,
+                'birthday' => $birthdaySessions,
             ],
             'products' => [
                 'total_sold' => $totalProductsSold,

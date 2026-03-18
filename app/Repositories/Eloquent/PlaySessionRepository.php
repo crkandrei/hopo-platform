@@ -121,12 +121,20 @@ class PlaySessionRepository implements PlaySessionRepositoryInterface
             ->orderByRaw('play_sessions.ended_at IS NULL DESC') // Active sessions first
             ->orderByRaw($sortColumn . ' ' . $sortDir)
             ->forPage($page, $perPage)
+            ->get();
+
+        // Batch-load full sessions with their relations in two queries (intervals + products),
+        // replacing the previous find()-per-row pattern that caused ~5 queries per row.
+        $sessionIds  = $rows->pluck('id');
+        $fullSessions = PlaySession::with(['intervals', 'products'])
+            ->whereIn('id', $sessionIds)
             ->get()
-            ->map(function ($row) use ($locationId, $locationFiscalEnabled) {
+            ->keyBy('id');
+
+        $mappedRows = $rows->map(function ($row) use ($locationId, $locationFiscalEnabled, $fullSessions) {
                 $childName = $row->child_name ?? '';
-                // Load full session to compute effective time and pause state
-                $ps = \App\Models\PlaySession::with(['intervals', 'products'])->find($row->id);
-                
+                $ps = $fullSessions->get($row->id);
+
                 // For ended sessions, use total effective time
                 // For active sessions, use ONLY closed intervals (frontend will add current interval)
                 if ($row->ended_at) {
@@ -134,19 +142,26 @@ class PlaySessionRepository implements PlaySessionRepositoryInterface
                 } else {
                     $effectiveSeconds = $ps ? $ps->getClosedIntervalsDurationSeconds() : 0;
                 }
-                
+
+                // isPaused() now uses the eager-loaded collection — no extra query.
                 $isPaused = $ps ? $ps->isPaused() : false;
                 $currentStart = null;
                 $lastPauseEnd = null; // When did the current pause start (last interval ended_at)
                 if ($ps && !$row->ended_at) {
                     if ($isPaused) {
-                        // Get the last closed interval's ended_at (when pause started)
-                        $lastClosedInterval = $ps->intervals()->whereNotNull('ended_at')->latest('ended_at')->first();
+                        // Use the eager-loaded collection instead of a new query builder call.
+                        $lastClosedInterval = $ps->intervals
+                            ->whereNotNull('ended_at')
+                            ->sortByDesc('ended_at')
+                            ->first();
                         if ($lastClosedInterval && $lastClosedInterval->ended_at) {
                             $lastPauseEnd = $lastClosedInterval->ended_at->toISOString();
                         }
                     } else {
-                        $open = $ps->intervals()->whereNull('ended_at')->latest('started_at')->first();
+                        $open = $ps->intervals
+                            ->whereStrict('ended_at', null)
+                            ->sortByDesc('started_at')
+                            ->first();
                         if ($open && $open->started_at) {
                             $currentStart = $open->started_at->toISOString();
                         }
@@ -225,7 +240,7 @@ class PlaySessionRepository implements PlaySessionRepositoryInterface
                 ];
             });
 
-        return [ 'total' => $total, 'rows' => $rows ];
+        return ['total' => $total, 'rows' => $mappedRows];
     }
 }
 

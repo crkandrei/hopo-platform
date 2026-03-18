@@ -142,25 +142,28 @@ return [
         'actions' => [
             'driver' => 'daily',
             'path' => storage_path('logs/actions.log'),
-            'level' => env('LOG_LEVEL', 'info'),
-            'days' => env('LOG_DAILY_DAYS', 30),
+            'level' => env('LOG_ACTIONS_LEVEL', 'info'),
+            'days' => env('LOG_ACTIONS_DAYS', 30),
             'replace_placeholders' => true,
+            'formatter' => Monolog\Formatter\JsonFormatter::class,
         ],
 
         'errors' => [
             'driver' => 'daily',
             'path' => storage_path('logs/errors.log'),
-            'level' => env('LOG_LEVEL', 'error'),
-            'days' => env('LOG_DAILY_DAYS', 90),
+            'level' => env('LOG_ERRORS_LEVEL', 'error'),
+            'days' => env('LOG_ERRORS_DAYS', 90),
             'replace_placeholders' => true,
+            'formatter' => Monolog\Formatter\JsonFormatter::class,
         ],
 
         'audit' => [
             'driver' => 'daily',
             'path' => storage_path('logs/audit.log'),
-            'level' => env('LOG_LEVEL', 'info'),
-            'days' => env('LOG_DAILY_DAYS', 365),
+            'level' => env('LOG_AUDIT_LEVEL', 'info'),
+            'days' => env('LOG_AUDIT_DAYS', 365),
             'replace_placeholders' => true,
+            'formatter' => Monolog\Formatter\JsonFormatter::class,
         ],
 
     ],

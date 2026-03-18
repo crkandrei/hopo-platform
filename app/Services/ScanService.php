@@ -9,6 +9,7 @@ use App\Models\Location;
 use App\Services\PricingService;
 use App\Support\ActionLogger;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ScanService
@@ -167,26 +168,26 @@ class ScanService
     public function getLocationStats(Location $location, int $days = 7): array
     {
         $startDate = now()->subDays($days);
-        
-        $totalScans = ScanEvent::where('location_id', $location->id)
+
+        // Single query with conditional aggregation replaces three identical-filter COUNT queries.
+        $stats = ScanEvent::where('location_id', $location->id)
             ->where('created_at', '>=', $startDate)
-            ->count();
-            
-        $validScans = ScanEvent::where('location_id', $location->id)
-            ->where('status', 'valid')
-            ->where('created_at', '>=', $startDate)
-            ->count();
-            
-        $expiredScans = ScanEvent::where('location_id', $location->id)
-            ->where('status', 'expired')
-            ->where('created_at', '>=', $startDate)
-            ->count();
+            ->selectRaw("
+                COUNT(*)                   AS total_scans,
+                SUM(status = 'valid')      AS valid_scans,
+                SUM(status = 'expired')    AS expired_scans
+            ")
+            ->first();
+
+        $totalScans   = (int) ($stats->total_scans   ?? 0);
+        $validScans   = (int) ($stats->valid_scans   ?? 0);
+        $expiredScans = (int) ($stats->expired_scans ?? 0);
 
         return [
-            'total_scans' => $totalScans,
-            'valid_scans' => $validScans,
+            'total_scans'   => $totalScans,
+            'valid_scans'   => $validScans,
             'expired_scans' => $expiredScans,
-            'success_rate' => $totalScans > 0 ? round(($validScans / $totalScans) * 100, 2) : 0,
+            'success_rate'  => $totalScans > 0 ? round(($validScans / $totalScans) * 100, 2) : 0,
         ];
     }
 
@@ -200,6 +201,10 @@ class ScanService
         $code = trim($code);
         
         if (empty($code)) {
+            ActionLogger::log('bracelet.lookup_failed', 'ScanEvent', null, [
+                'reason' => 'empty_code',
+                'location_id' => $location->id,
+            ], 'warning');
             return [
                 'success' => false,
                 'message' => 'Codul nu poate fi gol',
@@ -262,33 +267,33 @@ class ScanService
             throw new \Exception('Codul nu poate fi gol');
         }
 
-        // Verifică dacă copilul are deja o sesiune activă
-        $existingSession = PlaySession::where('child_id', $child->id)
-            ->whereNull('ended_at')
-            ->first();
-
-        if ($existingSession) {
-            throw new \Exception('Copilul are deja o sesiune activă');
-        }
-
-        // Permite reutilizarea codurilor după închiderea sesiunii
-        // Verifică doar dacă există o sesiune activă cu acest cod (doar dacă există un cod)
-        if (!empty($braceletCode)) {
-            $activeSessionWithCode = PlaySession::where('bracelet_code', $braceletCode)
-                ->where('location_id', $location->id)
+        $session = DB::transaction(function () use ($location, $child, $braceletCode, $sessionType) {
+            $existingSession = PlaySession::where('child_id', $child->id)
                 ->whereNull('ended_at')
+                ->lockForUpdate()
                 ->first();
 
-            if ($activeSessionWithCode) {
-                throw new \Exception('Codul este deja folosit într-o sesiune activă. Te rog oprește sesiunea existentă înainte.');
+            if ($existingSession) {
+                throw new \Exception('Copilul are deja o sesiune activă');
             }
-        }
 
-        $session = PlaySession::startSession($location, $child, $braceletCode, $sessionType);
+            if (!empty($braceletCode)) {
+                $activeSessionWithCode = PlaySession::where('bracelet_code', $braceletCode)
+                    ->where('location_id', $location->id)
+                    ->whereNull('ended_at')
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($activeSessionWithCode) {
+                    throw new \Exception('Codul este deja folosit într-o sesiune activă. Te rog oprește sesiunea existentă înainte.');
+                }
+            }
+
+            return PlaySession::startSession($location, $child, $braceletCode, $sessionType);
+        });
 
         ActionLogger::logSession('started', $session->id, [
             'child_id' => $child->id,
-            'child_name' => $child->name,
             'bracelet_code' => $braceletCode,
         ]);
 
@@ -403,16 +408,13 @@ class ScanService
             ->whereNull('ended_at')
             ->count();
             
-        $completedSessions = PlaySession::where('location_id', $location->id)
-            ->whereNotNull('ended_at')
-            ->where('started_at', '>=', $startDate)
-            ->count();
-
-        // Recalculează durata din started_at și ended_at pentru sesiunile închise
+        // Single GET replaces the previous COUNT + GET pair on identical conditions.
         $completedSessionsCollection = PlaySession::where('location_id', $location->id)
             ->whereNotNull('ended_at')
             ->where('started_at', '>=', $startDate)
             ->get();
+
+        $completedSessions = $completedSessionsCollection->count();
 
         $totalPlayTime = $completedSessionsCollection->reduce(function ($carry, $session) {
             return $carry + $session->getCurrentDurationMinutes();
