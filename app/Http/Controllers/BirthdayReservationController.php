@@ -96,6 +96,13 @@ class BirthdayReservationController extends Controller
                     ];
                 })->sortBy('start_m')->values()->toArray();
 
+                // Assign a stable color_index per reservation so the same child
+                // always gets the same color across all columns it appears in.
+                foreach ($intervals as $idx => &$iv) {
+                    $iv['color_index'] = $idx;
+                }
+                unset($iv);
+
                 $dayStart = min($defaultStart, collect($intervals)->min('start_m') ?? $defaultStart);
                 $dayEnd   = max($defaultEnd,   collect($intervals)->max('end_m')   ?? $defaultEnd);
                 $span     = $dayEnd - $dayStart;
@@ -129,7 +136,13 @@ class BirthdayReservationController extends Controller
                     if (empty($active)) {
                         $columns[] = ['type' => 'free', 'pct' => $pct];
                     } else {
-                        $columns[] = ['type' => 'occupied', 'pct' => $pct, 'bands' => $active];
+                        // Mark is_start so the blade only shows the name in the
+                        // first column of each reservation.
+                        $bands = array_map(function ($band) use ($colStart) {
+                            $band['is_start'] = ($band['start_m'] === $colStart);
+                            return $band;
+                        }, $active);
+                        $columns[] = ['type' => 'occupied', 'pct' => $pct, 'bands' => $bands];
                     }
                 }
 

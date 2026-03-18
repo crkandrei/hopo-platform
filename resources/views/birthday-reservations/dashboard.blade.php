@@ -83,6 +83,26 @@
                     @if($timelineByHall->count() > 1)
                         <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{{ $hallName }}</p>
                     @endif
+                    @php
+                        // Paleta confirmed (culori reci distincte) și pending (culori calde).
+                        // color_index este stabil per rezervare (asignat în controller).
+                        $confirmedPalette = [
+                            ['bg' => '#4f46e5', 'text' => '#ffffff'], // indigo-600
+                            ['bg' => '#0284c7', 'text' => '#ffffff'], // sky-600
+                            ['bg' => '#7c3aed', 'text' => '#ffffff'], // violet-600
+                            ['bg' => '#0891b2', 'text' => '#ffffff'], // cyan-600
+                            ['bg' => '#2563eb', 'text' => '#ffffff'], // blue-600
+                            ['bg' => '#6d28d9', 'text' => '#ffffff'], // violet-700
+                        ];
+                        $pendingPalette = [
+                            ['bg' => '#f59e0b', 'text' => '#1e293b'], // amber-400
+                            ['bg' => '#f97316', 'text' => '#ffffff'], // orange-500
+                            ['bg' => '#eab308', 'text' => '#1e293b'], // yellow-500
+                            ['bg' => '#d97706', 'text' => '#ffffff'], // amber-600
+                            ['bg' => '#ea580c', 'text' => '#ffffff'], // orange-600
+                            ['bg' => '#ca8a04', 'text' => '#ffffff'], // yellow-600
+                        ];
+                    @endphp
                     <div class="relative w-full h-16 rounded-xl overflow-hidden flex border border-gray-200">
                         @foreach($data['columns'] as $col)
                             @if($col['type'] === 'free')
@@ -91,17 +111,19 @@
                                 <div style="width: {{ $col['pct'] }}%" class="flex flex-col flex-shrink-0">
                                     @foreach($col['bands'] as $band)
                                         @php
-                                            $bgClass   = $band['status'] === 'confirmed' ? 'bg-indigo-500' : 'bg-yellow-400';
-                                            $textClass = $band['status'] === 'confirmed' ? 'text-white' : 'text-gray-800';
+                                            $palette   = $band['status'] === 'confirmed' ? $confirmedPalette : $pendingPalette;
+                                            $color     = $palette[$band['color_index'] % count($palette)];
                                             $tooltip   = $band['child_name'] . ' · ' . $band['start_lbl'] . '–' . $band['end_lbl'];
                                         @endphp
-                                        <div class="{{ $bgClass }} flex-1 flex items-center justify-center overflow-hidden cursor-default relative"
-                                             style="border-bottom: 1px solid rgba(255,255,255,0.25);"
+                                        <div class="flex-1 flex items-center justify-center overflow-hidden cursor-default relative"
+                                             style="background-color: {{ $color['bg'] }}; color: {{ $color['text'] }}; border-bottom: 1px solid rgba(255,255,255,0.25);"
                                              title="{{ $tooltip }}">
-                                            <div class="absolute inset-0 opacity-20" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,.6) 4px, rgba(255,255,255,.6) 8px);"></div>
-                                            <span class="relative {{ $textClass }} text-xs font-semibold truncate px-2 leading-none text-center">
-                                                {{ $band['child_name'] }}
-                                            </span>
+                                            <div class="absolute inset-0 opacity-10" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,.6) 4px, rgba(255,255,255,.6) 8px);"></div>
+                                            @if($band['is_start'])
+                                                <span class="relative text-xs font-semibold truncate px-2 leading-none text-center">
+                                                    {{ $band['child_name'] }}
+                                                </span>
+                                            @endif
                                         </div>
                                     @endforeach
                                 </div>
@@ -121,8 +143,9 @@
         </div>
         <div class="flex flex-wrap gap-x-8 gap-y-3 mt-5 pt-4 border-t border-gray-100 text-xs text-gray-500">
             <span class="flex items-center gap-2"><span class="inline-block w-4 h-4 rounded-sm bg-emerald-100 border border-emerald-200"></span>Liber</span>
-            <span class="flex items-center gap-2"><span class="inline-block w-4 h-4 rounded-sm bg-indigo-500"></span>Confirmat</span>
-            <span class="flex items-center gap-2"><span class="inline-block w-4 h-4 rounded-sm bg-yellow-400"></span>În așteptare</span>
+            <span class="flex items-center gap-2"><span class="inline-block w-4 h-4 rounded-sm" style="background:#4f46e5;"></span>Confirmat</span>
+            <span class="flex items-center gap-2"><span class="inline-block w-4 h-4 rounded-sm" style="background:#f59e0b;"></span>În așteptare</span>
+            <span class="text-gray-400 italic">Fiecare rezervare are o culoare unică pentru diferențiere</span>
         </div>
     </div>
     @endif
