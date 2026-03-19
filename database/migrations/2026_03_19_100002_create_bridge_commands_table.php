@@ -17,6 +17,8 @@ return new class extends Migration
             $table->enum('status', ['pending', 'sent', 'completed', 'failed'])->default('pending');
             $table->string('ack_message')->nullable();
             $table->timestamps();
+
+            $table->index(['location_id', 'status']);
         });
     }
 

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->timestamp('timestamp');
             $table->timestamp('created_at')->useCurrent();
 
-            $table->index(['location_id', 'created_at']);
+            $table->index(['location_id', 'level', 'created_at']);
         });
     }
 

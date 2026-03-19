@@ -22,7 +22,7 @@ return new class extends Migration
             $table->integer('print_count')->default(0);
             $table->integer('z_report_count')->default(0);
             $table->integer('error_count')->default(0);
-            $table->integer('uptime')->nullable();
+            $table->unsignedInteger('uptime')->nullable();
             $table->timestamps();
         });
     }
