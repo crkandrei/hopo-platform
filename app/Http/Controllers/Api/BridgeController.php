@@ -4,11 +4,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\BridgeCommand;
+use App\Models\BridgeLog;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Carbon;
 
 class BridgeController extends Controller
 {
-    public function heartbeat(Request $request): \Illuminate\Http\JsonResponse
+    public function heartbeat(Request $request): JsonResponse
     {
         $bridge = $request->attributes->get('bridge');
 
@@ -47,7 +52,7 @@ class BridgeController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    public function logs(Request $request): \Illuminate\Http\JsonResponse
+    public function logs(Request $request): JsonResponse
     {
         $bridge = $request->attributes->get('bridge');
 
@@ -64,16 +69,16 @@ class BridgeController extends Controller
             'location_id' => $bridge->location_id,
             'level'       => $log['level'],
             'message'     => $log['message'],
-            'timestamp'   => \Illuminate\Support\Carbon::parse($log['timestamp'])->toDateTimeString(),
+            'timestamp'   => Carbon::parse($log['timestamp'])->toDateTimeString(),
             'created_at'  => $now,
         ], $data['logs']);
 
-        \App\Models\BridgeLog::insert($rows);
+        BridgeLog::insert($rows);
 
         return response()->json(['ok' => true]);
     }
 
-    public function pollCommands(Request $request, string $clientId): \Illuminate\Http\Response|\Illuminate\Http\JsonResponse
+    public function pollCommands(Request $request, string $clientId): Response|JsonResponse
     {
         $bridge = $request->attributes->get('bridge');
 
@@ -81,7 +86,7 @@ class BridgeController extends Controller
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
-        $command = \App\Models\BridgeCommand::where('location_id', $bridge->location_id)
+        $command = BridgeCommand::where('location_id', $bridge->location_id)
             ->where('status', 'pending')
             ->orderBy('created_at')
             ->first();
@@ -99,9 +104,13 @@ class BridgeController extends Controller
         ]);
     }
 
-    public function ackCommand(Request $request, string $clientId): \Illuminate\Http\JsonResponse
+    public function ackCommand(Request $request, string $clientId): JsonResponse
     {
         $bridge = $request->attributes->get('bridge');
+
+        if ($bridge->client_id !== null && $bridge->client_id !== $clientId) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
 
         $data = $request->validate([
             'commandId' => 'required|string',
@@ -109,7 +118,7 @@ class BridgeController extends Controller
             'message'   => 'nullable|string',
         ]);
 
-        $command = \App\Models\BridgeCommand::where('id', $data['commandId'])
+        $command = BridgeCommand::where('id', $data['commandId'])
             ->where('location_id', $bridge->location_id)
             ->first();
 

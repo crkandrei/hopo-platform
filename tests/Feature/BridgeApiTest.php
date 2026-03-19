@@ -280,8 +280,9 @@ class BridgeApiTest extends TestCase
         );
 
         $this->assertDatabaseHas('bridge_commands', [
-            'id'     => $command->id,
-            'status' => 'failed',
+            'id'          => $command->id,
+            'status'      => 'failed',
+            'ack_message' => 'Failed to restart',
         ]);
     }
 
