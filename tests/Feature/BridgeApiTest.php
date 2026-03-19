@@ -230,4 +230,78 @@ class BridgeApiTest extends TestCase
 
         $response->assertStatus(403);
     }
+
+    // ── Ack Command ───────────────────────────────────────────────────────────
+
+    public function test_ack_marks_command_completed_on_success(): void
+    {
+        $bridge = \App\Models\LocationBridge::factory()->create([
+            'api_key'   => 'ack-success-key',
+            'client_id' => 'client-uuid-ack',
+        ]);
+
+        $command = \App\Models\BridgeCommand::create([
+            'location_id' => $bridge->location_id,
+            'command'     => 'restart',
+            'status'      => 'sent',
+        ]);
+
+        $response = $this->postJson(
+            '/api/bridges/commands/client-uuid-ack/ack',
+            ['commandId' => $command->id, 'success' => true, 'message' => 'Restarting...'],
+            ['Authorization' => 'Bearer ack-success-key']
+        );
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('bridge_commands', [
+            'id'          => $command->id,
+            'status'      => 'completed',
+            'ack_message' => 'Restarting...',
+        ]);
+    }
+
+    public function test_ack_marks_command_failed_on_failure(): void
+    {
+        $bridge = \App\Models\LocationBridge::factory()->create([
+            'api_key'   => 'ack-fail-key',
+            'client_id' => 'client-uuid-ack2',
+        ]);
+
+        $command = \App\Models\BridgeCommand::create([
+            'location_id' => $bridge->location_id,
+            'command'     => 'restart',
+            'status'      => 'sent',
+        ]);
+
+        $this->postJson(
+            '/api/bridges/commands/client-uuid-ack2/ack',
+            ['commandId' => $command->id, 'success' => false, 'message' => 'Failed to restart'],
+            ['Authorization' => 'Bearer ack-fail-key']
+        );
+
+        $this->assertDatabaseHas('bridge_commands', [
+            'id'     => $command->id,
+            'status' => 'failed',
+        ]);
+    }
+
+    public function test_ack_returns_404_when_command_belongs_to_different_location(): void
+    {
+        $bridge1 = \App\Models\LocationBridge::factory()->create(['api_key' => 'ack-loc1-key', 'client_id' => 'c1']);
+        $bridge2 = \App\Models\LocationBridge::factory()->create(['api_key' => 'ack-loc2-key', 'client_id' => 'c2']);
+
+        $commandForBridge2 = \App\Models\BridgeCommand::create([
+            'location_id' => $bridge2->location_id,
+            'command'     => 'restart',
+            'status'      => 'sent',
+        ]);
+
+        $response = $this->postJson(
+            '/api/bridges/commands/c1/ack',
+            ['commandId' => $commandForBridge2->id, 'success' => true, 'message' => 'ok'],
+            ['Authorization' => 'Bearer ack-loc1-key']
+        );
+
+        $response->assertStatus(404);
+    }
 }

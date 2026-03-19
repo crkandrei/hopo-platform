@@ -99,8 +99,29 @@ class BridgeController extends Controller
         ]);
     }
 
-    public function ackCommand(Request $request, string $clientId)
+    public function ackCommand(Request $request, string $clientId): \Illuminate\Http\JsonResponse
     {
+        $bridge = $request->attributes->get('bridge');
+
+        $data = $request->validate([
+            'commandId' => 'required|string',
+            'success'   => 'required|boolean',
+            'message'   => 'nullable|string',
+        ]);
+
+        $command = \App\Models\BridgeCommand::where('id', $data['commandId'])
+            ->where('location_id', $bridge->location_id)
+            ->first();
+
+        if (!$command) {
+            return response()->json(['message' => 'Not found'], 404);
+        }
+
+        $command->update([
+            'status'      => $data['success'] ? 'completed' : 'failed',
+            'ack_message' => $data['message'] ?? null,
+        ]);
+
         return response()->json(['ok' => true]);
     }
 }
