@@ -18,9 +18,9 @@ class LocationController extends Controller
         $user = Auth::user();
         
         if ($user->isSuperAdmin()) {
-            $locations = Location::with('company')->orderBy('name')->get();
+            $locations = Location::with('company', 'bridge')->orderBy('name')->get();
         } elseif ($user->isCompanyAdmin() && $user->company_id) {
-            $locations = Location::where('company_id', $user->company_id)
+            $locations = Location::with('bridge')->where('company_id', $user->company_id)
                 ->orderBy('name')
                 ->get();
         } else {

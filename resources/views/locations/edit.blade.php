@@ -307,7 +307,7 @@
                     @csrf
                     <input type="hidden" name="command" value="restart">
                     <button type="submit"
-                            class="px-4 py-2 bg-orange-500 text-white text-sm rounded-lg hover:bg-orange-600"
+                            class="px-4 py-2 bg-yellow-600 text-white text-sm rounded-lg hover:bg-yellow-700"
                             onclick="return confirm('Trimiți comandă restart bridge?')">
                         <i class="fas fa-redo mr-2"></i>Restart bridge
                     </button>
