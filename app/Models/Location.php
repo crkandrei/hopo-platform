@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Location extends Model
 {
@@ -24,7 +25,6 @@ class Location extends Model
         'bracelet_required',
         'fiscal_enabled',
         'birthday_concurrent_reservations',
-        'bridge_config',
     ];
 
     protected $casts = [
@@ -34,7 +34,6 @@ class Location extends Model
         'birthday_concurrent_reservations' => 'boolean',
         'price_per_hour' => 'decimal:2',
         'overflow_price_per_hour' => 'decimal:2',
-        'bridge_config' => 'array',
     ];
 
     public function company(): BelongsTo
@@ -105,6 +104,11 @@ class Location extends Model
     public function standaloneReceipts(): HasMany
     {
         return $this->hasMany(StandaloneReceipt::class);
+    }
+
+    public function bridge(): HasOne
+    {
+        return $this->hasOne(LocationBridge::class);
     }
 
     public function subscriptions(): HasMany
