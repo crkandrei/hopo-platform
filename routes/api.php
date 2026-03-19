@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\Api\BridgeController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ScanController;
+use App\Http\Middleware\BridgeApiAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -36,9 +38,6 @@ Route::prefix('scan')->group(function () {
     Route::get('/stats', [ScanController::class, 'getStats']);
     Route::post('/cleanup', [ScanController::class, 'cleanupExpiredCodes']);
 });
-
-use App\Http\Controllers\Api\BridgeController;
-use App\Http\Middleware\BridgeApiAuth;
 
 Route::middleware(BridgeApiAuth::class)->prefix('bridges')->group(function () {
     Route::post('/heartbeat', [BridgeController::class, 'heartbeat']);

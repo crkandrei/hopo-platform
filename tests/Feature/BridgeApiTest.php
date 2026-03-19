@@ -2,9 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\Company;
-use App\Models\Location;
-use App\Models\LocationBridge;
 use Tests\TestCase;
 
 class BridgeApiTest extends TestCase
@@ -27,12 +24,20 @@ class BridgeApiTest extends TestCase
         $response->assertStatus(401);
     }
 
-    public function test_heartbeat_returns_401_when_api_key_is_null_on_bridge(): void
+    public function test_heartbeat_returns_401_when_bearer_token_is_empty(): void
     {
-        $bridge = LocationBridge::factory()->create(['api_key' => null]);
-
         $response = $this->postJson('/api/bridges/heartbeat', [], [
             'Authorization' => 'Bearer ',
+        ]);
+
+        $response->assertStatus(401);
+    }
+
+    public function test_heartbeat_returns_401_when_key_does_not_match_any_bridge(): void
+    {
+        // No bridges in DB — any non-empty key should return 401
+        $response = $this->postJson('/api/bridges/heartbeat', [], [
+            'Authorization' => 'Bearer nonexistent-key-12345',
         ]);
 
         $response->assertStatus(401);
