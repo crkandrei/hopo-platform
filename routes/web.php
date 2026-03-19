@@ -23,6 +23,10 @@ Route::post('/contact', [ContactController::class, 'store'])->name('contact.stor
 Route::domain('app.hopo.ro')->group(function () {
     Route::get('/', function () {
         if (auth()->check()) {
+            $user = auth()->user();
+            if ($user->isStaff()) {
+                return redirect(($user->location && !$user->location->bracelet_required) ? '/start-session' : '/scan');
+            }
             return redirect('/dashboard');
         }
         return redirect('/login');
@@ -51,6 +55,10 @@ Route::get('/', function () {
     // Dacă subdomain-ul este 'app' și nu suntem în local, redirecționează la dashboard
     if ($subdomain === 'app' && !in_array($host, ['localhost', '127.0.0.1']) && !str_contains($host, 'localhost') && !str_contains($host, '127.0.0.1')) {
         if (auth()->check()) {
+            $user = auth()->user();
+            if ($user->isStaff()) {
+                return redirect(($user->location && !$user->location->bracelet_required) ? '/start-session' : '/scan');
+            }
             return redirect('/dashboard');
         }
         return redirect('/login');
