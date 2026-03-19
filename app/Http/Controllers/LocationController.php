@@ -67,7 +67,6 @@ class LocationController extends Controller
             'bracelet_required' => 'boolean',
             'fiscal_enabled' => 'boolean',
             'birthday_concurrent_reservations' => 'boolean',
-            'bridge_config' => 'nullable|array',
         ]);
 
         // Set company_id for COMPANY_ADMIN
@@ -150,7 +149,6 @@ class LocationController extends Controller
             'bracelet_required' => 'boolean',
             'fiscal_enabled' => 'boolean',
             'birthday_concurrent_reservations' => 'boolean',
-            'bridge_config' => 'nullable|array',
         ]);
 
         // COMPANY_ADMIN cannot change company_id
