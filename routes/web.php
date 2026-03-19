@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BirthdayReservationActionController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\LocationBridgeController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SubscriptionExpiredController;
@@ -216,6 +217,12 @@ Route::middleware('auth')->group(function () {
     
     // Locations management (super admin and company admin)
     Route::resource('locations', App\Http\Controllers\LocationController::class);
+
+    // Location bridge management (super admin and company admin)
+    Route::post('/locations/{location}/bridge/generate-key', [LocationBridgeController::class, 'generateKey'])
+        ->name('locations.bridge.generate-key');
+    Route::post('/locations/{location}/bridge/commands', [LocationBridgeController::class, 'createCommand'])
+        ->name('locations.bridge.commands');
 
     // Subscriptions management (super admin only)
     Route::get('/admin/subscriptions', [SubscriptionController::class, 'index'])->name('admin.subscriptions.index');
