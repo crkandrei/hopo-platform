@@ -47,8 +47,29 @@ class BridgeController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    public function logs(Request $request)
+    public function logs(Request $request): \Illuminate\Http\JsonResponse
     {
+        $bridge = $request->attributes->get('bridge');
+
+        $data = $request->validate([
+            'clientId'         => 'required|string',
+            'logs'             => 'required|array|min:1',
+            'logs.*.level'     => 'required|in:info,warn,error',
+            'logs.*.message'   => 'required|string',
+            'logs.*.timestamp' => 'required|date',
+        ]);
+
+        $now  = now();
+        $rows = array_map(fn($log) => [
+            'location_id' => $bridge->location_id,
+            'level'       => $log['level'],
+            'message'     => $log['message'],
+            'timestamp'   => \Illuminate\Support\Carbon::parse($log['timestamp'])->toDateTimeString(),
+            'created_at'  => $now,
+        ], $data['logs']);
+
+        \App\Models\BridgeLog::insert($rows);
+
         return response()->json(['ok' => true]);
     }
 

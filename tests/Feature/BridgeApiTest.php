@@ -113,4 +113,57 @@ class BridgeApiTest extends TestCase
         $this->assertNotNull($bridge->last_seen_at);
         $this->assertTrue($bridge->last_seen_at->diffInSeconds(now()) < 5);
     }
+
+    // ── Logs ──────────────────────────────────────────────────────────────────
+
+    public function test_logs_inserts_entries_into_bridge_logs(): void
+    {
+        $bridge = \App\Models\LocationBridge::factory()->create(['api_key' => 'logs-test-key']);
+
+        $response = $this->postJson('/api/bridges/logs', [
+            'clientId' => 'some-uuid',
+            'logs'     => [
+                ['level' => 'info',  'message' => 'Print ok',    'timestamp' => '2026-03-19T10:00:00Z'],
+                ['level' => 'error', 'message' => 'ECR timeout', 'timestamp' => '2026-03-19T10:01:00Z'],
+            ],
+        ], ['Authorization' => 'Bearer logs-test-key']);
+
+        $response->assertStatus(200);
+
+        $this->assertDatabaseHas('bridge_logs', [
+            'location_id' => $bridge->location_id,
+            'level'       => 'info',
+            'message'     => 'Print ok',
+        ]);
+        $this->assertDatabaseHas('bridge_logs', [
+            'location_id' => $bridge->location_id,
+            'level'       => 'error',
+            'message'     => 'ECR timeout',
+        ]);
+    }
+
+    public function test_logs_returns_422_when_logs_array_is_missing(): void
+    {
+        \App\Models\LocationBridge::factory()->create(['api_key' => 'logs-validation-key']);
+
+        $response = $this->postJson('/api/bridges/logs', [
+            'clientId' => 'uuid',
+        ], ['Authorization' => 'Bearer logs-validation-key']);
+
+        $response->assertStatus(422);
+    }
+
+    public function test_logs_returns_422_when_log_level_is_invalid(): void
+    {
+        \App\Models\LocationBridge::factory()->create(['api_key' => 'logs-level-key']);
+
+        $response = $this->postJson('/api/bridges/logs', [
+            'clientId' => 'uuid',
+            'logs'     => [
+                ['level' => 'debug', 'message' => 'test', 'timestamp' => '2026-03-19T10:00:00Z'],
+            ],
+        ], ['Authorization' => 'Bearer logs-level-key']);
+
+        $response->assertStatus(422);
+    }
 }
