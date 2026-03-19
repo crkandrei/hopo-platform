@@ -71,7 +71,7 @@ class AuthController extends Controller
         // Redirect bazat pe rol
         if ($user->isStaff()) {
             $destination = ($user->location && !$user->location->bracelet_required) ? url('/start-session') : url('/scan');
-            return redirect()->intended($destination);
+            return redirect($destination);
         }
 
         return redirect()->intended(url('/dashboard'));

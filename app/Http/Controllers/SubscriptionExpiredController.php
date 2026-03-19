@@ -22,7 +22,7 @@ class SubscriptionExpiredController extends Controller
         if ($location) {
             $status = $this->subscriptionService->getStatus($location);
             if ($status === 'active' || $status === 'grace') {
-                return redirect()->route('dashboard');
+                return redirect($this->getHomeRoute());
             }
             $subscription = $this->subscriptionService->getActiveSubscription($location);
         }
