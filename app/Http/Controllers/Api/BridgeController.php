@@ -82,7 +82,7 @@ class BridgeController extends Controller
     {
         $bridge = $request->attributes->get('bridge');
 
-        if ($bridge->client_id !== $clientId) {
+        if ($bridge->client_id !== null && $bridge->client_id !== $clientId) {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
