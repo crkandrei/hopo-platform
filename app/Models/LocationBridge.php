@@ -41,6 +41,8 @@ class LocationBridge extends Model
         return $this->belongsTo(Location::class);
     }
 
+    // Both bridge_commands.location_id and location_bridges.location_id share the same FK —
+    // route through location_id rather than the bridge PK to avoid a join.
     public function commands(): HasMany
     {
         return $this->hasMany(BridgeCommand::class, 'location_id', 'location_id');

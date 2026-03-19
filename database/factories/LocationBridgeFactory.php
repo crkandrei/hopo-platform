@@ -16,7 +16,7 @@ class LocationBridgeFactory extends Factory
         return [
             'location_id'    => Location::factory(),
             'api_key'        => bin2hex(random_bytes(32)),
-            'client_id'      => $this->faker->uuid(),
+            'client_id'      => null,
             'status'         => 'never_connected',
             'version'        => null,
             'mode'           => null,
