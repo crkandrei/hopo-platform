@@ -57,11 +57,11 @@ class EndOfDayController extends Controller
 
         return view('end-of-day.index', [
             'totalSessions' => $locationReport->totalSessions,
-            'totalMoney' => $locationReport->totalMoney,
+            'totalMoney' => $locationReport->grandTotal,
             'totalBilledHours' => $locationReport->totalBilledHours,
-            'cashTotal' => $locationReport->cashTotal,
-            'cardTotal' => $locationReport->cardTotal,
-            'voucherTotal' => $locationReport->voucherTotal,
+            'cashTotal' => $locationReport->grandCash,
+            'cardTotal' => $locationReport->grandCard,
+            'voucherTotal' => $locationReport->grandVoucher,
             'standaloneReceipts' => $standaloneReceipts,
             'standaloneTotal' => $standaloneTotal,
             'locationId' => $location->id,
