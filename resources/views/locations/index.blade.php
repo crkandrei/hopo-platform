@@ -79,6 +79,9 @@
                                         Niciodată conectat
                                     </span>
                                 @endif
+                                @if($bridge?->version)
+                                    <div class="text-xs text-gray-400 mt-1">v{{ $bridge->version }}</div>
+                                @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 @if($location->is_active)

@@ -32,7 +32,7 @@ class LocationBridgeController extends Controller
         $this->authorize('update', $location);
 
         $validated = $request->validate([
-            'command' => 'required|in:restart,set_config',
+            'command' => 'required|in:restart,set_config,update',
             'payload' => 'nullable|array',
         ]);
 

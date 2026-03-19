@@ -328,6 +328,24 @@
                         <i class="fas fa-check-circle mr-2"></i>Mod live
                     </button>
                 </form>
+                <form method="POST" action="{{ route('locations.bridge.commands', $location) }}"
+                      x-data="{ version: '' }"
+                      @submit.prevent="
+                          if (!version.match(/^\d+\.\d+\.\d+$/)) { alert('Versiune invalidă. Format: X.Y.Z (ex: 1.0.2)'); return; }
+                          if (!confirm('Trimiți comandă update la v' + version + '?')) return;
+                          $el.submit();
+                      ">
+                    @csrf
+                    <input type="hidden" name="command" value="update">
+                    <input type="hidden" name="payload[version]" :value="version">
+                    <div class="flex items-center gap-2">
+                        <input type="text" x-model="version" placeholder="1.0.2"
+                               class="w-24 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700">
+                            <i class="fas fa-download mr-2"></i>Update
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
 
