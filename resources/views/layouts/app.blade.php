@@ -185,12 +185,6 @@
                     @endif
                 </div>
                 <div class="flex-1 flex items-center justify-end gap-2">
-                    @if($currentUser && $currentUser->role && $currentUser->role->name === 'SUPER_ADMIN')
-                    <div id="bridge-health-indicator" class="flex items-center gap-1 px-2 py-1 rounded" title="Bridge Fiscal Status">
-                        <div id="bridge-health-dot" class="w-2 h-2 rounded-full bg-gray-500"></div>
-                        <span id="bridge-health-text" class="text-xs text-gray-400 hidden sidebar-text">Bridge</span>
-                    </div>
-                    @endif
                     <button id="sidebar-collapse-btn" class="sidebar-toggle-btn text-gray-400 hover:text-white lg:block hidden">
                         <i class="fas fa-chevron-left text-sm"></i>
                     </button>
@@ -818,61 +812,6 @@
             });
         }
 
-        // Fiscal Bridge Health Check (only for SUPER_ADMIN)
-        // Direct check to local Node.js bridge (not through Laravel backend)
-        @if($currentUser && $currentUser->role && $currentUser->role->name === 'SUPER_ADMIN')
-        (function() {
-            const healthIndicator = document.getElementById('bridge-health-indicator');
-            const healthDot = document.getElementById('bridge-health-dot');
-            const healthText = document.getElementById('bridge-health-text');
-            const checkInterval = 15000; // 15 seconds
-            const bridgeUrl = '{{ config("services.fiscal_bridge.url", "http://localhost:9000") }}';
-            
-            if (!healthIndicator || !healthDot) return;
-            
-            function checkBridgeHealth() {
-                // Direct fetch to local Node.js bridge
-                fetch(`${bridgeUrl}/health`, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json'
-                    },
-                    // Abort after 3 seconds if no response
-                    signal: AbortSignal.timeout(3000)
-                })
-                .then(response => {
-                    if (response.ok) {
-                        return response.json();
-                    } else {
-                        throw new Error('Bridge returned non-200 status');
-                    }
-                })
-                .then(data => {
-                    // Bridge is alive if we get a response
-                    if (data && data.status === 'ok') {
-                        healthDot.className = 'w-2 h-2 rounded-full bg-green-500';
-                        healthDot.style.animation = 'none';
-                        healthIndicator.title = 'Bridge Fiscal: Online';
-                    } else {
-                        throw new Error('Invalid response from bridge');
-                    }
-                })
-                .catch(error => {
-                    // Bridge is dead or unreachable
-                    console.error('Bridge health check error:', error);
-                    healthDot.className = 'w-2 h-2 rounded-full bg-red-500';
-                    healthDot.style.animation = 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite';
-                    healthIndicator.title = 'Bridge Fiscal: Offline';
-                });
-            }
-            
-            // Initial check
-            checkBridgeHealth();
-            
-            // Set interval for periodic checks
-            setInterval(checkBridgeHealth, checkInterval);
-        })();
-        @endif
     </script>
     <style>
         @keyframes pulse {
