@@ -14,9 +14,13 @@ class MarkBridgesOffline extends Command
     {
         $cutoff = now()->subSeconds(90);
 
-        LocationBridge::where('status', '!=', 'offline')
+        $count = LocationBridge::where('status', '!=', 'offline')
             ->whereNotNull('last_seen_at')
             ->where('last_seen_at', '<', $cutoff)
             ->update(['status' => 'offline']);
+
+        if ($count > 0) {
+            $this->info("Marked {$count} bridge(s) offline.");
+        }
     }
 }
