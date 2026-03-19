@@ -119,14 +119,22 @@ class LocationController extends Controller
     public function edit(Location $location)
     {
         $this->authorize('update', $location);
-        
+
         $user = Auth::user();
         $companies = null;
         if ($user->isSuperAdmin()) {
             $companies = Company::orderBy('name')->get();
         }
-        
-        return view('locations.edit', compact('location', 'companies'));
+
+        $bridge = $location->bridge;
+        $recentLogs = $bridge
+            ? \App\Models\BridgeLog::where('location_id', $location->id)
+                ->orderBy('created_at', 'desc')
+                ->limit(50)
+                ->get()
+            : collect();
+
+        return view('locations.edit', compact('location', 'companies', 'bridge', 'recentLogs'));
     }
 
     /**

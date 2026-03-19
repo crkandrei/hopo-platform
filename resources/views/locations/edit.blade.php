@@ -196,5 +196,176 @@
             </div>
         </form>
     </div>
+
+    {{-- ── Configurare Bridge ─────────────────────────────────────────────── --}}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6"
+         x-data="{
+             showKey: false,
+             apiKey: '{{ $bridge?->api_key ?? '' }}',
+             confirmRegenerate: false,
+             async generateKey() {
+                 if (this.apiKey && !this.confirmRegenerate) {
+                     this.confirmRegenerate = true;
+                     return;
+                 }
+                 this.confirmRegenerate = false;
+                 const res = await fetch('{{ route('locations.bridge.generate-key', $location) }}', {
+                     method: 'POST',
+                     headers: {
+                         'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                         'Accept': 'application/json',
+                     },
+                 });
+                 if (res.ok) {
+                     const data = await res.json();
+                     this.apiKey = data.api_key;
+                     this.showKey = true;
+                 }
+             }
+         }">
+
+        <h2 class="text-xl font-semibold text-gray-900 mb-6">
+            <i class="fas fa-plug mr-2 text-indigo-500"></i>Configurare Bridge
+        </h2>
+
+        {{-- API Key --}}
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">API Key</label>
+            <div class="flex items-center gap-3">
+                <input type="text"
+                       :value="showKey ? apiKey : (apiKey ? '••••••••••••••••' : 'Negenerată')"
+                       readonly
+                       class="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 font-mono text-sm">
+                <button type="button"
+                        @click="showKey = !showKey"
+                        x-show="apiKey"
+                        class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-100">
+                    <span x-text="showKey ? 'Ascunde' : 'Arată'"></span>
+                </button>
+            </div>
+
+            {{-- Confirm regenerate warning --}}
+            <div x-show="confirmRegenerate" class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+                <strong>Atenție:</strong> Bridge-ul existent va trebui reconfigurat manual cu noul key.
+                <button type="button" @click="generateKey()"
+                        class="ml-3 px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700 text-xs">
+                    Confirmă regenerarea
+                </button>
+                <button type="button" @click="confirmRegenerate = false"
+                        class="ml-2 px-3 py-1 border border-yellow-400 rounded text-xs hover:bg-yellow-100">
+                    Anulează
+                </button>
+            </div>
+
+            <button type="button"
+                    @click="generateKey()"
+                    x-show="!confirmRegenerate"
+                    class="mt-3 px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700">
+                <i class="fas fa-key mr-2"></i>
+                <span x-text="apiKey ? 'Regenerează API Key' : 'Generează API Key'"></span>
+            </button>
+        </div>
+
+        {{-- Bridge Status (only if bridge record exists) --}}
+        @if($bridge)
+        <div class="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+            <div class="bg-gray-50 rounded-lg p-3 text-center">
+                <div class="text-xs text-gray-500 mb-1">Status</div>
+                @if($bridge->status === 'online')
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        <span class="w-2 h-2 rounded-full bg-green-500 mr-1"></span> Online
+                    </span>
+                @elseif($bridge->status === 'offline')
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        <span class="w-2 h-2 rounded-full bg-red-500 mr-1"></span> Offline
+                    </span>
+                @else
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                        <span class="w-2 h-2 rounded-full bg-gray-400 mr-1"></span> Neconfigurat
+                    </span>
+                @endif
+            </div>
+            <div class="bg-gray-50 rounded-lg p-3 text-center">
+                <div class="text-xs text-gray-500 mb-1">Ultima activitate</div>
+                <div class="text-sm font-medium">{{ $bridge->last_seen_at?->format('d.m.Y H:i:s') ?? '—' }}</div>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-3 text-center">
+                <div class="text-xs text-gray-500 mb-1">Versiune / Mod</div>
+                <div class="text-sm font-medium">{{ $bridge->version ?? '—' }} / {{ $bridge->mode ?? '—' }}</div>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-3 text-center">
+                <div class="text-xs text-gray-500 mb-1">Bonuri / Z / Erori</div>
+                <div class="text-sm font-medium">{{ $bridge->print_count }} / {{ $bridge->z_report_count }} / {{ $bridge->error_count }}</div>
+            </div>
+        </div>
+
+        {{-- Quick Commands --}}
+        <div class="mb-6">
+            <h3 class="text-sm font-medium text-gray-700 mb-3">Comenzi rapide</h3>
+            <div class="flex gap-3 flex-wrap">
+                <form method="POST" action="{{ route('locations.bridge.commands', $location) }}">
+                    @csrf
+                    <input type="hidden" name="command" value="restart">
+                    <button type="submit"
+                            class="px-4 py-2 bg-orange-500 text-white text-sm rounded-lg hover:bg-orange-600"
+                            onclick="return confirm('Trimiți comandă restart bridge?')">
+                        <i class="fas fa-redo mr-2"></i>Restart bridge
+                    </button>
+                </form>
+                <form method="POST" action="{{ route('locations.bridge.commands', $location) }}">
+                    @csrf
+                    <input type="hidden" name="command" value="set_config">
+                    <input type="hidden" name="payload[BRIDGE_MODE]" value="test">
+                    <button type="submit" class="px-4 py-2 bg-yellow-500 text-white text-sm rounded-lg hover:bg-yellow-600">
+                        <i class="fas fa-flask mr-2"></i>Mod test
+                    </button>
+                </form>
+                <form method="POST" action="{{ route('locations.bridge.commands', $location) }}">
+                    @csrf
+                    <input type="hidden" name="command" value="set_config">
+                    <input type="hidden" name="payload[BRIDGE_MODE]" value="live">
+                    <button type="submit" class="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700">
+                        <i class="fas fa-check-circle mr-2"></i>Mod live
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {{-- Recent Logs --}}
+        @if($recentLogs->isNotEmpty())
+        <div>
+            <h3 class="text-sm font-medium text-gray-700 mb-3">Loguri recente (ultimele 50)</h3>
+            <div class="overflow-auto max-h-64 border border-gray-200 rounded-lg">
+                <table class="min-w-full text-xs font-mono">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr>
+                            <th class="px-3 py-2 text-left text-gray-500">Timestamp</th>
+                            <th class="px-3 py-2 text-left text-gray-500">Level</th>
+                            <th class="px-3 py-2 text-left text-gray-500">Mesaj</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @foreach($recentLogs as $log)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-3 py-1.5 text-gray-500 whitespace-nowrap">{{ $log->created_at->format('d.m H:i:s') }}</td>
+                            <td class="px-3 py-1.5">
+                                @if($log->level === 'error')
+                                    <span class="px-1.5 py-0.5 rounded bg-red-100 text-red-700">error</span>
+                                @elseif($log->level === 'warn')
+                                    <span class="px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-700">warn</span>
+                                @else
+                                    <span class="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">info</span>
+                                @endif
+                            </td>
+                            <td class="px-3 py-1.5 text-gray-800">{{ $log->message }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        @endif
+        @endif
+    </div>
 </div>
 @endsection
