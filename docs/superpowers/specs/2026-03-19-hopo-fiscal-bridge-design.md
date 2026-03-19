@@ -7,7 +7,7 @@
 
 Extend the hopo-platform web application to support phone-home communication from `HopoFiscalBridge`, a Windows Service installed on each location's workstation. The bridge sends heartbeats, logs, and receives commands from the server. One location = one bridge.
 
-The existing `bridge_config` JSON column on `locations` (unused in practice — bridge URL is hardcoded as `localhost:9000` in views) will be removed and absorbed into the new structure.
+The existing `bridge_config` JSON column on `locations` (unused in practice — bridge URL is hardcoded as `localhost:9000` in views) will be removed. The hardcoded `localhost:9000` references in views (`fiscal-receipts/index.blade.php`, `end-of-day/index.blade.php`, `layouts/app.blade.php`, `standalone-receipts/pay.blade.php`, `partials/payment-wizard-script.blade.php`) are **out of scope** for this work — they represent a separate, browser-to-local-bridge flow that coexists independently with the phone-home architecture defined here.
 
 ---
 
@@ -21,10 +21,10 @@ The existing `bridge_config` JSON column on `locations` (unused in practice — 
 | location_id | bigint FK → locations | unique, cascade delete |
 | api_key | string(64) | unique, nullable — null = not configured |
 | client_id | uuid string | nullable — set by bridge on first heartbeat |
-| status | enum(online, offline, never_connected) | default never_connected |
+| status | enum(online, offline, never_connected) | default never_connected — kept in sync by heartbeat and `bridges:mark-offline` command; UI badge reads this column |
 | version | string | nullable |
 | mode | enum(live, test) | nullable |
-| last_seen_at | timestamp | nullable |
+| last_seen_at | timestamp | nullable — always set by heartbeat alongside status |
 | last_print_at | timestamp | nullable |
 | print_count | integer | default 0 |
 | z_report_count | integer | default 0 |
@@ -43,11 +43,13 @@ The existing `bridge_config` JSON column on `locations` (unused in practice — 
 | timestamp | timestamp | sent by bridge |
 | created_at | timestamp | |
 
+**Index:** composite index on `(location_id, created_at)` for efficient recent-logs queries.
+
 ### New table: `bridge_commands`
 
 | Column | Type | Notes |
 |---|---|---|
-| id | uuid PK | serves as commandId |
+| id | uuid PK | serves as commandId — migration must use `$table->uuid('id')->primary()` (not `$table->id()`) |
 | location_id | bigint FK → locations | cascade delete |
 | command | enum(restart, set_config) | |
 | payload | json | nullable |
@@ -58,7 +60,7 @@ The existing `bridge_config` JSON column on `locations` (unused in practice — 
 ### Changes to `locations`
 
 - Drop column `bridge_config` (unused in practice, no data to migrate)
-- Remove `bridge_config` from `$fillable` and `$casts` on `Location` model
+- Remove `bridge_config` from `$fillable`, `$casts`, and validation rules in `LocationController` (`store` and `update` methods)
 - Add `hasOne(LocationBridge::class)` relation
 
 Note: `bridge_logs` and `bridge_commands` use `location_id` directly (not via `location_bridges`) to avoid double joins.
@@ -67,7 +69,7 @@ Note: `bridge_logs` and `bridge_commands` use `location_id` directly (not via `l
 
 ## 2. API Endpoints (Bridge → Server)
 
-All routes under `/api/bridges`, no `auth` middleware. Authentication via `BridgeApiAuth` middleware.
+All routes under `/api/bridges`, no `auth` middleware. Authentication via `BridgeApiAuth` middleware (applied as FQCN in route group — no alias registration needed in `bootstrap/app.php` in Laravel 11).
 
 ### Authentication Middleware: `BridgeApiAuth`
 
@@ -96,7 +98,7 @@ All routes under `/api/bridges`, no `auth` middleware. Authentication via `Bridg
 **Actions:**
 - Identify location via API key from header
 - If `client_id` is null on bridge → set from `clientId` in body (first connection)
-- Update all `bridge_*` fields on `location_bridges`
+- Update all `bridge_*` fields on `location_bridges`; always set `last_seen_at = now()`
 - **Response:** `200 OK`
 
 ### `POST /api/bridges/logs`
@@ -114,14 +116,18 @@ All routes under `/api/bridges`, no `auth` middleware. Authentication via `Bridg
 
 **Actions:**
 - Identify location via API key from header
+- Validate request: `logs` must be a non-empty array; each entry must have a valid `level` (info/warn/error), non-empty `message`, and valid `timestamp`
+- If validation fails → `422 Unprocessable Entity`
 - Bulk insert logs into `bridge_logs` with `location_id`
 - **Response:** `200 OK`
 
 ### `GET /api/bridges/commands/{clientId}`
 
+The `{clientId}` URL parameter is a convention from the Windows Service that also serves as an anti-replay check — it ensures the bridge cannot accidentally poll commands for another location even if the API key were shared.
+
 **Actions:**
 - Identify location via API key from header
-- Verify `client_id` on bridge matches `{clientId}` in URL
+- Verify `client_id` on bridge matches `{clientId}` in URL — return `403` if mismatch
 - Find first `pending` command for `location_id`
 - If none: **`204 No Content`**
 - If found: mark status → `sent`, respond `200`:
@@ -138,7 +144,7 @@ All routes under `/api/bridges`, no `auth` middleware. Authentication via `Bridg
 
 **Actions:**
 - Identify location via API key from header
-- Find command by `commandId`
+- Find command by `commandId`; verify command's `location_id` matches the authenticated bridge's `location_id` — return `404` if not found or not owned
 - Update status → `completed` or `failed`, save `ack_message`
 - **Response:** `200 OK`
 
@@ -148,13 +154,15 @@ app/Http/Controllers/Api/BridgeController.php
 app/Http/Middleware/BridgeApiAuth.php
 ```
 
-Routes added to `routes/api.php` in a dedicated group with `BridgeApiAuth` middleware.
+Routes added to `routes/api.php` in a dedicated group with `BridgeApiAuth` middleware applied as FQCN.
 
 ---
 
 ## 3. Admin UI — "Configurare Bridge" section on location edit page
 
 Added to the bottom of `resources/views/locations/edit.blade.php`. Visible to Super Admin and Company Admin. Rendered as a distinct card below the main form.
+
+**Note on route model binding:** The web routes use `{location}` as the route parameter. Because `Location::getRouteKeyName()` returns `'slug'`, Laravel resolves `{location}` via the slug. `LocationBridgeController` must type-hint `Location $location` to benefit from automatic slug binding.
 
 ### 3a. API Key
 
@@ -167,10 +175,9 @@ Added to the bottom of `resources/views/locations/edit.blade.php`. Visible to Su
 
 ### 3b. Bridge Status
 
-Displayed only when `location_bridges` record exists. Status computed in controller:
-- `online` if `last_seen_at > now() - 90s`
-- `offline` if `last_seen_at` exists but older than 90s
-- `never_connected` if `last_seen_at` is null
+Displayed only when `location_bridges` record exists. The UI badge reads the persisted `status` column, which is maintained by:
+- Heartbeat endpoint (sets `online`)
+- `bridges:mark-offline` command (sets `offline`)
 
 Display:
 - Colored badge: green (online) / red (offline) / gray (never_connected)
@@ -187,7 +194,7 @@ Buttons that POST to dedicated web routes:
 
 ### 3d. Recent Logs
 
-Table showing last 50 `bridge_logs` for the location:
+Table showing last 50 `bridge_logs` for the location, ordered by `created_at DESC`:
 - Columns: timestamp, level (colored badge), message
 - Hidden if no logs exist
 
@@ -196,6 +203,8 @@ Table showing last 50 `bridge_logs` for the location:
 POST /locations/{location}/bridge/generate-key  → LocationBridgeController@generateKey
 POST /locations/{location}/bridge/commands      → LocationBridgeController@createCommand
 ```
+
+**Authorization:** `LocationBridgeController` calls `$this->authorize('update', $location)` at the start of each action — consistent with the existing pattern in `LocationController`. This ensures a Company Admin can only manage bridges for locations within their own company.
 
 ```
 app/Http/Controllers/LocationBridgeController.php
@@ -210,22 +219,25 @@ app/Http/Controllers/LocationBridgeController.php
 **Schedule:** every minute in `routes/console.php`
 
 Logic:
-- Select all `location_bridges` where `status != 'offline'` AND `last_seen_at < now() - 90 seconds`
+- Select all `location_bridges` where `status != 'offline'` AND `last_seen_at IS NOT NULL` AND `last_seen_at < now() - 90 seconds`
 - Bulk update → `status = 'offline'`
-- Records with `status = 'never_connected'` are not touched (they have no `last_seen_at`)
+- Records with `status = 'never_connected'` have `last_seen_at = NULL` and are naturally excluded by the `IS NOT NULL` condition
+
+Note: heartbeat always sets `last_seen_at = now()`, so `status = 'online'` records will never have a null `last_seen_at`.
 
 ---
 
 ## 5. Migration Plan
 
 1. Create migration: `create_location_bridges_table`
-2. Create migration: `create_bridge_logs_table`
-3. Create migration: `create_bridge_commands_table`
+2. Create migration: `create_bridge_logs_table` (with composite index on `location_id, created_at`)
+3. Create migration: `create_bridge_commands_table` (UUID primary key via `$table->uuid('id')->primary()`)
 4. Create migration: `drop_bridge_config_from_locations_table` (no data migration needed — field unused)
-5. Update `Location` model: remove `bridge_config`, add `hasOne(LocationBridge::class)`
-6. Create `LocationBridge` model with relationships
-7. Create `BridgeLog` model
-8. Create `BridgeCommand` model
+5. Update `Location` model: remove `bridge_config` from `$fillable`, `$casts`; add `hasOne(LocationBridge::class)`
+6. Update `LocationController`: remove `bridge_config` validation rule from `store` and `update`
+7. Create `LocationBridge` model with relationships
+8. Create `BridgeLog` model
+9. Create `BridgeCommand` model
 
 ---
 
@@ -249,6 +261,7 @@ app/Console/Commands/MarkBridgesOffline.php
 ### Modified files
 ```
 app/Models/Location.php                    — remove bridge_config, add hasOne bridge
+app/Http/Controllers/LocationController.php — remove bridge_config validation rules
 routes/api.php                             — add /bridges/* routes
 routes/web.php                             — add bridge admin routes
 routes/console.php                         — add schedule for bridges:mark-offline
