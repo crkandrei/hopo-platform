@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 class LocationBridgeController extends Controller
 {
-    public function generateKey(Location $location)
+    public function generateKey(Request $request, Location $location)
     {
         $this->authorize('update', $location);
 
@@ -20,7 +20,7 @@ class LocationBridgeController extends Controller
             ['api_key' => $newKey]
         );
 
-        if (request()->expectsJson()) {
+        if ($request->expectsJson()) {
             return response()->json(['api_key' => $newKey]);
         }
 
