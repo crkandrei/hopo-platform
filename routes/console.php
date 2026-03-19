@@ -16,6 +16,8 @@ Artisan::command('inspire', function () {
 // Schedule::command('health:queue-check-heartbeat')->everyMinute();
 // Schedule::command('health:check')->everyMinute();
 
+Schedule::command('bridges:mark-offline')->everyMinute();
+
 Schedule::command('subscriptions:notify-expiring')->daily();
 
 Schedule::command('reports:send-daily')
