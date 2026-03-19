@@ -166,4 +166,68 @@ class BridgeApiTest extends TestCase
 
         $response->assertStatus(422);
     }
+
+    // ── Poll Commands ─────────────────────────────────────────────────────────
+
+    public function test_poll_commands_returns_204_when_no_pending_commands(): void
+    {
+        $bridge = \App\Models\LocationBridge::factory()->create([
+            'api_key'   => 'poll-no-cmd-key',
+            'client_id' => 'client-uuid-1',
+        ]);
+
+        $response = $this->getJson(
+            '/api/bridges/commands/client-uuid-1',
+            ['Authorization' => 'Bearer poll-no-cmd-key']
+        );
+
+        $response->assertStatus(204);
+    }
+
+    public function test_poll_commands_returns_command_and_marks_it_sent(): void
+    {
+        $bridge = \App\Models\LocationBridge::factory()->create([
+            'api_key'   => 'poll-cmd-key',
+            'client_id' => 'client-uuid-2',
+        ]);
+
+        $command = \App\Models\BridgeCommand::create([
+            'location_id' => $bridge->location_id,
+            'command'     => 'restart',
+            'payload'     => null,
+            'status'      => 'pending',
+        ]);
+
+        $response = $this->getJson(
+            '/api/bridges/commands/client-uuid-2',
+            ['Authorization' => 'Bearer poll-cmd-key']
+        );
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'commandId' => $command->id,
+            'command'   => 'restart',
+            'payload'   => null,
+        ]);
+
+        $this->assertDatabaseHas('bridge_commands', [
+            'id'     => $command->id,
+            'status' => 'sent',
+        ]);
+    }
+
+    public function test_poll_commands_returns_403_when_client_id_mismatch(): void
+    {
+        \App\Models\LocationBridge::factory()->create([
+            'api_key'   => 'poll-mismatch-key',
+            'client_id' => 'real-client-uuid',
+        ]);
+
+        $response = $this->getJson(
+            '/api/bridges/commands/wrong-client-uuid',
+            ['Authorization' => 'Bearer poll-mismatch-key']
+        );
+
+        $response->assertStatus(403);
+    }
 }

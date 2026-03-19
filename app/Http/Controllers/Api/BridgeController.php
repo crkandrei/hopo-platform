@@ -73,9 +73,30 @@ class BridgeController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    public function pollCommands(Request $request, string $clientId)
+    public function pollCommands(Request $request, string $clientId): \Illuminate\Http\Response|\Illuminate\Http\JsonResponse
     {
-        return response()->noContent();
+        $bridge = $request->attributes->get('bridge');
+
+        if ($bridge->client_id !== $clientId) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        $command = \App\Models\BridgeCommand::where('location_id', $bridge->location_id)
+            ->where('status', 'pending')
+            ->orderBy('created_at')
+            ->first();
+
+        if (!$command) {
+            return response()->noContent();
+        }
+
+        $command->update(['status' => 'sent']);
+
+        return response()->json([
+            'commandId' => $command->id,
+            'command'   => $command->command,
+            'payload'   => $command->payload,
+        ]);
     }
 
     public function ackCommand(Request $request, string $clientId)
