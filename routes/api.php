@@ -37,6 +37,16 @@ Route::prefix('scan')->group(function () {
     Route::post('/cleanup', [ScanController::class, 'cleanupExpiredCodes']);
 });
 
+use App\Http\Controllers\Api\BridgeController;
+use App\Http\Middleware\BridgeApiAuth;
+
+Route::middleware(BridgeApiAuth::class)->prefix('bridges')->group(function () {
+    Route::post('/heartbeat', [BridgeController::class, 'heartbeat']);
+    Route::post('/logs', [BridgeController::class, 'logs']);
+    Route::get('/commands/{clientId}', [BridgeController::class, 'pollCommands']);
+    Route::post('/commands/{clientId}/ack', [BridgeController::class, 'ackCommand']);
+});
+
 // Rute protejate cu autentificare web
 Route::middleware('auth')->group(function () {
 
