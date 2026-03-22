@@ -166,7 +166,7 @@ class SessionsController extends Controller
             $sessionQuery->where('location_id', $user->location->id);
         }
         
-        $session = $sessionQuery->with(['products.product', 'location'])->first();
+        $session = $sessionQuery->with(['products.product.tvaRate', 'location'])->first();
 
         if (!$session) {
             return response()->json([
@@ -324,6 +324,7 @@ class SessionsController extends Controller
                 'quantity' => $sp->quantity,
                 'unit_price' => (float) $sp->unit_price,
                 'total_price' => (float) $sp->total_price,
+                'vatClass' => $sp->product?->tvaRate?->vat_class ?? 1,
             ];
         })->values();
 
@@ -358,6 +359,7 @@ class SessionsController extends Controller
                         'quantity' => $product['quantity'],
                         'unit_price' => (float) $product['unit_price'],
                         'total_price' => (float) $product['total_price'],
+                        'vatClass' => $product['vatClass'],
                     ];
                 }
             }
@@ -373,11 +375,15 @@ class SessionsController extends Controller
                 }
 
                 if ($line['discounted_total_price'] > 0) {
-                    $items[] = [
+                    $item = [
                         'name' => $line['name'],
                         'quantity' => $line['quantity'],
                         'price' => (float) $line['discounted_unit_price'],
                     ];
+                    if ($line['type'] === 'product') {
+                        $item['vatClass'] = $line['vatClass'];
+                    }
+                    $items[] = $item;
                 }
             }
         } else {
@@ -395,6 +401,7 @@ class SessionsController extends Controller
                         'name' => $product['name'],
                         'quantity' => $product['quantity'],
                         'price' => (float) $product['unit_price'],
+                        'vatClass' => $product['vatClass'],
                     ];
                 }
             }
@@ -469,7 +476,7 @@ class SessionsController extends Controller
         
         // Load all sessions
         $sessionQuery = PlaySession::whereIn('id', $sessionIds)
-            ->with(['products.product', 'location', 'child']);
+            ->with(['products.product.tvaRate', 'location', 'child']);
         
         if (!$user->isSuperAdmin() && $user->location) {
             $sessionQuery->where('location_id', $user->location->id);
@@ -595,6 +602,7 @@ class SessionsController extends Controller
                     'quantity' => $sp->quantity,
                     'unit_price' => (float) $sp->unit_price,
                     'total_price' => (float) $sp->total_price,
+                    'vatClass' => $sp->product?->tvaRate?->vat_class ?? 1,
                 ];
             });
 
@@ -670,6 +678,7 @@ class SessionsController extends Controller
                         'quantity' => $product['quantity'],
                         'unit_price' => (float) $product['unit_price'],
                         'total_price' => (float) $product['total_price'],
+                        'vatClass' => $product['vatClass'],
                     ];
                 }
             }
@@ -692,11 +701,15 @@ class SessionsController extends Controller
                 }
 
                 if ($line['discounted_total_price'] > 0) {
-                    $items[] = [
+                    $item = [
                         'name' => $line['name'],
                         'quantity' => $line['quantity'],
                         'price' => (float) $line['discounted_unit_price'],
                     ];
+                    if ($line['type'] === 'product') {
+                        $item['vatClass'] = $line['vatClass'];
+                    }
+                    $items[] = $item;
                 }
             }
         } else {
@@ -778,6 +791,7 @@ class SessionsController extends Controller
                         'name' => $product['name'],
                         'quantity' => $product['quantity'],
                         'price' => (float) $product['unit_price'],
+                        'vatClass' => $product['vatClass'],
                     ];
                 }
             }

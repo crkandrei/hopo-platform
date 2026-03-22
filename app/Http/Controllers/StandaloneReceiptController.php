@@ -164,12 +164,26 @@ class StandaloneReceiptController extends Controller
             $voucherId = $voucher->id;
         }
 
-        $items = $standaloneReceipt->items->map(function (StandaloneReceiptItem $item) {
-            return [
+        // Pre-load products with TVA rates to avoid N+1 queries
+        $productIds = $standaloneReceipt->items
+            ->where('source_type', 'product')
+            ->pluck('source_id');
+        $products = \App\Models\Product::with('tvaRate')
+            ->whereIn('id', $productIds)
+            ->get()
+            ->keyBy('id');
+
+        $items = $standaloneReceipt->items->map(function (StandaloneReceiptItem $item) use ($products) {
+            $result = [
                 'name' => $item->name,
                 'quantity' => $item->quantity,
                 'price' => (float) $item->unit_price,
             ];
+            if ($item->source_type === 'product') {
+                $product = $products->get($item->source_id);
+                $result['vatClass'] = $product?->tvaRate?->vat_class ?? 1;
+            }
+            return $result;
         })->values()->all();
 
         return response()->json([
