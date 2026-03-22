@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\TvaRate;
 use App\Support\ApiResponder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -51,7 +52,9 @@ class ProductController extends Controller
             return redirect($this->getHomeRoute())->with('error', 'Utilizatorul nu este asociat cu nicio locație');
         }
 
-        return view('products.create');
+        $tvaRates = TvaRate::where('is_active', true)->orderBy('vat_class')->get();
+
+        return view('products.create', compact('tvaRates'));
     }
 
     /**
@@ -75,6 +78,7 @@ class ProductController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
             'is_active' => ['sometimes', 'boolean'],
+            'tva_rate_id' => ['nullable', 'exists:tva_rates,id'],
         ]);
 
         try {
@@ -83,6 +87,7 @@ class ProductController extends Controller
                 'name' => $validated['name'],
                 'price' => $validated['price'],
                 'is_active' => $validated['is_active'] ?? true,
+                'tva_rate_id' => $validated['tva_rate_id'] ?? null,
             ]);
 
             return redirect()->route('products.index')
@@ -139,7 +144,9 @@ class ProductController extends Controller
             ->where('location_id', $location->id)
             ->firstOrFail();
 
-        return view('products.edit', compact('product'));
+        $tvaRates = TvaRate::where('is_active', true)->orderBy('vat_class')->get();
+
+        return view('products.edit', compact('product', 'tvaRates'));
     }
 
     /**
@@ -167,6 +174,7 @@ class ProductController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
             'is_active' => ['sometimes', 'boolean'],
+            'tva_rate_id' => ['nullable', 'exists:tva_rates,id'],
         ]);
 
         try {
@@ -174,6 +182,7 @@ class ProductController extends Controller
                 'name' => $validated['name'],
                 'price' => $validated['price'],
                 'is_active' => $validated['is_active'] ?? $product->is_active,
+                'tva_rate_id' => $validated['tva_rate_id'] ?? null,
             ]);
 
             return redirect()->route('products.index')
