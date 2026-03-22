@@ -384,7 +384,14 @@
                         </div>
                     </div>
 
-                    <a href="{{ route('users.index') }}" 
+                    <a href="{{ route('admin.tva-rates.index') }}"
+                       data-title="Cote TVA"
+                       class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.tva-rates.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                        <i class="fas fa-percent sidebar-icon mr-3"></i>
+                        <span class="sidebar-text">Cote TVA</span>
+                    </a>
+
+                    <a href="{{ route('users.index') }}"
                        data-title="Utilizatori"
                        class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('users.*') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
                         <i class="fas fa-users sidebar-icon mr-3"></i>

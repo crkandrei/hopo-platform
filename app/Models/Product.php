@@ -16,6 +16,7 @@ class Product extends Model
         'name',
         'price',
         'is_active',
+        'tva_rate_id',
     ];
 
     protected $casts = [
@@ -23,6 +24,11 @@ class Product extends Model
         'is_active' => 'boolean',
     ];
 
+
+    public function tvaRate(): BelongsTo
+    {
+        return $this->belongsTo(TvaRate::class, 'tva_rate_id');
+    }
 
     /**
      * Get the play session products for this product.
