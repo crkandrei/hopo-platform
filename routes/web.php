@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\SubscriptionPlanController;
+use App\Http\Controllers\Admin\TvaRateController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BirthdayReservationActionController;
 use App\Http\Controllers\CheckoutController;
@@ -305,6 +306,7 @@ Route::middleware('auth')->group(function () {
 // Admin subscription plan management (super admin)
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::resource('subscription-plans', SubscriptionPlanController::class);
+    Route::resource('tva-rates', TvaRateController::class);
 });
 
 // Legal documents accessible without authentication
