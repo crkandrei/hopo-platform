@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Program gestiune loc de joacă: bonuri fiscale ANAF, rezervări petreceri online, rapoarte zilnice și cronometrare automată. Demo gratuit!">
-    <title>Hopo – Gestiune & Rezervări Loc de Joacă | Bonuri Fiscale ANAF</title>
+    <meta name="description" content="HOPO – program de gestiune pentru locuri de joacă indoor. Sesiuni automate, brățări RFID, bonuri fiscale ANAF, rezervări online. Setup în sub 24h. Solicită demo gratuit.">
+    <title>HOPO – Soft gestiune & rezervări loc de joacă | Bonuri Fiscale ANAF</title>
     <link rel="canonical" href="https://hopo.ro/">
     
     <!-- Open Graph / Facebook -->
@@ -157,7 +157,12 @@
                     "Integrare case de marcat Datecs",
                     "Rezervări online petreceri și zile de naștere"
                 ],
-                "screenshot": "https://hopo.ro/images/screenshot-dashboard.png"
+                "screenshot": "https://hopo.ro/images/screenshot-dashboard.png",
+                "aggregateRating": {
+                    "@type": "AggregateRating",
+                    "ratingValue": "5",
+                    "reviewCount": "1"
+                }
             },
             {
                 "@type": "WebSite",
@@ -237,18 +242,18 @@
                     },
                     {
                         "@type": "Question",
-                        "name": "Ce echipamente sunt necesare pentru HOPO?",
+                        "name": "Pot testa HOPO înainte de a cumpăra?",
                         "acceptedAnswer": {
                             "@type": "Answer",
-                            "text": "În mod normal ai nevoie de: un calculator sau tabletă la recepție, imprimantă fiscală (opțional) și, opțional, un scanner de coduri de bare sau cititor RFID."
+                            "text": "Da. Oferim demo gratuit și prima lună gratuită."
                         }
                     },
                     {
                         "@type": "Question",
-                        "name": "Pot testa HOPO înainte de a cumpăra?",
+                        "name": "Pot primi rezervări online de la clienți?",
                         "acceptedAnswer": {
                             "@type": "Answer",
-                            "text": "Da. Oferim demo gratuit, astfel încât să vezi cum funcționează sistemul în locația ta înainte de a lua o decizie."
+                            "text": "Da. Cu pachetul PRO, HOPO generează un link unic de rezervare pe care îl poți distribui pe site, Facebook sau WhatsApp."
                         }
                     }
                 ]
@@ -274,10 +279,10 @@
                 
                 <!-- Nav Links -->
                 <div class="hidden md:flex items-center space-x-8">
-                    <a href="#features" class="text-gray-600 hover:text-hopo-purple transition-colors text-sm font-medium">Funcționalități</a>
-                    <a href="#pricing" class="text-gray-600 hover:text-hopo-purple transition-colors text-sm font-medium">Prețuri</a>
+                    <a href="/functionalitati" class="text-gray-600 hover:text-hopo-purple transition-colors text-sm font-medium">Funcționalități</a>
+                    <a href="/preturi" class="text-gray-600 hover:text-hopo-purple transition-colors text-sm font-medium">Prețuri</a>
                     <a href="#faq" class="text-gray-600 hover:text-hopo-purple transition-colors text-sm font-medium">FAQ</a>
-                    <a href="#contact" class="text-gray-600 hover:text-hopo-purple transition-colors text-sm font-medium">Contact</a>
+                    <a href="/contact" class="text-gray-600 hover:text-hopo-purple transition-colors text-sm font-medium">Contact</a>
                 </div>
                 
                 <!-- CTA -->
@@ -1530,7 +1535,7 @@
                             <svg class="w-5 h-5 text-hopo-purple mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
                             </svg>
-                            <span class="text-gray-600">0752 620 694</span>
+                            <a href="tel:0752620694" class="text-gray-600 hover:text-hopo-purple transition-colors">0752 620 694</a>
                         </div>
                     </div>
                 </div>
@@ -1593,13 +1598,13 @@
         <div class="max-w-6xl mx-auto">
             <div class="grid md:grid-cols-3 gap-8 mb-8">
                 <div>
-                    <img src="{{ asset('images/hopo-logo.png') }}" alt="Hopo - Logo soft gestiune locuri de joacă" width="200" height="60" loading="lazy" class="h-8 brightness-0 invert opacity-70 mb-4">
+                    <img src="{{ asset('images/hopo-logo.png') }}" alt="Hopo - Logo soft gestiune locuri de joacă" loading="lazy" class="h-8 w-auto brightness-0 invert opacity-70 mb-4">
                     <p class="text-sm">Soft de gestiune pentru locuri de joacă indoor. Sesiuni, identificare rapidă, bonuri fiscale.</p>
                 </div>
                 <div>
                     <h4 class="text-white font-semibold mb-4">Contact</h4>
                     <p class="text-sm mb-2">📧 contact@hopo.ro</p>
-                    <p class="text-sm mb-2">📞 0752 620 694</p>
+                    <p class="text-sm mb-2">📞 <a href="tel:0752620694" class="hover:text-white transition-colors">0752 620 694</a></p>
                     <p class="text-sm">📍 București, România</p>
                 </div>
                 <div>

@@ -37,6 +37,16 @@ Route::domain('app.hopo.ro')->group(function () {
 Route::domain('www.hopo.ro')->group(function () {
     Route::get('/', [WebController::class, 'index']);
     Route::post('/contact', [ContactController::class, 'store']);
+    Route::get('/functionalitati', [WebController::class, 'functionalitati']);
+    Route::get('/preturi', [WebController::class, 'preturi']);
+    Route::get('/despre', [WebController::class, 'despre']);
+    Route::get('/contact', [WebController::class, 'contact']);
+    Route::get('/blog', fn() => view('blog.index'));
+    Route::get('/blog/{slug}', function ($slug) {
+        $view = 'blog.articles.' . $slug;
+        if (!view()->exists($view)) abort(404);
+        return view($view);
+    });
 });
 
 Route::domain('hopo.ro')->group(function () {
@@ -44,6 +54,16 @@ Route::domain('hopo.ro')->group(function () {
     Route::post('/contact', [ContactController::class, 'store']);
     Route::get('/login', fn() => redirect('https://app.hopo.ro/login'));
     Route::get('/dashboard', fn() => redirect('https://app.hopo.ro/dashboard'));
+    Route::get('/functionalitati', [WebController::class, 'functionalitati']);
+    Route::get('/preturi', [WebController::class, 'preturi']);
+    Route::get('/despre', [WebController::class, 'despre']);
+    Route::get('/contact', [WebController::class, 'contact']);
+    Route::get('/blog', fn() => view('blog.index'));
+    Route::get('/blog/{slug}', function ($slug) {
+        $view = 'blog.articles.' . $slug;
+        if (!view()->exists($view)) abort(404);
+        return view($view);
+    });
 });
 
 // Landing page default (pentru local development sau când nu există subdomain)
@@ -68,7 +88,17 @@ Route::get('/', function () {
     return app(WebController::class)->index();
 });
 
-// Contact form route deja definită mai sus pentru toate domeniile
+// Landing subpages (local development fallback)
+Route::get('/functionalitati', [WebController::class, 'functionalitati']);
+Route::get('/preturi', [WebController::class, 'preturi']);
+Route::get('/despre', [WebController::class, 'despre']);
+Route::get('/contact', [WebController::class, 'contact']);
+Route::get('/blog', fn() => view('blog.index'));
+Route::get('/blog/{slug}', function ($slug) {
+    $view = 'blog.articles.' . $slug;
+    if (!view()->exists($view)) abort(404);
+    return view($view);
+});
 
 // Auth routes
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');

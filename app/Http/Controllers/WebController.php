@@ -105,4 +105,29 @@ class WebController extends Controller
         // Users should access the app via app.hopo.ro or /dashboard directly
         return view('landing');
     }
+
+    public function functionalitati()
+    {
+        return view('functionalitati');
+    }
+
+    public function preturi()
+    {
+        return view('preturi');
+    }
+
+    public function despre()
+    {
+        return view('despre');
+    }
+
+    public function contact()
+    {
+        return view('contact');
+    }
+
+    public function blog()
+    {
+        return view('blog');
+    }
 }
