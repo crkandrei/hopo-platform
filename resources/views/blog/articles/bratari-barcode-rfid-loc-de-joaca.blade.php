@@ -35,13 +35,28 @@
 
 <p class="text-gray-600 leading-relaxed mb-4">Fiecare brățară are imprimat un cod de bare unic (1D sau 2D/QR). Scannerul citește codul optic — trebuie să fie orientat spre codul de bare și să aibă contact vizual direct. Citirea e instantanee (sub 0,5 secunde) cu un scanner decent.</p>
 
-<h3 class="text-xl font-semibold text-gray-800 mt-6 mb-3">Tipuri de brățări barcode disponibile</h3>
+<h3 class="text-xl font-semibold text-gray-800 mt-6 mb-3">Brățări de unică folosință — varianta recomandată pentru majoritatea locurilor de joacă</h3>
+
+<p class="text-gray-600 leading-relaxed mb-4">Brățările termice de hârtie de unică folosință sunt alegerea standard pentru locurile de joacă indoor din România — și cu un motiv solid: copilul pleacă cu brățara pe mână, tu nu mai ai nicio responsabilitate după. Zero igienizare, zero gestionare stoc de brățări recuperate, zero proceduri de dezinfecție.</p>
+
+<p class="text-gray-600 leading-relaxed mb-4">Costul e extrem de mic: <strong>0,30–0,80 RON per brățară</strong> în comenzi de 1.000+ bucăți. La 50 de copii pe zi, costul lunar e 450–1.200 RON — o fracțiune din ce câștigi dintr-o singură zi de weekend. Nu există un calcul în care să nu merite față de alternativa reutilizabilă.</p>
+
+<p class="text-gray-600 leading-relaxed mb-4">Există două variante de brățări single-use:</p>
 
 <ul class="list-disc list-inside space-y-3 text-gray-600 mb-6 ml-4">
-    <li><strong>Brățări termice de hârtie (single-use)</strong> — cele mai ieftine (0,30–0,80 RON/bucată în cantități de 1.000+). Se imprimă la fața locului cu o imprimantă termică de brățări sau vin pre-tipărite de la furnizor. Se poartă o singură dată și se aruncă. Avantaj: pot include și data, ora intrării, sau alte informații vizibile. Dezavantaj: se pot uda sau deteriora.</li>
-    <li><strong>Brățări silicon reutilizabile cu cod de bare tipărit</strong> — durabile, se pot folosi de sute de ori. Cost: 1,50–3,00 RON/bucată. Codul de bare e protejat sub un strat de silicon transparent. Recomandate dacă vrei să reduci costurile lunare cu brățările.</li>
-    <li><strong>Brățări de plastic cu cod de bare</strong> — similare cu cele din parcurile de distracții. Durabile, rezistente la apă. Cost: 2–5 RON/bucată.</li>
+    <li><strong>Pre-tipărite cu coduri de bare unice</strong> — comanzi un lot (ex. 2.000 bucăți) cu coduri pre-imprimate. Cel mai simplu workflow: rupi brățara din rola, o pui pe mâna copilului, scanezi. Cost: 0,30–0,60 RON/bucată în cantități.</li>
+    <li><strong>Imprimate la fața locului cu imprimantă termică</strong> — softul generează și tipărește brățara pe loc, cu data, ora intrării sau numele copilului vizibil. Mai flexibil, dar necesită investiția inițială într-o imprimantă (600–1.200 RON). Are sens dacă vrei personalizare sau dacă rulezi promoții cu coduri diferite.</li>
 </ul>
+
+<div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg mb-6">
+    <p class="text-gray-700 font-medium">Avantajul ignorat al brățărilor single-use: igienă fără efort. Nu trebuie să dezinfectezi nimic, nu există proceduri de recuperare la ieșire, nu există risc că un angajat uită să igienizeze o brățară. Copilul pleacă cu ea — gata. Pentru locuri de joacă cu personal redus, e o diferență operațională reală.</p>
+</div>
+
+<h3 class="text-xl font-semibold text-gray-800 mt-6 mb-3">Brățări reutilizabile — când are sens</h3>
+
+<p class="text-gray-600 leading-relaxed mb-4">Brățările silicon sau plastic reutilizabile (1,50–5,00 RON/bucată) pot reduce costul per utilizare pe termen lung, dar adaugă o responsabilitate operațională care nu există la single-use: trebuie recuperate la ieșire, igienizate și repuse în circulație. La locații cu personal suficient și procese clare, e un workflow gestionabil. La locații mici cu 1–2 angajați pe tură, e o sursă de erori și uitări.</p>
+
+<p class="text-gray-600 leading-relaxed mb-4">Recomandarea practică: începe cu single-use. Dacă după 6–12 luni vrei să optimizezi costul cu brățările, evaluezi atunci dacă reutilizabilele au sens pentru volumul și echipa ta.</p>
 
 <div class="bg-indigo-50 border-l-4 border-hopo-purple p-4 rounded-r-lg mb-6">
     <p class="text-gray-700 font-medium">HOPO lucrează în principal cu brățări barcode. Sistemul suportă atât scanere USB standard, cât și scanere Bluetooth pentru mobilitate. Setup-ul inițial cu brățări barcode poate fi funcțional în sub o oră după instalarea softului.</p>
@@ -50,8 +65,9 @@
 <h3 class="text-xl font-semibold text-gray-800 mt-6 mb-3">Costuri brățări barcode</h3>
 
 <ul class="list-disc list-inside space-y-2 text-gray-600 mb-6 ml-4">
-    <li>Brățări hârtie single-use: 0,30–0,80 RON/bucată (comandă minimă 500–1.000 bucăți)</li>
-    <li>Brățări silicon reutilizabile: 1,50–3,00 RON/bucată (se amortizează după 10–15 utilizări)</li>
+    <li>Brățări hârtie single-use pre-tipărite: 0,30–0,60 RON/bucată (comandă minimă 1.000 bucăți)</li>
+    <li>Brățări hârtie single-use imprimate local: 0,40–0,80 RON/bucată + imprimantă (600–1.200 RON, o singură dată)</li>
+    <li>Brățări silicon reutilizabile: 1,50–3,00 RON/bucată</li>
     <li>Scanner barcode USB de birou (Honeywell, Zebra, Symbol): 150–350 RON</li>
     <li>Scanner barcode Bluetooth (portabil): 250–500 RON</li>
 </ul>
@@ -175,25 +191,25 @@
 
 <h3 class="text-xl font-semibold text-gray-800 mt-6 mb-3">Gestionarea brățărilor în HOPO</h3>
 
-<p class="text-gray-600 leading-relaxed mb-4">HOPO menține o evidență a stocului de brățări dacă folosești brățări reutilizabile: câte sunt în circulație, câte sunt libere, câte trebuie dezinfectate. La ieșire, angajatul recuperează brățara, o pune în recipientul de dezinfectat, și codul e din nou disponibil pentru o nouă intrare.</p>
+<p class="text-gray-600 leading-relaxed mb-4">Cu brățări single-use, nu există nimic de gestionat în afara stocului: când rămâi cu mai puțin de 200–300 bucăți, comanzi un nou lot. HOPO îți poate afișa câte brățări au fost emise azi, săptămâna asta, luna asta — util ca să anticipezi când reaprovizionezi.</p>
 
-<p class="text-gray-600 leading-relaxed mb-4">Dacă o brățară se pierde sau se deteriorează, o dezactivezi din sistem în 10 secunde — codul respectiv nu mai poate fi folosit pentru o nouă intrare.</p>
+<p class="text-gray-600 leading-relaxed mb-4">Dacă folosești brățări reutilizabile, HOPO menține evidența stocului activ: câte coduri sunt în circulație, câte sunt libere. Dacă un cod se pierde sau se deteriorează, îl dezactivezi din sistem în 10 secunde — codul respectiv nu mai poate genera o sesiune nouă.</p>
 
 <h2 class="text-2xl font-bold text-gray-900 mt-10 mb-4">Sfaturi practice pentru gestionarea brățărilor</h2>
 
-<h3 class="text-xl font-semibold text-gray-800 mt-6 mb-3">Câte brățări îți trebuie în stoc?</h3>
+<h3 class="text-xl font-semibold text-gray-800 mt-6 mb-3">Câte brățări single-use să ții în stoc?</h3>
 
-<p class="text-gray-600 leading-relaxed mb-4">Regula generală: stoc de brățări = capacitatea maximă a locației × 3. Dacă locul tău poate găzdui simultan 50 de copii, ai nevoie de minimum 150 de brățări în stoc activ (unele în circulație, unele în dezinfecție, o rezervă). Pentru brățări single-use, calculează consumul lunar și comandă cu 30% marjă de siguranță.</p>
+<p class="text-gray-600 leading-relaxed mb-4">Calculează consumul mediu zilnic × 30 zile + 30% marjă de siguranță. Dacă ai 40 de copii pe zi în medie, consumi ~1.200 brățări pe lună — comandă loturi de 2.000–3.000 bucăți pentru a nu rămâne fără. Stocul de brățări nu expiră, nu se deteriorează dacă e păstrat uscat, și prețul per bucată scade cu cât comanzi mai mult.</p>
 
-<h3 class="text-xl font-semibold text-gray-800 mt-6 mb-3">Dezinfecția brățărilor reutilizabile</h3>
-
-<p class="text-gray-600 leading-relaxed mb-4">Brățările reutilizabile trebuie dezinfectate după fiecare utilizare — atât din motive igienice (copiii sunt copii), cât și pentru că mulți părinți vor observa și aprecia că brățara e curată. Spray dezinfectant pentru suprafețe și un recipient clar separat pentru „brățări curate" vs „brățări folosite" la recepție rezolvă problema simplu.</p>
+<p class="text-gray-600 leading-relaxed mb-4">Păstrează un stoc minim de urgență de 200–300 bucăți separat. Dacă dintr-un motiv oarecare livrarea întârzie, ai timp de reacție fără să oprești activitatea.</p>
 
 <h2 class="text-2xl font-bold text-gray-900 mt-10 mb-4">Concluzie</h2>
 
-<p class="text-gray-600 leading-relaxed mb-4">Pentru marea majoritate a locurilor de joacă indoor din România, brățările barcode sunt alegerea corectă: cost mic, setup simplu, fiabilitate ridicată. Cu un scanner USB de 200 RON și brățări de hârtie la 0,50 RON bucata, poți automatiza complet identificarea copiilor și calculul timpului în aceeași zi în care instalezi HOPO.</p>
+<p class="text-gray-600 leading-relaxed mb-4">Pentru marea majoritate a locurilor de joacă indoor din România, brățările barcode de unică folosință sunt alegerea corectă: cost mic, zero gestionare post-utilizare, zero igienizare, setup simplu. Cu un scanner USB de 200 RON și brățări de hârtie la 0,50 RON bucată, poți automatiza complet identificarea copiilor și calculul timpului în aceeași zi în care instalezi HOPO.</p>
 
-<p class="text-gray-600 leading-relaxed mb-4">RFID e o investiție care are sens dacă ai volum mare sau vrei o experiență premium, dar nu e o necesitate pentru a funcționa eficient. Poți începe cu barcode și face upgrade la RFID mai târziu — HOPO suportă ambele tehnologii fără să trebuiască să schimbi softul.</p>
+<p class="text-gray-600 leading-relaxed mb-4">Nu complica inutil. Brățara single-use intră pe mâna copilului la intrare, iese cu copilul la plecare — angajatul nu are nimic de recuperat, nimic de igienizat, nimic de gestionat. E exact tipul de simplitate operațională pe care trebuie să o cauți mai ales la început.</p>
+
+<p class="text-gray-600 leading-relaxed mb-4">RFID e o investiție care are sens dacă ai volum mare sau vrei o experiență premium, iar brățările reutilizabile pot reduce costul per utilizare dacă ai echipă suficientă. Ambele variante sunt suportate de HOPO — poți face upgrade oricând fără să schimbi softul.</p>
 
 <div class="mt-10 p-8 bg-indigo-50 rounded-2xl">
     <h3 class="text-xl font-bold text-gray-900 mb-3">Vrei să vezi cum funcționează identificarea cu brățări în HOPO?</h3>
