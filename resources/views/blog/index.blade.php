@@ -8,6 +8,30 @@
 @php
 $articles = [
     [
+        'slug'         => 'rezervari-online-zile-nastere-loc-de-joaca',
+        'title'        => 'Cum gestionezi rezervările online pentru zilele de naștere la locul de joacă',
+        'description'  => 'Zilele de naștere generează 500–1.500 RON per eveniment. Gestionarea prin telefon și WhatsApp consumă timp și generează confuzii. Iată cum automatizezi tot procesul.',
+        'date'         => '30 martie 2026',
+        'reading_time' => '11 min',
+        'tag'          => 'Operațional',
+    ],
+    [
+        'slug'         => 'bratari-barcode-rfid-loc-de-joaca',
+        'title'        => 'Brățări barcode și RFID pentru loc de joacă: ce alegi și de ce',
+        'description'  => 'Fără identificare digitală nu știi exact cât timp a stat fiecare copil și erorile de facturare apar inevitabil. Ghid complet: diferențe, costuri și cum le integrezi cu softul.',
+        'date'         => '25 martie 2026',
+        'reading_time' => '9 min',
+        'tag'          => 'Echipamente',
+    ],
+    [
+        'slug'         => 'bon-fiscal-automat-loc-de-joaca',
+        'title'        => 'Bon fiscal automat pentru loc de joacă: obligații ANAF 2026',
+        'description'  => 'Amenzi între 2.000 și 4.000 RON per abatere pentru neemiterea bonului fiscal. Ce casă de marcat ai nevoie, cum o integrezi cu softul și cum automatizezi complet procesul.',
+        'date'         => '20 martie 2026',
+        'reading_time' => '10 min',
+        'tag'          => 'Fiscal',
+    ],
+    [
         'slug'         => 'cum-sa-deschizi-loc-de-joaca-pentru-copii-romania',
         'title'        => 'Cum să deschizi un loc de joacă pentru copii în România [Ghid Complet 2026]',
         'description'  => 'Ghid pas cu pas pentru deschiderea unui loc de joacă indoor în România: autorizații ISU/DSP, echipamente, costuri, software de gestiune. Tot ce trebuie să știi în 2026.',
