@@ -1,6 +1,7 @@
 <?php
 
 use App\Support\ActionLogger;
+use App\Http\Middleware\ForceCanonicalUrl;
 use App\Http\Middleware\AddRequestId;
 use App\Http\Middleware\LogRequests;
 use App\Http\Middleware\RefreshRememberToken;
@@ -20,6 +21,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '127.0.0.1');
+
+        $middleware->prepend(ForceCanonicalUrl::class);
 
         // Register request logging middleware for web routes
         $middleware->web(prepend: [
