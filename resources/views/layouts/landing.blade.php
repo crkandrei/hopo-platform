@@ -95,6 +95,7 @@
                     <a href="/functionalitati" class="text-gray-600 hover:text-hopo-purple transition-colors text-sm font-medium">Funcționalități</a>
                     <a href="/preturi" class="text-gray-600 hover:text-hopo-purple transition-colors text-sm font-medium">Prețuri</a>
                     <a href="/#faq" class="text-gray-600 hover:text-hopo-purple transition-colors text-sm font-medium">FAQ</a>
+                    <a href="/blog" class="text-gray-600 hover:text-hopo-purple transition-colors text-sm font-medium">Blog</a>
                     <a href="/contact" class="text-gray-600 hover:text-hopo-purple transition-colors text-sm font-medium">Contact</a>
                 </div>
 
