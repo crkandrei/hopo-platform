@@ -2,7 +2,7 @@
 
 ## Goal
 
-Track how many unique sessions have visited a location's public booking page. Display the counter to super admins in the location detail view.
+Track how many unique sessions have visited a location's public booking page. Display the counter to super admins only in the location detail view.
 
 ## Architecture
 
@@ -11,34 +11,51 @@ Single integer counter on the `locations` table, incremented once per session pe
 ## Components
 
 ### 1. Migration
-- Add `booking_visit_count` unsigned integer, default 0, nullable false, to `locations` table.
+- Class name: `AddBookingVisitCountToLocationsTable`
+- Add `booking_visit_count` as `unsignedInteger`, default 0, not nullable, to `locations` table.
+- `unsignedInteger` (4 bytes, max ~4.2 billion) is appropriate for a per-location visit counter.
 
 ### 2. PublicBookingController — showForm()
-- At the start of `showForm(Location $location)`, before any other logic:
+- The increment happens **after** the existing 404 guard (after the halls/packages check), immediately before the `return view(...)` call:
   - Check `session()->has("visited_booking_{$location->id}")`
   - If false: call `$location->increment('booking_visit_count')` and `session()->put("visited_booking_{$location->id}", true)`
   - If true: do nothing
-- Session key is per-location so visiting multiple locations' booking pages each count once.
+- Session key uses `$location->id` (numeric primary key) because it is immutable and collision-free regardless of slug changes.
+- `increment()` issues an atomic SQL `UPDATE locations SET booking_visit_count = booking_visit_count + 1`, avoiding a read-modify-write race at the DB level.
+- Known limitation: if two parallel requests arrive before either session write completes (e.g., same user opening two tabs simultaneously), both could call `increment()`. This is acceptable for a best-effort counter.
 
 ### 3. Location model
-- Add `booking_visit_count` to `$fillable` (or keep default 0 via migration — no fillable change needed since we use `increment()`).
+- No `$fillable` change needed — `increment()` bypasses mass assignment entirely.
+- Add `'booking_visit_count' => 'integer'` to the `$casts` array for type consistency.
 
 ### 4. Location show view — `resources/views/locations/show.blade.php`
-- Add inside an `@if(Auth::user()->isSuperAdmin())` block:
+- This view is behind auth middleware — unauthenticated users cannot reach it.
+- Add after the booking URL display block inside the "Aniversări și Booking" section, as a new sibling `<div class="pt-4 border-t border-gray-200">`:
+  ```blade
+  @if(Auth::user() && Auth::user()->isSuperAdmin())
+  <div class="pt-4 border-t border-gray-200">
+      <p class="text-sm text-gray-600">Vizite pagină booking: <span class="font-semibold text-gray-900">{{ number_format($location->booking_visit_count) }}</span></p>
+  </div>
+  @endif
   ```
-  Vizite pagină booking: {{ number_format($location->booking_visit_count) }}
-  ```
-- Styled as a simple stat badge consistent with existing UI patterns in that view.
+- Guard: super admin only — must **not** include `isCompanyAdmin()`.
+- `$location` is already passed to this view by `LocationController::show()`.
 
 ## Constraints
 
 - Counter is **not** decremented on any action.
-- Bots and crawlers are not filtered — this is a simple best-effort counter.
+- Bots and crawlers are not filtered — best-effort counter only.
 - Counter resets only via direct DB intervention (no UI reset button).
-- Only `showForm()` is counted — not the confirmation page or API endpoints.
+- Only `showForm()` is counted — only after the 404 guard passes. Confirmation page and API endpoints are not counted.
 
 ## Testing
 
-- Unit: `Location` factory creates with `booking_visit_count = 0` by default.
-- Feature: first visit increments counter; second visit in same session does not; two different sessions each increment once.
-- Feature: counter is visible in location show for super admin; not visible for other roles.
+- Feature: first visit increments counter by 1.
+- Feature: second visit in same session does not increment again.
+- Feature: two different sessions each increment the counter once.
+- Feature: visiting a location with no halls/packages configured (404 path) does not increment the counter.
+- Feature: counter is visible in location show for super admin.
+- Feature: counter is not visible for company admin.
+- Feature: counter is not visible for location staff (or any non-super-admin role).
+- Unit: `booking_visit_count` is cast to integer on the Location model.
+- Migration: column defaults to 0.
