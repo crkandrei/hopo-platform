@@ -341,7 +341,6 @@ class PublicBookingController extends Controller
 
     public function confirmation(Location $location, Request $request)
     {
-        $location->loadMissing('company');
         $token = $request->query('token');
         if (!$token) {
             return redirect()->route('booking.show', $location)->with('error', 'Link invalid.');
@@ -350,6 +349,8 @@ class PublicBookingController extends Controller
             ->where('token', $token)
             ->firstOrFail();
         $reservation->load(['birthdayHall', 'birthdayPackage', 'timeSlot']);
+        // Required by booking layout to render the company logo.
+        $location->loadMissing('company');
         return view('booking.confirmation', [
             'location' => $location,
             'reservation' => $reservation,
