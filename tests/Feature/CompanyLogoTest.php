@@ -63,9 +63,10 @@ class CompanyLogoTest extends TestCase
     {
         Storage::fake('public');
         $admin      = $this->makeSuperAdmin();
-        $oldPath    = 'companies/99/logo.png';
+        $company    = Company::factory()->create();
+        $oldPath    = "companies/{$company->id}/logo.png";
         Storage::disk('public')->put($oldPath, 'old-image');
-        $company    = Company::factory()->create(['logo_path' => $oldPath]);
+        $company->update(['logo_path' => $oldPath]);
         $newFile    = \Illuminate\Http\UploadedFile::fake()->image('logo.jpg', 100, 100);
 
         $this->actingAs($admin)
@@ -75,6 +76,8 @@ class CompanyLogoTest extends TestCase
             ]);
 
         Storage::disk('public')->assertMissing($oldPath);
+        $company->refresh();
+        Storage::disk('public')->assertExists($company->logo_path);
     }
 
     public function test_logo_validation_rejects_oversized_file(): void

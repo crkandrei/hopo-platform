@@ -137,18 +137,22 @@ class CompanyController extends Controller
             $validated['slug'] = $newSlug;
         }
 
+        // Extract logo from validated before update
+        $logoFile = $validated['logo'] ?? null;
+        unset($validated['logo']);
+
         $company->update($validated);
 
-        if ($request->hasFile('logo')) {
+        if ($logoFile) {
             if ($company->logo_path) {
                 Storage::disk('public')->delete($company->logo_path);
             }
-            $ext  = match ($request->file('logo')->getMimeType()) {
+            $ext  = match ($logoFile->getMimeType()) {
                 'image/png'  => 'png',
                 'image/webp' => 'webp',
                 default      => 'jpg',
             };
-            $path = $request->file('logo')->storeAs(
+            $path = $logoFile->storeAs(
                 "companies/{$company->id}",
                 "logo.{$ext}",
                 'public'
