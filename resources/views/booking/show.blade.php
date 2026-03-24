@@ -344,9 +344,32 @@ document.addEventListener('DOMContentLoaded', function () {
         loadAvailability();
     }
 
+    function getDateValue() {
+        if (!dateInput.value) return '';
+        if (dateInput.valueAsDate) {
+            var d = dateInput.valueAsDate;
+            var yyyy = d.getUTCFullYear();
+            var mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+            var dd = String(d.getUTCDate()).padStart(2, '0');
+            return yyyy + '-' + mm + '-' + dd;
+        }
+        return dateInput.value;
+    }
+
     function loadPackages(preferredPackageId) {
-        if (!dateInput.value) {
+        var dateValue = getDateValue();
+        if (!dateValue) {
             renderPackages([], null);
+            return;
+        }
+
+        var today = new Date();
+        var todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+        if (dateValue < todayStr) {
+            packagesGrid.innerHTML = '';
+            packagesEmptyState.textContent = 'Selectați o dată curentă sau viitoare.';
+            packagesEmptyState.classList.remove('hidden');
+            resetAvailabilitySelection();
             return;
         }
 
@@ -355,7 +378,7 @@ document.addEventListener('DOMContentLoaded', function () {
         packagesEmptyState.classList.remove('hidden');
         resetAvailabilitySelection();
 
-        var url = '/booking/' + locationSlug + '/packages?date=' + encodeURIComponent(dateInput.value);
+        var url = '/booking/' + locationSlug + '/packages?date=' + encodeURIComponent(dateValue);
         fetch(url, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
             .then(function (response) {
                 if (!response.ok) throw new Error('HTTP ' + response.status);
@@ -520,7 +543,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function loadAvailability() {
-        var date = dateInput.value;
+        var date = getDateValue();
         var hallId = hallSelect.value;
         var packageId = getSelectedPackageId();
         if (!date || !hallId || !packageId) {
