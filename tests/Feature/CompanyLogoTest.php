@@ -102,9 +102,10 @@ class CompanyLogoTest extends TestCase
     {
         Storage::fake('public');
         $admin   = $this->makeSuperAdmin();
-        $path    = 'companies/5/logo.png';
+        $company = Company::factory()->create(['logo_path' => null]);
+        $path    = "companies/{$company->id}/logo.png";
         Storage::disk('public')->put($path, 'img');
-        $company = Company::factory()->create(['logo_path' => $path]);
+        $company->update(['logo_path' => $path]);
 
         $this->actingAs($admin)
             ->delete(route('companies.logo.delete', $company))
@@ -130,6 +131,8 @@ class CompanyLogoTest extends TestCase
 
     public function test_non_admin_cannot_delete_logo(): void
     {
+        // CheckLocationSubscription redirects non-super-admins without a bound location
+        // before the policy is reached; disable it so we can assert on the 403 from the policy.
         $this->withoutMiddleware(\App\Http\Middleware\CheckLocationSubscription::class);
 
         $role    = \App\Models\Role::where('name', 'COMPANY_ADMIN')->first();
