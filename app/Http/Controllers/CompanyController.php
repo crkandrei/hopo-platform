@@ -176,16 +176,28 @@ class CompanyController extends Controller
     public function destroy(Company $company)
     {
         $this->authorize('delete', $company);
-        
+
         // Check if company has locations
         if ($company->locations()->count() > 0) {
             return redirect()->route('companies.index')
                 ->with('error', 'Nu se poate șterge compania deoarece are locații asociate');
         }
-        
+
         $company->delete();
-        
+
         return redirect()->route('companies.index')
             ->with('success', 'Compania a fost ștearsă cu succes');
+    }
+
+    public function deleteLogo(Company $company): RedirectResponse
+    {
+        $this->authorize('update', $company);
+
+        if ($company->logo_path) {
+            Storage::disk('public')->delete($company->logo_path);
+            $company->update(['logo_path' => null]);
+        }
+
+        return redirect()->back()->with('success', 'Logo șters.');
     }
 }

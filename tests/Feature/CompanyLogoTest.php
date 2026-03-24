@@ -95,4 +95,53 @@ class CompanyLogoTest extends TestCase
             ])
             ->assertSessionHasErrors('logo');
     }
+
+    // --- delete logo tests ---
+
+    public function test_super_admin_can_delete_company_logo(): void
+    {
+        Storage::fake('public');
+        $admin   = $this->makeSuperAdmin();
+        $path    = 'companies/5/logo.png';
+        Storage::disk('public')->put($path, 'img');
+        $company = Company::factory()->create(['logo_path' => $path]);
+
+        $this->actingAs($admin)
+            ->delete(route('companies.logo.delete', $company))
+            ->assertRedirect();
+
+        $company->refresh();
+        $this->assertNull($company->logo_path);
+        Storage::disk('public')->assertMissing($path);
+    }
+
+    public function test_delete_logo_is_a_no_op_when_no_logo_set(): void
+    {
+        $admin   = $this->makeSuperAdmin();
+        $company = Company::factory()->create(['logo_path' => null]);
+
+        $this->actingAs($admin)
+            ->delete(route('companies.logo.delete', $company))
+            ->assertRedirect();
+
+        $company->refresh();
+        $this->assertNull($company->logo_path);
+    }
+
+    public function test_non_admin_cannot_delete_logo(): void
+    {
+        $this->withoutMiddleware(\App\Http\Middleware\CheckLocationSubscription::class);
+
+        $role    = \App\Models\Role::where('name', 'COMPANY_ADMIN')->first();
+        $company = Company::factory()->create();
+        $user    = \App\Models\User::factory()->create([
+            'role_id'    => $role->id,
+            'company_id' => $company->id,
+            'status'     => 'active',
+        ]);
+
+        $this->actingAs($user)
+            ->delete(route('companies.logo.delete', $company))
+            ->assertForbidden();
+    }
 }

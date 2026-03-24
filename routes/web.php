@@ -253,7 +253,9 @@ Route::middleware('auth')->group(function () {
 
     // Companies management (super admin only)
     Route::resource('companies', App\Http\Controllers\CompanyController::class);
-    
+    Route::delete('/companies/{company}/logo', [App\Http\Controllers\CompanyController::class, 'deleteLogo'])
+        ->name('companies.logo.delete');
+
     // Locations management (super admin and company admin)
     Route::resource('locations', App\Http\Controllers\LocationController::class);
 
