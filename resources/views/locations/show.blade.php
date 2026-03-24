@@ -195,6 +195,11 @@
                 </script>
             </div>
         </div>
+        @if(Auth::user() && Auth::user()->isSuperAdmin())
+        <div class="pt-4 border-t border-gray-200">
+            <p class="text-sm text-gray-600">Vizite pagină booking: <span class="font-semibold text-gray-900">{{ number_format($location->booking_visit_count) }}</span></p>
+        </div>
+        @endif
     </div>
 
     {{-- Modal QR Code --}}

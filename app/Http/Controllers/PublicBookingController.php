@@ -39,6 +39,12 @@ class PublicBookingController extends Controller
 
         $singleHall = $halls->count() === 1;
 
+        $sessionKey = "visited_booking_{$location->id}";
+        if (! session()->has($sessionKey)) {
+            $location->increment('booking_visit_count');
+            session()->put($sessionKey, true);
+        }
+
         return view('booking.show', [
             'location' => $location,
             'halls' => $halls,

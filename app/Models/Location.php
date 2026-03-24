@@ -34,6 +34,7 @@ class Location extends Model
         'birthday_concurrent_reservations' => 'boolean',
         'price_per_hour' => 'decimal:2',
         'overflow_price_per_hour' => 'decimal:2',
+        'booking_visit_count' => 'integer',
     ];
 
     public function company(): BelongsTo
