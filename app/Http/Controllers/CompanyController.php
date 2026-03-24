@@ -183,6 +183,10 @@ class CompanyController extends Controller
                 ->with('error', 'Nu se poate șterge compania deoarece are locații asociate');
         }
 
+        if ($company->logo_path) {
+            Storage::disk('public')->delete($company->logo_path);
+        }
+
         $company->delete();
 
         return redirect()->route('companies.index')
