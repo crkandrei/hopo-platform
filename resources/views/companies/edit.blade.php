@@ -75,7 +75,7 @@
 
                 <!-- Logo -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <label for="logo" class="block text-sm font-medium text-gray-700 mb-2">
                         Logo Companie
                     </label>
 
