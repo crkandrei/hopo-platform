@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 use App\Models\SubscriptionPlan;
 
 class Company extends Model
@@ -16,6 +17,7 @@ class Company extends Model
         'slug',
         'email',
         'phone',
+        'logo_path',
         'is_active',
         'daily_report_enabled',
         'daily_report_email',
@@ -62,5 +64,12 @@ class Company extends Model
     public function markDailyReportSent(): void
     {
         $this->update(['daily_report_last_sent_at' => now()]);
+    }
+
+    public function logoUrl(): string
+    {
+        return $this->logo_path
+            ? Storage::disk('public')->url($this->logo_path)
+            : asset('images/hopo-logo.png');
     }
 }
