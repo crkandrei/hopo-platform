@@ -28,4 +28,68 @@ class CompanyLogoTest extends TestCase
         $url = $company->logoUrl();
         $this->assertStringContainsString("companies/{$company->id}/logo.png", $url);
     }
+
+    // --- upload tests ---
+
+    private function makeSuperAdmin(): \App\Models\User
+    {
+        $role = \App\Models\Role::where('name', 'SUPER_ADMIN')->first();
+        return \App\Models\User::factory()->create([
+            'role_id' => $role->id,
+            'status'  => 'active',
+        ]);
+    }
+
+    public function test_super_admin_can_upload_logo_for_company(): void
+    {
+        Storage::fake('public');
+        $admin   = $this->makeSuperAdmin();
+        $company = Company::factory()->create(['logo_path' => null]);
+        $file    = \Illuminate\Http\UploadedFile::fake()->image('logo.png');
+
+        $this->actingAs($admin)
+            ->put(route('companies.update', $company), [
+                'name'   => $company->name,
+                'logo'   => $file,
+            ])
+            ->assertRedirect(route('companies.index'));
+
+        $company->refresh();
+        $this->assertNotNull($company->logo_path);
+        Storage::disk('public')->assertExists($company->logo_path);
+    }
+
+    public function test_uploading_new_logo_deletes_old_one(): void
+    {
+        Storage::fake('public');
+        $admin      = $this->makeSuperAdmin();
+        $oldPath    = 'companies/99/logo.png';
+        Storage::disk('public')->put($oldPath, 'old-image');
+        $company    = Company::factory()->create(['logo_path' => $oldPath]);
+        $newFile    = \Illuminate\Http\UploadedFile::fake()->image('logo.jpg', 100, 100);
+
+        $this->actingAs($admin)
+            ->put(route('companies.update', $company), [
+                'name'   => $company->name,
+                'logo'   => $newFile,
+            ]);
+
+        Storage::disk('public')->assertMissing($oldPath);
+    }
+
+    public function test_logo_validation_rejects_oversized_file(): void
+    {
+        Storage::fake('public');
+        $admin   = $this->makeSuperAdmin();
+        $company = Company::factory()->create();
+        // Create a fake file slightly over 2048 KB
+        $file    = \Illuminate\Http\UploadedFile::fake()->image('logo.png')->size(2049);
+
+        $this->actingAs($admin)
+            ->put(route('companies.update', $company), [
+                'name' => $company->name,
+                'logo' => $file,
+            ])
+            ->assertSessionHasErrors('logo');
+    }
 }

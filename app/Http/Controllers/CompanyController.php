@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Company;
 use App\Models\SubscriptionPlan;
 use App\Support\ActionLogger;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class CompanyController extends Controller
@@ -109,6 +111,7 @@ class CompanyController extends Controller
             'daily_report_enabled' => 'boolean',
             'subscription_plan_ids' => 'nullable|array',
             'subscription_plan_ids.*' => 'integer|exists:subscription_plans,id',
+            'logo' => 'nullable|file|image|mimes:png,jpg,jpeg,webp|max:2048',
         ]);
 
         if (!Auth::user()->isSuperAdmin() && !Auth::user()->isCompanyAdmin()) {
@@ -135,6 +138,24 @@ class CompanyController extends Controller
         }
 
         $company->update($validated);
+
+        if ($request->hasFile('logo')) {
+            if ($company->logo_path) {
+                Storage::disk('public')->delete($company->logo_path);
+            }
+            $ext  = match ($request->file('logo')->getMimeType()) {
+                'image/png'  => 'png',
+                'image/webp' => 'webp',
+                default      => 'jpg',
+            };
+            $path = $request->file('logo')->storeAs(
+                "companies/{$company->id}",
+                "logo.{$ext}",
+                'public'
+            );
+            $company->logo_path = $path;
+            $company->save();
+        }
 
         // Sync planuri abonament (doar super admin)
         if (Auth::user()->isSuperAdmin()) {

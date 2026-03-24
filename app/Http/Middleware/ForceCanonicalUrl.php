@@ -10,6 +10,10 @@ class ForceCanonicalUrl
 {
     public function handle(Request $request, Closure $next): Response
     {
+        if (! app()->isProduction()) {
+            return $next($request);
+        }
+
         $host = $request->getHost();
         $scheme = $request->getScheme();
 
