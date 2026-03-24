@@ -147,4 +147,60 @@ class CompanyLogoTest extends TestCase
             ->delete(route('companies.logo.delete', $company))
             ->assertForbidden();
     }
+
+    // --- booking page logo tests ---
+
+    public function test_booking_page_shows_company_logo_when_set(): void
+    {
+        $this->withoutVite();
+        Storage::fake('public');
+        $company  = Company::factory()->create();
+        Storage::disk('public')->put("companies/{$company->id}/logo.png", 'img');
+        $company->update(['logo_path' => "companies/{$company->id}/logo.png"]);
+
+        $location = \App\Models\Location::factory()->create(['company_id' => $company->id]);
+        $this->setUpBookingLocation($location);
+
+        $response = $this->get(route('booking.show', $location));
+        $response->assertStatus(200);
+        $response->assertSee("companies/{$company->id}/logo.png");
+        $response->assertDontSee('hopo-logo.png');
+    }
+
+    public function test_booking_page_shows_hopo_fallback_when_no_logo(): void
+    {
+        $this->withoutVite();
+        $company  = Company::factory()->create(['logo_path' => null]);
+        $location = \App\Models\Location::factory()->create(['company_id' => $company->id]);
+        $this->setUpBookingLocation($location);
+
+        $response = $this->get(route('booking.show', $location));
+        $response->assertStatus(200);
+        $response->assertSee('hopo-logo.png');
+    }
+
+    /**
+     * Set up a location with the minimum required birthday configuration
+     * so the booking form does not return 404.
+     *
+     * Note: BirthdayHall and BirthdayPackage do not have factories — use
+     * direct create() calls with the required non-nullable fields.
+     * BirthdayHall required: location_id, name, capacity (booking_mode defaults to 'slots').
+     * BirthdayPackage required: location_id, name, duration_minutes.
+     */
+    private function setUpBookingLocation(\App\Models\Location $location): void
+    {
+        \App\Models\BirthdayHall::create([
+            'location_id' => $location->id,
+            'name'        => 'Test Hall',
+            'capacity'    => 20,
+            'is_active'   => true,
+        ]);
+        \App\Models\BirthdayPackage::create([
+            'location_id'      => $location->id,
+            'name'             => 'Test Package',
+            'duration_minutes' => 120,
+            'is_active'        => true,
+        ]);
+    }
 }

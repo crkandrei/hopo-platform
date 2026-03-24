@@ -18,6 +18,7 @@ class PublicBookingController extends Controller
 {
     public function showForm(Location $location)
     {
+        $location->loadMissing('company');
         $halls = $location->birthdayHalls()->where('is_active', true)->get();
         $activeBirthdayPackagesQuery = $location->birthdayPackages()->where('is_active', true);
 
@@ -340,6 +341,7 @@ class PublicBookingController extends Controller
 
     public function confirmation(Location $location, Request $request)
     {
+        $location->loadMissing('company');
         $token = $request->query('token');
         if (!$token) {
             return redirect()->route('booking.show', $location)->with('error', 'Link invalid.');
