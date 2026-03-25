@@ -39,4 +39,23 @@ class SecurityFixesTest extends TestCase
         $response = $this->get('/blog/some-nonexistent-article');
         $response->assertStatus(404);
     }
+
+    // ── Fix 4: dashboard-api POST routes must require CSRF ────────────────
+
+    public function test_dashboard_api_post_without_csrf_returns_419(): void
+    {
+        // Laravel's VerifyCsrfToken bypasses token checks when runningUnitTests()
+        // is true, so we cannot verify the 419 response via HTTP in PHPUnit.
+        // Instead we assert the middleware configuration directly: dashboard-api/*
+        // and reports-api/* must NOT appear in the CSRF except list.
+        $middleware = app(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+        $excludedPaths = $middleware->getExcludedPaths();
+
+        $this->assertNotContains('dashboard-api/*', $excludedPaths,
+            'dashboard-api/* must not be exempt from CSRF verification');
+        $this->assertNotContains('reports-api/*', $excludedPaths,
+            'reports-api/* must not be exempt from CSRF verification');
+        $this->assertContains('stripe/webhook', $excludedPaths,
+            'stripe/webhook must remain exempt (uses Stripe signature verification)');
+    }
 }
