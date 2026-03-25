@@ -42,7 +42,7 @@ class SecurityFixesTest extends TestCase
 
     // ── Fix 4: dashboard-api POST routes must require CSRF ────────────────
 
-    public function test_dashboard_api_post_without_csrf_returns_419(): void
+    public function test_dashboard_api_and_reports_api_are_not_csrf_exempt(): void
     {
         // Laravel's VerifyCsrfToken bypasses token checks when runningUnitTests()
         // is true, so we cannot verify the 419 response via HTTP in PHPUnit.

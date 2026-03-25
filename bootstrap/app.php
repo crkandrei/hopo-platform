@@ -42,9 +42,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Session lifetime is already set to 20 years in config/session.php,
         // so users will stay logged in without needing to refresh remember token.
         
-        // Exclude dashboard-api and reports-api routes from CSRF verification
-        // scan-api routes now require CSRF token (session no longer regenerates)
-        // stripe/webhook uses its own signature verification
+        // stripe/webhook is exempt because it uses Stripe signature verification
+        // dashboard-api/*, reports-api/*, and scan-api/* all require CSRF tokens
         $middleware->validateCsrfTokens(except: [
             'stripe/webhook',
         ]);
