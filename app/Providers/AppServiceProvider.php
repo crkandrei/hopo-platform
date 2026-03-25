@@ -86,20 +86,7 @@ class AppServiceProvider extends ServiceProvider
             $adminEmail = config('mail.from.address', 'contact@hopo.ro');
             $jobName = get_class($event->job);
             $error = $event->exception->getMessage();
-            $payload = $event->job->payload();
-            $commandData = isset($payload['data']['command'])
-                ? @unserialize($payload['data']['command'])
-                : null;
-
             $context = ['job' => $jobName, 'error' => $error];
-            if (is_object($commandData)) {
-                if (property_exists($commandData, 'locationId')) {
-                    $context['location_id'] = $commandData->locationId;
-                }
-                if (property_exists($commandData, 'companyId')) {
-                    $context['company_id'] = $commandData->companyId;
-                }
-            }
 
             Log::error('Queue job failed', $context);
 
