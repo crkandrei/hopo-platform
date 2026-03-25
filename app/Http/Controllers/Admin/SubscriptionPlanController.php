@@ -66,7 +66,7 @@ class SubscriptionPlanController extends Controller
                 'error'   => $e->getMessage(),
             ]);
             return redirect()->route('admin.subscription-plans.index')
-                ->with('warning', "Planul a fost creat local, dar sincronizarea cu Stripe a eșuat: {$e->getMessage()}");
+                ->with('warning', 'Planul a fost creat local, dar sincronizarea cu Stripe a eșuat. Verificați log-urile pentru detalii.');
         }
 
         return redirect()->route('admin.subscription-plans.index')
@@ -122,7 +122,7 @@ class SubscriptionPlanController extends Controller
                 'error'   => $e->getMessage(),
             ]);
             return redirect()->route('admin.subscription-plans.index')
-                ->with('warning', "Planul a fost actualizat local, dar sincronizarea cu Stripe a eșuat: {$e->getMessage()}");
+                ->with('warning', 'Planul a fost actualizat local, dar sincronizarea cu Stripe a eșuat. Verificați log-urile pentru detalii.');
         }
 
         return redirect()->route('admin.subscription-plans.index')

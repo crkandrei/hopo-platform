@@ -58,6 +58,12 @@ class CheckoutController extends Controller
 
     public function success(Request $request)
     {
+        $sessionId = $request->query('session_id');
+
+        if (!$sessionId || !preg_match('/^cs_(test|live)_[A-Za-z0-9]+$/', $sessionId)) {
+            return redirect()->route('checkout.plans');
+        }
+
         return view('checkout.success');
     }
 }
