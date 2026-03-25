@@ -43,7 +43,6 @@ class AuthController extends Controller
         // Verifică dacă utilizatorul există și parola este corectă
         if (!$user || !Hash::check($request->password, $user->password)) {
             Log::warning('Login failed: invalid credentials', [
-                'username' => $request->username,
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
             ]);
@@ -55,7 +54,6 @@ class AuthController extends Controller
         // Verifică dacă utilizatorul este activ
         if (!$user->isActive()) {
             Log::warning('Login failed: inactive account', [
-                'username' => $request->username,
                 'user_id' => $user->id,
                 'ip_address' => $request->ip(),
             ]);
