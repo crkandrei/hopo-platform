@@ -67,6 +67,9 @@ class AuthController extends Controller
         // Autentifică utilizatorul
         Auth::login($user, true); // true = remember me
         $request->session()->regenerate();
+
+        // Înregistrează ultima accesare
+        $user->update(['last_login_at' => now()]);
         
         // Redirect bazat pe rol
         if ($user->isStaff()) {
