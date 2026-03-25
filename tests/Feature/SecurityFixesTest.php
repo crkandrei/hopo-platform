@@ -58,4 +58,31 @@ class SecurityFixesTest extends TestCase
         $this->assertContains('stripe/webhook', $excludedPaths,
             'stripe/webhook must remain exempt (uses Stripe signature verification)');
     }
+
+    // ── Fix 5: Rate limiting ──────────────────────────────────────────────
+
+    public function test_login_is_throttled_after_10_attempts(): void
+    {
+        // Bypass CSRF so each request reaches the throttle middleware.
+        // POST /login is not CSRF-exempt, so without this the test would
+        // get 419 on every request before accumulating throttle hits.
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class);
+
+        for ($i = 0; $i < 10; $i++) {
+            $this->post('/login', ['username' => 'x', 'password' => 'y']);
+        }
+        $response = $this->post('/login', ['username' => 'x', 'password' => 'y']);
+        $response->assertStatus(429);
+    }
+
+    public function test_birthday_reservation_action_is_throttled(): void
+    {
+        // GET requests are not subject to CSRF — no withoutMiddleware needed.
+        $token = str_repeat('a', 8) . '-' . str_repeat('b', 4) . '-' . str_repeat('c', 4) . '-' . str_repeat('d', 4) . '-' . str_repeat('e', 12);
+        for ($i = 0; $i < 20; $i++) {
+            $this->get("/rezervari/{$token}/confirm");
+        }
+        $response = $this->get("/rezervari/{$token}/confirm");
+        $response->assertStatus(429);
+    }
 }

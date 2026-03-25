@@ -118,13 +118,14 @@ Route::get('/blog/{slug}', function ($slug) {
 
 // Auth routes
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Public birthday reservation action (confirm/reject via email link)
 Route::get('/rezervari/{token}/{action}', BirthdayReservationActionController::class)
     ->where('token', '[0-9a-f-]{36}')
     ->where('action', 'confirm|reject')
+    ->middleware('throttle:20,1')
     ->name('birthday-reservations.action');
 
 // Public booking (no auth) - location resolved by slug
@@ -159,7 +160,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/rapoarte', function() { return redirect()->route('reports.traffic'); })->name('reports.index');
     
     Route::get('/change-password', [AuthController::class, 'showChangePasswordForm'])->name('change-password');
-    Route::post('/change-password', [AuthController::class, 'changePassword']);
+    Route::post('/change-password', [AuthController::class, 'changePassword'])->middleware('throttle:10,1');
     
     // Scan / Start session page (unified, mode determined by location config)
     Route::get('/scan', [App\Http\Controllers\ScanPageController::class, 'index'])->name('scan');
