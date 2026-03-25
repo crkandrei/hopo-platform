@@ -94,6 +94,16 @@
                 </div>
             </div>
 
+            @if($reservation->number_of_adults !== null)
+            <div class="px-6 py-3 flex items-center gap-4">
+                <i class="fas fa-user-friends text-hopo-purple w-4 text-center flex-shrink-0"></i>
+                <div>
+                    <p class="text-xs text-gray-400">Număr adulți</p>
+                    <p class="font-medium text-gray-900 text-sm">{{ $reservation->number_of_adults }} adulți</p>
+                </div>
+            </div>
+            @endif
+
             <div class="px-6 py-3 flex items-center gap-4">
                 <i class="fas fa-user text-hopo-purple w-4 text-center flex-shrink-0"></i>
                 <div>

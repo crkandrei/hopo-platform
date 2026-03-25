@@ -267,6 +267,7 @@ class PublicBookingController extends Controller
             'reservation_date' => 'required|date|after_or_equal:today',
             'reservation_time' => 'required|date_format:H:i',
             'number_of_children' => 'required|integer|min:1',
+            'number_of_adults' => 'nullable|integer|min:0',
             'notes' => 'nullable|string|max:1000',
             'gdpr_accept' => 'required|accepted',
         ];
@@ -332,6 +333,7 @@ class PublicBookingController extends Controller
                 'guardian_phone' => $validated['guardian_phone'],
                 'guardian_email' => $validated['guardian_email'] ?? null,
                 'number_of_children' => $validated['number_of_children'],
+                'number_of_adults' => $validated['number_of_adults'] ?? null,
                 'notes' => $validated['notes'] ?? null,
                 'status' => 'pending',
             ]);

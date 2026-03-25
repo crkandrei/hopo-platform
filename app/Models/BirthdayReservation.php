@@ -21,6 +21,7 @@ class BirthdayReservation extends Model
         'guardian_phone',
         'guardian_email',
         'number_of_children',
+        'number_of_adults',
         'notes',
         'status',
         'token',

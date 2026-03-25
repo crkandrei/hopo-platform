@@ -45,6 +45,9 @@
                 @endif
                 <div><dt class="text-sm text-gray-500">Copil</dt><dd class="font-medium text-gray-900">{{ $birthdayReservation->child_name }}@if($birthdayReservation->child_age) ({{ $birthdayReservation->child_age }} ani)@endif</dd></div>
                 <div><dt class="text-sm text-gray-500">Nr. copii așteptați</dt><dd class="font-medium text-gray-900">{{ $birthdayReservation->number_of_children }}</dd></div>
+                @if($birthdayReservation->number_of_adults !== null)
+                <div><dt class="text-sm text-gray-500">Nr. adulți așteptați</dt><dd class="font-medium text-gray-900">{{ $birthdayReservation->number_of_adults }}</dd></div>
+                @endif
                 <div><dt class="text-sm text-gray-500">Contact</dt><dd class="font-medium text-gray-900">{{ $birthdayReservation->guardian_name }}, {{ $birthdayReservation->guardian_phone }}@if($birthdayReservation->guardian_email)<br>{{ $birthdayReservation->guardian_email }}@endif</dd></div>
                 @if($birthdayReservation->notes)
                     <div><dt class="text-sm text-gray-500">Observații</dt><dd class="text-gray-900">{{ $birthdayReservation->notes }}</dd></div>

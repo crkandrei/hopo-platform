@@ -55,6 +55,7 @@
                                 ['Sală', $reservation->birthdayHall->name ?? '—'],
                                 ['Pachet', $reservation->birthdayPackage->name ?? '—'],
                                 ['Nr. copii', $reservation->number_of_children],
+                                ['Nr. adulți', $reservation->number_of_adults !== null ? $reservation->number_of_adults : '—'],
                                 ['Tutore', $reservation->guardian_name],
                                 ['Telefon', $reservation->guardian_phone],
                                 ['Email', $reservation->guardian_email ?: '—'],

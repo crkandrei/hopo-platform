@@ -172,15 +172,25 @@
                         </div>
                     </div>
 
-                    <div>
-                        <label for="number_of_children" class="block text-sm font-medium text-gray-700 mb-1">
-                            Număr de copii așteptați <span class="text-red-500">*</span>
-                        </label>
-                        <div class="flex items-center gap-3">
-                            <input type="number" name="number_of_children" id="number_of_children"
-                                value="{{ old('number_of_children', 1) }}" min="1" required
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="number_of_children" class="block text-sm font-medium text-gray-700 mb-1">
+                                Număr de copii așteptați <span class="text-red-500">*</span>
+                            </label>
+                            <div class="flex items-center gap-3">
+                                <input type="number" name="number_of_children" id="number_of_children"
+                                    value="{{ old('number_of_children', 1) }}" min="1" required
+                                    class="w-28 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hopo-purple focus:border-hopo-purple text-sm">
+                                <p id="number_of_children-hint" class="text-sm text-gray-500">Selectați sala pentru limită.</p>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="number_of_adults" class="block text-sm font-medium text-gray-700 mb-1">
+                                Număr de adulți așteptați
+                            </label>
+                            <input type="number" name="number_of_adults" id="number_of_adults"
+                                value="{{ old('number_of_adults') }}" min="0"
                                 class="w-28 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hopo-purple focus:border-hopo-purple text-sm">
-                            <p id="number_of_children-hint" class="text-sm text-gray-500">Selectați sala pentru limită.</p>
                         </div>
                     </div>
 
