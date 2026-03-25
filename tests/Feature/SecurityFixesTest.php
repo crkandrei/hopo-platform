@@ -25,4 +25,18 @@ class SecurityFixesTest extends TestCase
         $response = $this->postJson('/api/scan/cleanup', []);
         $response->assertStatus(404);
     }
+
+    // ── Fix 2: Blog slug whitelist ────────────────────────────────────────
+
+    public function test_known_blog_slug_returns_200(): void
+    {
+        $response = $this->get('/blog/bon-fiscal-automat-loc-de-joaca');
+        $response->assertStatus(200);
+    }
+
+    public function test_unknown_blog_slug_returns_404(): void
+    {
+        $response = $this->get('/blog/some-nonexistent-article');
+        $response->assertStatus(404);
+    }
 }

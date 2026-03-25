@@ -44,9 +44,14 @@ Route::domain('www.hopo.ro')->group(function () {
     Route::get('/contact', [WebController::class, 'contact']);
     Route::get('/blog', fn() => view('blog.index'));
     Route::get('/blog/{slug}', function ($slug) {
-        $view = 'blog.articles.' . $slug;
-        if (!view()->exists($view)) abort(404);
-        return view($view);
+        $allowed = [
+            'cum-sa-deschizi-loc-de-joaca-pentru-copii-romania',
+            'bon-fiscal-automat-loc-de-joaca',
+            'rezervari-online-zile-nastere-loc-de-joaca',
+            'bratari-barcode-rfid-loc-de-joaca',
+        ];
+        if (!in_array($slug, $allowed)) abort(404);
+        return view('blog.articles.' . $slug);
     });
 });
 
@@ -61,9 +66,14 @@ Route::domain('hopo.ro')->group(function () {
     Route::get('/contact', [WebController::class, 'contact']);
     Route::get('/blog', fn() => view('blog.index'));
     Route::get('/blog/{slug}', function ($slug) {
-        $view = 'blog.articles.' . $slug;
-        if (!view()->exists($view)) abort(404);
-        return view($view);
+        $allowed = [
+            'cum-sa-deschizi-loc-de-joaca-pentru-copii-romania',
+            'bon-fiscal-automat-loc-de-joaca',
+            'rezervari-online-zile-nastere-loc-de-joaca',
+            'bratari-barcode-rfid-loc-de-joaca',
+        ];
+        if (!in_array($slug, $allowed)) abort(404);
+        return view('blog.articles.' . $slug);
     });
 });
 
@@ -96,9 +106,14 @@ Route::get('/despre', [WebController::class, 'despre']);
 Route::get('/contact', [WebController::class, 'contact']);
 Route::get('/blog', fn() => view('blog.index'));
 Route::get('/blog/{slug}', function ($slug) {
-    $view = 'blog.articles.' . $slug;
-    if (!view()->exists($view)) abort(404);
-    return view($view);
+    $allowed = [
+        'cum-sa-deschizi-loc-de-joaca-pentru-copii-romania',
+        'bon-fiscal-automat-loc-de-joaca',
+        'rezervari-online-zile-nastere-loc-de-joaca',
+        'bratari-barcode-rfid-loc-de-joaca',
+    ];
+    if (!in_array($slug, $allowed)) abort(404);
+    return view('blog.articles.' . $slug);
 });
 
 // Auth routes
