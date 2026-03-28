@@ -39,13 +39,13 @@ class TieredDurationStrategy implements PricingStrategyInterface
         }
 
         $roundedHours = $this->flatHourlyStrategy->roundToHalfHour($durationInHours);
-        $tier = $this->findMatchingTier($tiers, $roundedHours);
+        $tier = $this->findBaseTier($tiers, $roundedHours);
 
         if ($tier) {
-            return (float) $tier->price;
+            return $this->calculateTierPrice($tier, $roundedHours);
         }
 
-        return $this->calculateOverflowPrice($location, $tiers, $roundedHours);
+        return $this->flatHourlyStrategy->calculatePrice($location, $durationInHours, $date);
     }
 
     public function getHourlyRate(Location $location, $date = null): float
@@ -99,28 +99,36 @@ class TieredDurationStrategy implements PricingStrategyInterface
     }
 
     /**
-     * Find smallest tier where duration_hours >= roundedHours (round up to next tier).
+     * Find largest tier where duration_hours <= roundedHours (base tier for billing).
      *
      * @param \Illuminate\Database\Eloquent\Collection<int, PricingTier> $tiers
      */
-    private function findMatchingTier(\Illuminate\Database\Eloquent\Collection $tiers, float $roundedHours): ?PricingTier
+    private function findBaseTier(\Illuminate\Database\Eloquent\Collection $tiers, float $roundedHours): ?PricingTier
     {
+        $matched = null;
         foreach ($tiers as $tier) {
-            if ((float) $tier->duration_hours >= $roundedHours) {
-                return $tier;
+            if ((float) $tier->duration_hours <= $roundedHours) {
+                $matched = $tier;
             }
         }
-        return null;
+        return $matched;
     }
 
-    private function calculateOverflowPrice(Location $location, \Illuminate\Database\Eloquent\Collection $tiers, float $roundedHours): float
+    /**
+     * Calculate price using base tier + excess billed at base tier's hourly rate.
+     * e.g. 2.5h with 2h=50RON tier: 50 + 0.5 * (50/2) = 62.5 RON
+     */
+    private function calculateTierPrice(PricingTier $tier, float $roundedHours): float
     {
-        $lastTier = $tiers->sortByDesc('duration_hours')->first();
-        $lastDuration = (float) $lastTier->duration_hours;
-        $lastPrice = (float) $lastTier->price;
-        $overflowHours = $roundedHours - $lastDuration;
-        $overflowRate = $location->overflow_price_per_hour ? (float) $location->overflow_price_per_hour : 0.00;
-        $overflowAmount = $overflowHours * $overflowRate;
-        return round($lastPrice + $overflowAmount, 2);
+        $tierDuration = (float) $tier->duration_hours;
+        $tierPrice = (float) $tier->price;
+        $excessHours = $roundedHours - $tierDuration;
+
+        if ($excessHours <= 0) {
+            return $tierPrice;
+        }
+
+        $hourlyRate = $tierDuration > 0 ? $tierPrice / $tierDuration : 0;
+        return round($tierPrice + $excessHours * $hourlyRate, 2);
     }
 }
