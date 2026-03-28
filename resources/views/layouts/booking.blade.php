@@ -16,6 +16,9 @@
             <div class="border-l border-gray-200 pl-3">
                 <p class="text-[11px] font-semibold text-hopo-purple uppercase tracking-widest">Rezervare zi de naștere</p>
                 <h1 class="text-base font-semibold text-gray-900 leading-tight">@yield('header-title', 'Rezervare')</h1>
+                @if($location->phone)
+                    <p class="text-xs text-gray-500 mt-0.5">{{ $location->phone }}</p>
+                @endif
             </div>
         </div>
     </header>
