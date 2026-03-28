@@ -87,6 +87,9 @@
                     <div class="text-lg font-semibold text-gray-900">
                         {{ $session->child && $session->child->guardian ? $session->child->guardian->name : '-' }}
                     </div>
+                    @if($session->child && $session->child->guardian && $session->child->guardian->phone)
+                        <div class="text-sm text-gray-500 mt-0.5">{{ $session->child->guardian->phone }}</div>
+                    @endif
                 </div>
                 <div>
                     <div class="text-sm text-gray-600 mb-1">Brățară</div>
