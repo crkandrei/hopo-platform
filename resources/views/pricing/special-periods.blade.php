@@ -7,16 +7,32 @@
 <div class="space-y-6">
     <!-- Header -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
-        <div class="flex justify-between items-center">
+        <div class="flex flex-wrap justify-between items-start gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-gray-900 mb-2">Perioade Speciale</h1>
                 <p class="text-gray-600 text-lg">Gestionați tarife pentru perioade speciale (sărbători, evenimente) pentru <strong>{{ $location->name }}</strong>. Puteți seta tarif pe oră sau tarife pe durate (1h, 2h, 3h, 4h).</p>
             </div>
-            <a href="{{ route('pricing.index') }}{{ Auth::user()->isSuperAdmin() ? '?location_id=' . $location->id : '' }}" 
-               class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-all duration-200 font-medium flex items-center shadow-md">
+            <a href="{{ route('pricing.index') }}{{ Auth::user()->isSuperAdmin() ? '?location_id=' . $location->id : '' }}"
+               class="shrink-0 bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-all duration-200 font-medium flex items-center shadow-md">
                 <i class="fas fa-arrow-left mr-2"></i>
                 Înapoi
             </a>
+        </div>
+    </div>
+
+    <!-- Info Box -->
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-6">
+        <div class="flex items-start">
+            <i class="fas fa-info-circle text-blue-600 text-xl mr-3 mt-1"></i>
+            <div>
+                <h3 class="font-medium text-blue-900 mb-2">Informații importante</h3>
+                <ul class="text-sm text-blue-800 space-y-1 list-disc list-inside">
+                    <li>Perioadele speciale au prioritate peste tarifele săptămânale și tarifele pe durate ale locației</li>
+                    <li>Puteți alege tarif pe oră (clasic) sau tarife pe durate (1h, 2h, 3h, 4h) pentru fiecare perioadă</li>
+                    <li>Nu pot exista perioade speciale care se suprapun pentru aceeași locație</li>
+                    <li>Dacă o sesiune începe într-o perioadă specială, se folosește tariful perioadei speciale</li>
+                </ul>
+            </div>
         </div>
     </div>
 
@@ -225,21 +241,6 @@
         @endif
     </div>
 
-    <!-- Info Box -->
-    <div class="bg-blue-50 border border-blue-200 rounded-xl p-6">
-        <div class="flex items-start">
-            <i class="fas fa-info-circle text-blue-600 text-xl mr-3 mt-1"></i>
-            <div>
-                <h3 class="font-medium text-blue-900 mb-2">Informații importante</h3>
-                <ul class="text-sm text-blue-800 space-y-1 list-disc list-inside">
-                    <li>Perioadele speciale au prioritate peste tarifele săptămânale și tarifele pe durate ale locației</li>
-                    <li>Puteți alege tarif pe oră (clasic) sau tarife pe durate (1h, 2h, 3h, 4h) pentru fiecare perioadă</li>
-                    <li>Nu pot exista perioade speciale care se suprapun pentru aceeași locație</li>
-                    <li>Dacă o sesiune începe într-o perioadă specială, se folosește tariful perioadei speciale</li>
-                </ul>
-            </div>
-        </div>
-    </div>
 </div>
 
 <!-- Edit Modal -->
