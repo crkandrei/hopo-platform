@@ -4,14 +4,14 @@ namespace App\Services;
 
 use App\Models\PlaySession;
 use App\Models\Location;
+use App\Services\Pricing\DurationRounder;
 use App\Services\Pricing\PricingStrategyFactory;
-use App\Services\Pricing\Strategies\FlatHourlyStrategy;
 
 class PricingService
 {
     public function __construct(
         private PricingStrategyFactory $strategyFactory,
-        private FlatHourlyStrategy $flatHourlyStrategy
+        private DurationRounder $durationRounder
     ) {
     }
 
@@ -35,7 +35,7 @@ class PricingService
         $strategy = $this->strategyFactory->make($location);
         $durationInHours = $this->getDurationInHours($session);
 
-        return $strategy->calculatePrice($location, $durationInHours, $session->started_at);
+        return $strategy->calculateResult($location, $durationInHours, $session->started_at)->price;
     }
 
     /**
@@ -53,33 +53,6 @@ class PricingService
     }
 
     /**
-     * Get the effective hourly rate for a session (for storing price_per_hour_at_calculation).
-     * In tiered mode this is calculated_price / rounded_hours so voucher logic works.
-     */
-    public function getEffectiveHourlyRateForSession(PlaySession $session): float
-    {
-        if ($session->is_free || $session->session_type === 'birthday') {
-            return 0.00;
-        }
-
-        $location = $session->location;
-        if (!$location) {
-            return 0.00;
-        }
-
-        $strategy = $this->strategyFactory->make($location);
-        $durationInHours = $this->getDurationInHours($session);
-        $roundedHours = $this->roundToHalfHour($durationInHours);
-
-        if ($roundedHours <= 0) {
-            return $strategy->getHourlyRate($location, $session->started_at);
-        }
-
-        $calculatedPrice = $strategy->calculatePrice($location, $durationInHours, $session->started_at);
-        return round($calculatedPrice / $roundedHours, 2);
-    }
-
-    /**
      * Get the effective duration of a session in hours
      *
      * @param PlaySession $session
@@ -93,14 +66,13 @@ class PricingService
 
     /**
      * Round duration according to pricing rules (first hour always 1h; then 15/45 min rules).
-     * Delegates to flat strategy so all strategies share the same rounding.
      *
      * @param float $hours Duration in hours
      * @return float Rounded hours according to pricing rules
      */
     public function roundToHalfHour(float $hours): float
     {
-        return $this->flatHourlyStrategy->roundToHalfHour($hours);
+        return $this->durationRounder->round($hours);
     }
 
     /**
@@ -115,7 +87,7 @@ class PricingService
     }
 
     /**
-     * Calculate and save price for a session
+     * Calculate and save price for a session (single strategy call).
      *
      * @param PlaySession $session
      * @return PlaySession The updated session
@@ -135,12 +107,13 @@ class PricingService
             return $session;
         }
 
-        $calculatedPrice = $this->calculateSessionPrice($session);
-        $effectiveHourlyRate = $this->getEffectiveHourlyRateForSession($session);
+        $strategy = $this->strategyFactory->make($location);
+        $durationInHours = $this->getDurationInHours($session);
+        $result = $strategy->calculateResult($location, $durationInHours, $session->started_at);
 
         $session->update([
-            'calculated_price' => $calculatedPrice,
-            'price_per_hour_at_calculation' => $effectiveHourlyRate,
+            'calculated_price' => $result->price,
+            'price_per_hour_at_calculation' => $result->effectiveHourlyRate,
         ]);
 
         return $session;

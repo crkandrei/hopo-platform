@@ -5,12 +5,17 @@ namespace App\Services\Pricing\Strategies;
 use App\Models\Location;
 use App\Models\PricingTier;
 use App\Services\Pricing\Contracts\PricingStrategyInterface;
+use App\Services\Pricing\DurationRounder;
+use App\Services\Pricing\PricingResult;
+use App\Services\Pricing\Resolvers\SpecialPeriodRateResolver;
 use Carbon\Carbon;
 
 class TieredDurationStrategy implements PricingStrategyInterface
 {
     public function __construct(
-        private FlatHourlyStrategy $flatHourlyStrategy
+        private FlatHourlyStrategy $flatHourlyStrategy,
+        private SpecialPeriodRateResolver $specialPeriodRateResolver,
+        private DurationRounder $durationRounder
     ) {
     }
 
@@ -18,40 +23,46 @@ class TieredDurationStrategy implements PricingStrategyInterface
      * Calculate price from tiers: round duration up to next tier, then apply tier price or overflow.
      * If special period applies: use period's tiered prices when mode is tiered, else delegate to flat.
      */
-    public function calculatePrice(Location $location, float $durationInHours, $date = null): float
+    public function calculateResult(Location $location, float $durationInHours, $date = null): PricingResult
     {
         $checkDate = $date ? Carbon::parse($date) : Carbon::now();
-        $specialPeriod = $this->flatHourlyStrategy->getSpecialPeriodForDate($location, $checkDate);
+        $specialPeriod = $this->specialPeriodRateResolver->find($location, $checkDate);
+        $roundedHours = $this->durationRounder->round($durationInHours);
 
         if ($specialPeriod) {
             if ($specialPeriod->isTiered()) {
-                $roundedHours = $this->flatHourlyStrategy->roundToHalfHour($durationInHours);
-                return $specialPeriod->calculateTieredPrice($roundedHours);
+                $price = $specialPeriod->calculateTieredPrice($roundedHours);
+                return new PricingResult($price, $roundedHours);
             }
-            return $this->flatHourlyStrategy->calculatePrice($location, $durationInHours, $date);
+            return $this->flatHourlyStrategy->calculateResult($location, $durationInHours, $date);
         }
 
         $systemDayOfWeek = $this->toSystemDayOfWeek($checkDate);
         $tiers = $this->getTiersForDay($location, $systemDayOfWeek);
 
         if ($tiers->isEmpty()) {
-            return $this->flatHourlyStrategy->calculatePrice($location, $durationInHours, $date);
+            return $this->flatHourlyStrategy->calculateResult($location, $durationInHours, $date);
         }
 
-        $roundedHours = $this->flatHourlyStrategy->roundToHalfHour($durationInHours);
         $tier = $this->findBaseTier($tiers, $roundedHours);
 
         if ($tier) {
-            return $this->calculateTierPrice($tier, $roundedHours);
+            $price = $this->calculateTierPrice($tier, $roundedHours);
+            return new PricingResult($price, $roundedHours);
         }
 
-        return $this->flatHourlyStrategy->calculatePrice($location, $durationInHours, $date);
+        return $this->flatHourlyStrategy->calculateResult($location, $durationInHours, $date);
+    }
+
+    public function calculatePrice(Location $location, float $durationInHours, $date = null): float
+    {
+        return $this->calculateResult($location, $durationInHours, $date)->price;
     }
 
     public function getHourlyRate(Location $location, $date = null): float
     {
         $checkDate = $date ? Carbon::parse($date) : Carbon::now();
-        if ($this->flatHourlyStrategy->getSpecialPeriodForDate($location, $checkDate)) {
+        if ($this->specialPeriodRateResolver->find($location, $checkDate)) {
             return $this->flatHourlyStrategy->getHourlyRate($location, $date);
         }
 

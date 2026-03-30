@@ -191,4 +191,58 @@ class VoucherService
             ->orderBy('expires_at')
             ->get();
     }
+
+    /**
+     * Resolve how many hours from an hours-type voucher should be applied.
+     *
+     * When $requestedHours is provided it is used as-is (validated against $maxHours).
+     * Otherwise the amount is auto-calculated as min(voucher balance, maxHours).
+     *
+     * @throws \InvalidArgumentException if the resolved amount is invalid
+     */
+    public function resolveHoursToUse(Voucher $voucher, float $maxHours, ?float $requestedHours = null): float
+    {
+        $hoursToUse = $requestedHours !== null
+            ? $requestedHours
+            : min((float) $voucher->remaining_value, $maxHours);
+
+        if ($hoursToUse > $maxHours) {
+            throw new \InvalidArgumentException(
+                'Orele de voucher nu pot depăși durata sesiunii.'
+            );
+        }
+
+        if ($hoursToUse <= 0) {
+            throw new \InvalidArgumentException('Voucherul nu are ore disponibile.');
+        }
+
+        return $hoursToUse;
+    }
+
+    /**
+     * Resolve how much value from an amount-type voucher should be applied.
+     *
+     * When $requestedAmount is provided it is used as-is (validated against $maxAmount).
+     * Otherwise the amount is auto-calculated as min(voucher balance, maxAmount).
+     *
+     * @throws \InvalidArgumentException if the resolved amount is invalid
+     */
+    public function resolveAmountToUse(Voucher $voucher, float $maxAmount, ?float $requestedAmount = null): float
+    {
+        $amountToUse = $requestedAmount !== null
+            ? $requestedAmount
+            : min((float) $voucher->remaining_value, $maxAmount);
+
+        if ($amountToUse > $maxAmount) {
+            throw new \InvalidArgumentException(
+                'Valoarea voucherului nu poate depăși totalul sesiunii.'
+            );
+        }
+
+        if ($amountToUse <= 0) {
+            throw new \InvalidArgumentException('Voucherul nu are sold.');
+        }
+
+        return $amountToUse;
+    }
 }

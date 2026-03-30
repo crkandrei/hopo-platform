@@ -3,9 +3,19 @@
 namespace App\Services\Pricing\Contracts;
 
 use App\Models\Location;
+use App\Services\Pricing\PricingResult;
 
 interface PricingStrategyInterface
 {
+    /**
+     * Calculate price and return a PricingResult containing price, rounded hours, and effective hourly rate.
+     *
+     * @param Location $location
+     * @param float $durationInHours Effective duration in hours
+     * @param \Carbon\Carbon|string|null $date Date for rate resolution (e.g. session start)
+     */
+    public function calculateResult(Location $location, float $durationInHours, $date = null): PricingResult;
+
     /**
      * Calculate the price for a given duration and date.
      *

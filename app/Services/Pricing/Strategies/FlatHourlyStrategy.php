@@ -3,39 +3,47 @@
 namespace App\Services\Pricing\Strategies;
 
 use App\Models\Location;
-use App\Models\SpecialPeriodRate;
 use App\Services\Pricing\Contracts\PricingStrategyInterface;
+use App\Services\Pricing\DurationRounder;
+use App\Services\Pricing\PricingResult;
+use App\Services\Pricing\Resolvers\SpecialPeriodRateResolver;
 use Carbon\Carbon;
 
 class FlatHourlyStrategy implements PricingStrategyInterface
 {
+    public function __construct(
+        private DurationRounder $durationRounder,
+        private SpecialPeriodRateResolver $specialPeriodRateResolver
+    ) {
+    }
+
+    public function calculateResult(Location $location, float $durationInHours, $date = null): PricingResult
+    {
+        $checkDate = $date ? Carbon::parse($date) : Carbon::now();
+        $specialPeriodRate = $this->specialPeriodRateResolver->find($location, $checkDate);
+        $roundedHours = $this->roundToHalfHour($durationInHours);
+
+        if ($specialPeriodRate) {
+            if ($specialPeriodRate->isTiered()) {
+                $price = $specialPeriodRate->calculateTieredPrice($roundedHours);
+                return new PricingResult($price, $roundedHours);
+            }
+            $hourlyRate = (float) $specialPeriodRate->hourly_rate;
+            $price = $hourlyRate > 0 ? round($roundedHours * $hourlyRate, 2) : 0.00;
+            return new PricingResult($price, $roundedHours);
+        }
+
+        $hourlyRate = $this->getHourlyRate($location, $date);
+        $price = $hourlyRate > 0 ? round($roundedHours * $hourlyRate, 2) : 0.00;
+        return new PricingResult($price, $roundedHours);
+    }
+
     /**
      * Calculate price as rounded hours × hourly rate, or from special period tiers when applicable.
      */
     public function calculatePrice(Location $location, float $durationInHours, $date = null): float
     {
-        $checkDate = $date ? Carbon::parse($date) : Carbon::now();
-        $specialPeriodRate = $this->getSpecialPeriodForDate($location, $checkDate);
-
-        if ($specialPeriodRate) {
-            if ($specialPeriodRate->isTiered()) {
-                $roundedHours = $this->roundToHalfHour($durationInHours);
-                return $specialPeriodRate->calculateTieredPrice($roundedHours);
-            }
-            $hourlyRate = (float) $specialPeriodRate->hourly_rate;
-            if ($hourlyRate <= 0) {
-                return 0.00;
-            }
-            $roundedHours = $this->roundToHalfHour($durationInHours);
-            return round($roundedHours * $hourlyRate, 2);
-        }
-
-        $hourlyRate = $this->getHourlyRate($location, $date);
-        if ($hourlyRate <= 0) {
-            return 0.00;
-        }
-        $roundedHours = $this->roundToHalfHour($durationInHours);
-        return round($roundedHours * $hourlyRate, 2);
+        return $this->calculateResult($location, $durationInHours, $date)->price;
     }
 
     /**
@@ -45,7 +53,7 @@ class FlatHourlyStrategy implements PricingStrategyInterface
     {
         $checkDate = $date ? Carbon::parse($date) : Carbon::now();
 
-        $specialPeriodRate = $this->getSpecialPeriodForDate($location, $checkDate);
+        $specialPeriodRate = $this->specialPeriodRateResolver->find($location, $checkDate);
 
         if ($specialPeriodRate) {
             if ($specialPeriodRate->isTiered()) {
@@ -88,34 +96,6 @@ class FlatHourlyStrategy implements PricingStrategyInterface
      */
     public function roundToHalfHour(float $hours): float
     {
-        if ($hours <= 0) {
-            return 0.0;
-        }
-        if ($hours <= 1.0) {
-            return 1.0;
-        }
-        $completeHoursAfterFirst = floor($hours - 1.0);
-        $remainingMinutes = (($hours - 1.0) - $completeHoursAfterFirst) * 60;
-        $totalHours = 1.0 + $completeHoursAfterFirst;
-        if ($remainingMinutes < 15) {
-            // no extra
-        } elseif ($remainingMinutes <= 45) {
-            $totalHours += 0.5;
-        } else {
-            $totalHours += 1.0;
-        }
-        return $totalHours;
-    }
-
-    /**
-     * Get the special period rate applicable for a location on the given date, if any.
-     */
-    public function getSpecialPeriodForDate(Location $location, Carbon $date): ?SpecialPeriodRate
-    {
-        return SpecialPeriodRate::where('location_id', $location->id)
-            ->where('start_date', '<=', $date->format('Y-m-d'))
-            ->where('end_date', '>=', $date->format('Y-m-d'))
-            ->orderBy('created_at', 'desc')
-            ->first();
+        return $this->durationRounder->round($hours);
     }
 }

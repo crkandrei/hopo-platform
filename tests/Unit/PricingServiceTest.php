@@ -219,9 +219,10 @@ class PricingServiceTest extends TestCase
         $session = Mockery::mock(PlaySession::class)->makePartial();
         $session->shouldAllowMockingProtectedMethods();
         $session->location = $location;
+        $session->shouldReceive('getEffectiveDurationSeconds')->andReturn(3600);
 
         $price = $this->pricingService->calculateSessionPrice($session);
-        
+
         $this->assertEquals(0.00, $price);
     }
 
@@ -474,6 +475,57 @@ class PricingServiceTest extends TestCase
         // 1h 45min 1sec = 1 + 45/60 + 1/3600 = 1.750278... ore
         $hours = 1.0 + 45/60 + 1/3600;
         $this->assertEquals(2.0, $this->pricingService->roundToHalfHour($hours));
+    }
+
+    // =========================================================
+    // Sesiuni gratuite și birthday — prețul e forțat 0
+    // indiferent de tarif, durată sau strategie
+    // =========================================================
+
+    public function test_free_session_returns_zero_regardless_of_tariff(): void
+    {
+        $location = new Location();
+        $location->price_per_hour = 50.00;
+
+        $session = Mockery::mock(PlaySession::class)->makePartial();
+        $session->location = $location;
+        $session->is_free = true;
+        $session->session_type = 'normal';
+
+        $price = $this->pricingService->calculateSessionPrice($session);
+
+        $this->assertEquals(0.00, $price);
+    }
+
+    public function test_birthday_session_returns_zero_regardless_of_tariff(): void
+    {
+        $location = new Location();
+        $location->price_per_hour = 50.00;
+
+        $session = Mockery::mock(PlaySession::class)->makePartial();
+        $session->location = $location;
+        $session->is_free = false;
+        $session->session_type = 'birthday';
+
+        $price = $this->pricingService->calculateSessionPrice($session);
+
+        $this->assertEquals(0.00, $price);
+    }
+
+    public function test_free_flag_wins_even_when_session_type_is_normal(): void
+    {
+        $location = new Location();
+        $location->price_per_hour = 100.00;
+
+        $session = Mockery::mock(PlaySession::class)->makePartial();
+        $session->shouldReceive('getEffectiveDurationSeconds')->andReturn(7200);
+        $session->location = $location;
+        $session->is_free = true;
+        $session->session_type = 'normal';
+
+        $price = $this->pricingService->calculateSessionPrice($session);
+
+        $this->assertEquals(0.00, $price);
     }
 
     protected function tearDown(): void

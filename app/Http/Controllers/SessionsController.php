@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Voucher;
 use App\Repositories\Contracts\PlaySessionRepositoryInterface;
+use App\Services\FiscalReceiptBuilder;
 use App\Services\VoucherService;
 use App\Support\ApiResponder;
 use App\Models\PlaySession;
@@ -13,8 +14,12 @@ use Illuminate\Support\Facades\DB;
 
 class SessionsController extends Controller
 {
-    public function __construct(private PlaySessionRepositoryInterface $sessions, private VoucherService $voucherService)
-    {
+    public function __construct(
+        private PlaySessionRepositoryInterface $sessions,
+        private VoucherService $voucherService,
+        private FiscalReceiptBuilder $receiptBuilder,
+        private \App\Services\PricingService $pricingService,
+    ) {
     }
     /** Show sessions page */
     public function index()
@@ -197,16 +202,13 @@ class SessionsController extends Controller
             $session->refresh();
         }
 
-        // Get pricing service
-        $pricingService = app(\App\Services\PricingService::class);
+        $pricingService = $this->pricingService;
         
-        // Get effective duration in seconds and convert to hours and minutes
+        // Get effective duration in seconds
         $seconds = $session->getEffectiveDurationSeconds();
-        $hours = floor($seconds / 3600);
-        $minutes = floor(($seconds % 3600) / 60);
 
-        // Format duration for display (e.g., "1h 15m" or "45m")
-        $duration = $this->formatDuration($hours, $minutes);
+        // Format real duration for display (e.g., "1h 15m" or "45m")
+        $duration = $this->receiptBuilder->formatHours($seconds / 3600);
 
         // Calculate rounded duration (fiscalized duration)
         $durationInHours = $pricingService->getDurationInHours($session);
@@ -226,8 +228,7 @@ class SessionsController extends Controller
         $voucherId = null;
 
         if ($request->filled('voucher_code')) {
-            $voucherService = app(VoucherService::class);
-            $result = $voucherService->validateVoucher($request->voucher_code, $session->location, null);
+            $result = $this->voucherService->validateVoucher($request->voucher_code, $session->location, null);
             if (!$result['valid']) {
                 return response()->json(['success' => false, 'message' => $result['message']], 400);
             }
@@ -246,7 +247,7 @@ class SessionsController extends Controller
                 if ($voucherHours > $roundedHours) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Orele de voucher nu pot depăși durata sesiunii (' . $this->formatDuration(floor($roundedHours), round(($roundedHours - floor($roundedHours)) * 60)) . ')'
+                        'message' => 'Orele de voucher nu pot depăși durata sesiunii (' . $this->receiptBuilder->formatHours($roundedHours) . ')'
                     ], 400);
                 }
                 $voucherPrice = $voucherHours * $pricePerHour;
@@ -266,7 +267,7 @@ class SessionsController extends Controller
                 if ($voucherHours > $roundedHours) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Orele de voucher nu pot depăși durata sesiunii (' . $this->formatDuration(floor($roundedHours), round(($roundedHours - floor($roundedHours)) * 60)) . ')'
+                        'message' => 'Orele de voucher nu pot depăși durata sesiunii (' . $this->receiptBuilder->formatHours($roundedHours) . ')'
                     ], 400);
                 }
                 $voucherPrice = $voucherHours * $pricePerHour;
@@ -277,56 +278,16 @@ class SessionsController extends Controller
         $billedHours = max(0, $roundedHours - $voucherHours);
         
         // Format rounded duration
-        $roundedHoursInt = floor($roundedHours);
-        $roundedMinutes = round(($roundedHours - $roundedHoursInt) * 60);
-        // Handle case where roundedMinutes might be 60 (from rounding)
-        if ($roundedMinutes >= 60) {
-            $roundedHoursInt += 1;
-            $roundedMinutes = 0;
-        }
-        $durationFiscalized = $this->formatDuration($roundedHoursInt, $roundedMinutes);
+        $durationFiscalized = $this->receiptBuilder->formatHours($roundedHours);
 
         // Format billed hours for display
-        $billedHoursInt = floor($billedHours);
-        $billedMinutes = round(($billedHours - $billedHoursInt) * 60);
-        if ($billedMinutes >= 60) {
-            $billedHoursInt += 1;
-            $billedMinutes = 0;
-        }
-        $durationBilled = $this->formatDuration($billedHoursInt, $billedMinutes);
+        $durationBilled = $this->receiptBuilder->formatHours($billedHours);
 
         // Calculate billed time price (only hours that will be charged)
         $billedTimePrice = $billedHours * $pricePerHour;
 
         // Get products data - ensure we use the actual product name
-        $products = $session->products->map(function($sp) {
-            // Get product name from loaded relation (should be loaded via ->with(['products.product']))
-            $productName = null;
-            if ($sp->product && $sp->product->name) {
-                $productName = trim($sp->product->name);
-            }
-            
-            // If name not found in relation, try loading product directly
-            if (empty($productName) && $sp->product_id) {
-                $product = \App\Models\Product::find($sp->product_id);
-                if ($product && $product->name) {
-                    $productName = trim($product->name);
-                }
-            }
-            
-            // Ensure we always have a name - use product ID as fallback if name is missing
-            if (empty($productName)) {
-                $productName = 'Produs ID: ' . $sp->product_id;
-            }
-            
-            return [
-                'name' => $productName,
-                'quantity' => $sp->quantity,
-                'unit_price' => (float) $sp->unit_price,
-                'total_price' => (float) $sp->total_price,
-                'vatClass' => $sp->product?->tvaRate?->vat_class ?? 1,
-            ];
-        })->values();
+        $products = collect($this->receiptBuilder->resolveProductLines($session->products));
 
         // Get location name
         $locationName = $session->location->name ?? 'Loc de Joacă';
@@ -364,7 +325,7 @@ class SessionsController extends Controller
                 }
             }
 
-            $allocatedDiscount = $this->allocateAmountDiscountAcrossLines($discountableLines, $voucherPrice);
+            $allocatedDiscount = $this->receiptBuilder->allocateAmountDiscount($discountableLines, $voucherPrice);
             $voucherPrice = $allocatedDiscount['discountAmount'];
             $finalPrice = $allocatedDiscount['finalTotal'];
             $finalTimePrice = 0.0;
@@ -534,8 +495,7 @@ class SessionsController extends Controller
             }
         }
 
-        // Get pricing service
-        $pricingService = app(\App\Services\PricingService::class);
+        $pricingService = $this->pricingService;
 
         // Calculate totals across all sessions
         $totalTimePrice = 0;
@@ -557,18 +517,11 @@ class SessionsController extends Controller
             $timePrice = $session->calculated_price ?? $session->calculatePrice();
             $totalTimePrice += $timePrice;
 
-            // Format duration for this session
-            $roundedHoursInt = floor($roundedHours);
-            $roundedMinutes = round(($roundedHours - $roundedHoursInt) * 60);
-            if ($roundedMinutes >= 60) {
-                $roundedHoursInt += 1;
-                $roundedMinutes = 0;
-            }
-            $durationBilled = $this->formatDuration($roundedHoursInt, $roundedMinutes);
+            $durationBilled = $this->receiptBuilder->formatHours($roundedHours);
 
             // Get child name for preview
             $childName = $session->child ? $session->child->name : 'Copil necunoscut';
-            
+
             // Store time item for this session (will be added to items if billed hours > 0)
             $timeItems[] = [
                 'duration' => $durationBilled,
@@ -580,31 +533,7 @@ class SessionsController extends Controller
             ];
 
             // Collect products from this session
-            $sessionProducts = $session->products->map(function($sp) {
-                $productName = null;
-                if ($sp->product && $sp->product->name) {
-                    $productName = trim($sp->product->name);
-                }
-                
-                if (empty($productName) && $sp->product_id) {
-                    $product = \App\Models\Product::find($sp->product_id);
-                    if ($product && $product->name) {
-                        $productName = trim($product->name);
-                    }
-                }
-                
-                if (empty($productName)) {
-                    $productName = 'Produs ID: ' . $sp->product_id;
-                }
-                
-                return [
-                    'name' => $productName,
-                    'quantity' => $sp->quantity,
-                    'unit_price' => (float) $sp->unit_price,
-                    'total_price' => (float) $sp->total_price,
-                    'vatClass' => $sp->product?->tvaRate?->vat_class ?? 1,
-                ];
-            });
+            $sessionProducts = collect($this->receiptBuilder->resolveProductLines($session->products));
 
             $allProducts = $allProducts->merge($sessionProducts);
             $totalProductsPrice += $session->getProductsTotalPrice();
@@ -617,8 +546,7 @@ class SessionsController extends Controller
         $voucherId = null;
 
         if ($request->filled('voucher_code')) {
-            $voucherService = app(VoucherService::class);
-            $result = $voucherService->validateVoucher($request->voucher_code, $location, null);
+            $result = $this->voucherService->validateVoucher($request->voucher_code, $location, null);
             if (!$result['valid']) {
                 return response()->json(['success' => false, 'message' => $result['message']], 400);
             }
@@ -645,7 +573,7 @@ class SessionsController extends Controller
         if ($voucherHours > $totalRoundedHours) {
             return response()->json([
                 'success' => false,
-                'message' => 'Orele de voucher nu pot depăși durata totală (' . $this->formatDuration(floor($totalRoundedHours), round(($totalRoundedHours - floor($totalRoundedHours)) * 60)) . ')'
+                'message' => 'Orele de voucher nu pot depăși durata totală (' . $this->receiptBuilder->formatHours($totalRoundedHours) . ')'
             ], 400);
         }
 
@@ -683,7 +611,7 @@ class SessionsController extends Controller
                 }
             }
 
-            $allocatedDiscount = $this->allocateAmountDiscountAcrossLines($discountableLines, $voucherPrice);
+            $allocatedDiscount = $this->receiptBuilder->allocateAmountDiscount($discountableLines, $voucherPrice);
             $voucherPrice = $allocatedDiscount['discountAmount'];
             $adjustedTimeItems = [];
             $items = [];
@@ -713,50 +641,9 @@ class SessionsController extends Controller
                 }
             }
         } else {
-            $remainingVoucherHours = $voucherHours;
-            $adjustedTimeItems = [];
-        
-        foreach ($timeItems as $index => $timeItem) {
-            if ($remainingVoucherHours <= 0) {
-                // No more voucher to apply, add full item
-                $adjustedTimeItems[] = $timeItem;
-                continue;
-            }
-            
-            // Check if this child has enough hours for remaining voucher
-            if ($timeItem['roundedHours'] >= $remainingVoucherHours) {
-                // Apply remaining voucher to this child
-                $adjustedHours = $timeItem['roundedHours'] - $remainingVoucherHours;
-                $voucherPrice += $remainingVoucherHours * $timeItem['pricePerHour'];
-                
-                if ($adjustedHours > 0) {
-                    // Child still has some hours left
-                    $adjustedHoursInt = floor($adjustedHours);
-                    $adjustedMinutes = round(($adjustedHours - $adjustedHoursInt) * 60);
-                    if ($adjustedMinutes >= 60) {
-                        $adjustedHoursInt += 1;
-                        $adjustedMinutes = 0;
-                    }
-                    $adjustedDuration = $this->formatDuration($adjustedHoursInt, $adjustedMinutes);
-                    
-                    $adjustedTimeItems[] = [
-                        'duration' => $adjustedDuration,
-                        'roundedHours' => $adjustedHours,
-                        'price' => $adjustedHours * $timeItem['pricePerHour'],
-                        'pricePerHour' => $timeItem['pricePerHour'],
-                        'childName' => $timeItem['childName'],
-                        'sessionId' => $timeItem['sessionId'],
-                    ];
-                }
-                // Voucher fully applied
-                $remainingVoucherHours = 0;
-            } else {
-                // Apply full hours from this child
-                $voucherPrice += $timeItem['roundedHours'] * $timeItem['pricePerHour'];
-                $remainingVoucherHours -= $timeItem['roundedHours'];
-                // This child's time is fully covered by voucher, don't add to adjusted items
-            }
-        }
+            $hoursResult = $this->receiptBuilder->applyHoursVoucherToTimeItems($timeItems, (float) $voucherHours);
+            $voucherPrice = $hoursResult['voucherPrice'];
+            $adjustedTimeItems = $hoursResult['adjustedItems'];
         }
 
         $finalTimePrice = collect($adjustedTimeItems)->sum('price');
@@ -798,22 +685,10 @@ class SessionsController extends Controller
         }
 
         // Format total duration for display
-        $totalRoundedHoursInt = floor($totalRoundedHours);
-        $totalRoundedMinutes = round(($totalRoundedHours - $totalRoundedHoursInt) * 60);
-        if ($totalRoundedMinutes >= 60) {
-            $totalRoundedHoursInt += 1;
-            $totalRoundedMinutes = 0;
-        }
-        $durationFiscalized = $this->formatDuration($totalRoundedHoursInt, $totalRoundedMinutes);
+        $durationFiscalized = $this->receiptBuilder->formatHours($totalRoundedHours);
 
         // Format billed hours for display
-        $billedHoursInt = floor($billedHours);
-        $billedMinutes = round(($billedHours - $billedHoursInt) * 60);
-        if ($billedMinutes >= 60) {
-            $billedHoursInt += 1;
-            $billedMinutes = 0;
-        }
-        $durationBilled = $this->formatDuration($billedHoursInt, $billedMinutes);
+        $durationBilled = $this->receiptBuilder->formatHours($billedHours);
 
         // Get location name
         $locationName = $location->name ?? 'Loc de Joacă';
@@ -1157,15 +1032,12 @@ class SessionsController extends Controller
             ], 400);
         }
 
-        $pricingService = app(\App\Services\PricingService::class);
-        $durationInHours = $pricingService->getDurationInHours($session);
-        $roundedHours = $pricingService->roundToHalfHour($durationInHours);
+        $roundedHours = $this->pricingService->roundToHalfHour($this->pricingService->getDurationInHours($session));
         $voucherHours = 0.0;
         $voucherId = null;
 
         if ($request->filled('voucher_code')) {
-            $voucherService = app(VoucherService::class);
-            $result = $voucherService->validateVoucher($request->voucher_code, $session->location, null);
+            $result = $this->voucherService->validateVoucher($request->voucher_code, $session->location, null);
             if (!$result['valid']) {
                 return response()->json(['success' => false, 'message' => $result['message']], 400);
             }
@@ -1178,7 +1050,7 @@ class SessionsController extends Controller
                 $voucher->use($voucherHours, $session);
                 $voucherId = $voucher->id;
             } else {
-                $amountToUse = $this->resolveSessionVoucherAmountToUse($session, $voucher, []);
+                $amountToUse = $this->voucherService->resolveAmountToUse($voucher, $this->sessionTotalPrice($session));
                 if ($amountToUse <= 0) {
                     return response()->json(['success' => false, 'message' => 'Voucherul nu are sold'], 400);
                 }
@@ -1190,7 +1062,7 @@ class SessionsController extends Controller
             if ($voucherHours > $roundedHours) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Orele de voucher nu pot depăși durata sesiunii (' . $this->formatDuration(floor($roundedHours), round(($roundedHours - floor($roundedHours)) * 60)) . ')'
+                    'message' => 'Orele de voucher nu pot depăși durata sesiunii (' . $this->receiptBuilder->formatHours($roundedHours) . ')'
                 ], 400);
             }
         }
@@ -1433,12 +1305,14 @@ class SessionsController extends Controller
                 $usedVoucher = false;
 
                 if ($voucher) {
+                    $totalRoundedHours = $sessions->sum(fn($s) => $this->sessionRoundedHours($s));
+                    $totalPrice = $sessions->sum(fn($s) => $this->sessionTotalPrice($s));
                     if ($voucher->type === 'hours') {
-                        $hoursToUse = $this->resolveCombinedVoucherHoursToUse($sessions, $voucher, $validated);
+                        $hoursToUse = $this->voucherService->resolveHoursToUse($voucher, $totalRoundedHours, isset($validated['voucher_hours']) ? (float) $validated['voucher_hours'] : null);
                         $voucher->use($hoursToUse, $firstSession);
                         $updateData['voucher_hours'] = $hoursToUse;
                     } else {
-                        $amountToUse = $this->resolveCombinedVoucherAmountToUse($sessions, $voucher, $validated);
+                        $amountToUse = $this->voucherService->resolveAmountToUse($voucher, $totalPrice, isset($validated['voucher_amount_used']) ? (float) $validated['voucher_amount_used'] : null);
                         $voucher->use($amountToUse, $firstSession);
                     }
 
@@ -1517,8 +1391,7 @@ class SessionsController extends Controller
         }
 
         $location = $sessions->first()->location;
-        $voucherService = app(VoucherService::class);
-        $result = $voucherService->validateVoucher($validated['voucher_code'], $location, null);
+        $result = $this->voucherService->validateVoucher($validated['voucher_code'], $location, null);
         if (!$result['valid']) {
             return response()->json(['success' => false, 'message' => $result['message']], 400);
         }
@@ -1528,15 +1401,10 @@ class SessionsController extends Controller
             return response()->json(['success' => false, 'message' => 'Voucher invalid sau fără sold'], 400);
         }
 
-        $pricingService = app(\App\Services\PricingService::class);
-
         // Consume the voucher atomically for the combined group using the first session as reference
         $firstSession = $sessions->first();
         if ($voucher->type === 'hours') {
-            $totalRoundedHours = 0;
-            foreach ($sessions as $session) {
-                $totalRoundedHours += $pricingService->roundToHalfHour($pricingService->getDurationInHours($session));
-            }
+            $totalRoundedHours = $sessions->sum(fn($s) => $this->sessionRoundedHours($s));
             $hoursToUse = min((float) $voucher->remaining_value, $totalRoundedHours);
             if ($hoursToUse <= 0) {
                 return response()->json(['success' => false, 'message' => 'Voucherul nu are ore disponibile'], 400);
@@ -1635,11 +1503,11 @@ class SessionsController extends Controller
 
                 if ($voucher) {
                     if ($voucher->type === 'hours') {
-                        $hoursToUse = $this->resolveSessionVoucherHoursToUse($session, $voucher, $validated);
+                        $hoursToUse = $this->voucherService->resolveHoursToUse($voucher, $this->sessionRoundedHours($session), isset($validated['voucher_hours']) ? (float) $validated['voucher_hours'] : null);
                         $voucher->use($hoursToUse, $session);
                         $updateData['voucher_hours'] = $hoursToUse;
                     } else {
-                        $amountToUse = $this->resolveSessionVoucherAmountToUse($session, $voucher, $validated);
+                        $amountToUse = $this->voucherService->resolveAmountToUse($voucher, $this->sessionTotalPrice($session), isset($validated['voucher_amount_used']) ? (float) $validated['voucher_amount_used'] : null);
                         $voucher->use($amountToUse, $session);
                     }
 
@@ -1748,170 +1616,14 @@ class SessionsController extends Controller
         ]);
     }
 
-    /**
-     * Format duration as "Xh Ym" or "Xh" if no minutes, or "Ym" if no hours
-     */
-    private function formatDuration(int $hours, int $minutes): string
+    private function sessionRoundedHours(PlaySession $session): float
     {
-        if ($hours === 0 && $minutes === 0) {
-            return '0m';
-        }
-        
-        if ($hours === 0) {
-            return "{$minutes}m";
-        }
-        
-        if ($minutes === 0) {
-            return "{$hours}h";
-        }
-        
-        return "{$hours}h {$minutes}m";
+        return $this->pricingService->roundToHalfHour($this->pricingService->getDurationInHours($session));
     }
 
-    private function resolveSessionVoucherHoursToUse(PlaySession $session, Voucher $voucher, array $validated): float
+    private function sessionTotalPrice(PlaySession $session): float
     {
-        $pricingService = app(\App\Services\PricingService::class);
-        $roundedHours = $pricingService->roundToHalfHour($pricingService->getDurationInHours($session));
-        $hoursToUse = array_key_exists('voucher_hours', $validated) && $validated['voucher_hours'] !== null
-            ? (float) $validated['voucher_hours']
-            : min((float) $voucher->remaining_value, $roundedHours);
-
-        if ($hoursToUse > $roundedHours) {
-            throw new \InvalidArgumentException(
-                'Orele de voucher nu pot depăși durata sesiunii (' .
-                $this->formatDuration(floor($roundedHours), round(($roundedHours - floor($roundedHours)) * 60)) .
-                ')'
-            );
-        }
-
-        if ($hoursToUse <= 0) {
-            throw new \InvalidArgumentException('Voucherul nu are ore disponibile.');
-        }
-
-        return $hoursToUse;
-    }
-
-    private function resolveSessionVoucherAmountToUse(PlaySession $session, Voucher $voucher, array $validated): float
-    {
-        $totalPrice = (float) (($session->calculated_price ?? $session->calculatePrice()) + $session->getProductsTotalPrice());
-        $amountToUse = array_key_exists('voucher_amount_used', $validated) && $validated['voucher_amount_used'] !== null
-            ? (float) $validated['voucher_amount_used']
-            : min((float) $voucher->remaining_value, $totalPrice);
-
-        if ($amountToUse > $totalPrice) {
-            throw new \InvalidArgumentException('Valoarea voucherului nu poate depăși totalul sesiunii.');
-        }
-
-        if ($amountToUse <= 0) {
-            throw new \InvalidArgumentException('Voucherul nu are sold.');
-        }
-
-        return $amountToUse;
-    }
-
-    private function resolveCombinedVoucherHoursToUse($sessions, Voucher $voucher, array $validated): float
-    {
-        $pricingService = app(\App\Services\PricingService::class);
-        $totalRoundedHours = 0.0;
-
-        foreach ($sessions as $session) {
-            $totalRoundedHours += $pricingService->roundToHalfHour($pricingService->getDurationInHours($session));
-        }
-
-        $hoursToUse = array_key_exists('voucher_hours', $validated) && $validated['voucher_hours'] !== null
-            ? (float) $validated['voucher_hours']
-            : min((float) $voucher->remaining_value, $totalRoundedHours);
-
-        if ($hoursToUse > $totalRoundedHours) {
-            throw new \InvalidArgumentException(
-                'Orele de voucher nu pot depăși durata totală (' .
-                $this->formatDuration(floor($totalRoundedHours), round(($totalRoundedHours - floor($totalRoundedHours)) * 60)) .
-                ')'
-            );
-        }
-
-        if ($hoursToUse <= 0) {
-            throw new \InvalidArgumentException('Voucherul nu are ore disponibile.');
-        }
-
-        return $hoursToUse;
-    }
-
-    private function resolveCombinedVoucherAmountToUse($sessions, Voucher $voucher, array $validated): float
-    {
-        $totalPrice = 0.0;
-
-        foreach ($sessions as $session) {
-            $totalPrice += (float) (($session->calculated_price ?? $session->calculatePrice()) + $session->getProductsTotalPrice());
-        }
-
-        $amountToUse = array_key_exists('voucher_amount_used', $validated) && $validated['voucher_amount_used'] !== null
-            ? (float) $validated['voucher_amount_used']
-            : min((float) $voucher->remaining_value, $totalPrice);
-
-        if ($amountToUse > $totalPrice) {
-            throw new \InvalidArgumentException('Valoarea voucherului nu poate depăși totalul sesiunilor selectate.');
-        }
-
-        if ($amountToUse <= 0) {
-            throw new \InvalidArgumentException('Voucherul nu are sold.');
-        }
-
-        return $amountToUse;
-    }
-
-    private function allocateAmountDiscountAcrossLines(array $lines, float $discountAmount): array
-    {
-        $total = 0.0;
-        $positiveIndexes = [];
-
-        foreach ($lines as $index => $line) {
-            $lineTotal = max(0, round((float) ($line['total_price'] ?? 0), 2));
-            $lines[$index]['total_price'] = $lineTotal;
-            $lines[$index]['discounted_total_price'] = $lineTotal;
-            $lines[$index]['discounted_unit_price'] = (float) ($line['unit_price'] ?? $lineTotal);
-
-            if ($lineTotal > 0) {
-                $total += $lineTotal;
-                $positiveIndexes[] = $index;
-            }
-        }
-
-        $discountAmount = max(0, min(round($discountAmount, 2), round($total, 2)));
-        $finalTotal = max(0, round($total - $discountAmount, 2));
-
-        if ($discountAmount <= 0 || empty($positiveIndexes)) {
-            return [
-                'lines' => $lines,
-                'discountAmount' => 0.0,
-                'finalTotal' => $finalTotal,
-            ];
-        }
-
-        $allocatedTotal = 0.0;
-        $lastPositiveIndex = end($positiveIndexes);
-
-        foreach ($positiveIndexes as $index) {
-            if ($index === $lastPositiveIndex) {
-                $discountedTotal = max(0, round($finalTotal - $allocatedTotal, 2));
-            } else {
-                $discountedTotal = round(($lines[$index]['total_price'] / $total) * $finalTotal, 2);
-            }
-
-            $quantity = max(0, (float) ($lines[$index]['quantity'] ?? 1));
-            $lines[$index]['discounted_total_price'] = $discountedTotal;
-            $lines[$index]['discounted_unit_price'] = $quantity > 0
-                ? round($discountedTotal / $quantity, 6)
-                : round($discountedTotal, 6);
-
-            $allocatedTotal += $discountedTotal;
-        }
-
-        return [
-            'lines' => $lines,
-            'discountAmount' => round($total - $finalTotal, 2),
-            'finalTotal' => $finalTotal,
-        ];
+        return (float) (($session->calculated_price ?? $session->calculatePrice()) + $session->getProductsTotalPrice());
     }
 }
 
