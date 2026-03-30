@@ -65,7 +65,19 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($vouchers as $voucher)
                         <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 font-mono font-medium text-gray-900">{{ $voucher->code }}</td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-2 group">
+                                    <span class="font-mono font-medium text-gray-900">{{ $voucher->code }}</span>
+                                    <button
+                                        onclick="navigator.clipboard.writeText('{{ $voucher->code }}').then(() => { this.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' class=\'w-3.5 h-3.5\' viewBox=\'0 0 20 20\' fill=\'currentColor\'><path fill-rule=\'evenodd\' d=\'M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z\' clip-rule=\'evenodd\'/></svg>'; this.classList.add('text-green-500'); setTimeout(() => { this.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' class=\'w-3.5 h-3.5\' viewBox=\'0 0 20 20\' fill=\'currentColor\'><path d=\'M8 2a2 2 0 00-2 2v1H5a2 2 0 00-2 2v9a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H8zm0 2h4v1H8V4zM5 7h10v9H5V7z\'/></svg>'; this.classList.remove('text-green-500'); }, 1500); })"
+                                        title="Copiază codul"
+                                        class="text-gray-400 hover:text-gray-700 transition-colors duration-150 cursor-pointer">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M8 2a2 2 0 00-2 2v1H5a2 2 0 00-2 2v9a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H8zm0 2h4v1H8V4zM5 7h10v9H5V7z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
                             <td class="px-6 py-4 text-gray-600">{{ $voucher->type === 'amount' ? 'Sumă (RON)' : 'Ore' }}</td>
                             <td class="px-6 py-4 text-gray-600">{{ $voucher->type === 'amount' ? number_format($voucher->initial_value, 2) . ' RON' : number_format($voucher->initial_value, 2) . ' ore' }}</td>
                             <td class="px-6 py-4 text-gray-600">{{ $voucher->type === 'amount' ? number_format($voucher->remaining_value, 2) . ' RON' : number_format($voucher->remaining_value, 2) . ' ore' }}</td>

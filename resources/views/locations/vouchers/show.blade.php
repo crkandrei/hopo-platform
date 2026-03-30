@@ -34,7 +34,11 @@
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h2 class="text-xl font-bold text-gray-900 mb-4">Informații</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><span class="text-gray-600">Cod:</span> <span class="font-mono font-semibold">{{ $voucher->code }}</span></div>
+            <div class="flex items-center gap-2">
+                <span class="text-gray-600">Cod:</span>
+                <span class="font-mono font-semibold">{{ $voucher->code }}</span>
+                <button onclick="navigator.clipboard.writeText('{{ $voucher->code }}').then(function(){ var b = this; b.textContent = 'Copiat!'; setTimeout(function(){ b.textContent = 'Copiază'; }, 1500); }.bind(this))" class="text-xs text-blue-600 hover:text-blue-800 border border-blue-200 hover:border-blue-400 rounded px-2 py-0.5 transition-colors">Copiază</button>
+            </div>
             <div><span class="text-gray-600">Tip:</span> {{ $voucher->type === 'amount' ? 'Sumă (RON)' : 'Ore' }}</div>
             <div><span class="text-gray-600">Valoare inițială:</span> {{ $voucher->type === 'amount' ? number_format($voucher->initial_value, 2) . ' RON' : number_format($voucher->initial_value, 2) . ' ore' }}</div>
             <div><span class="text-gray-600">Sold rămas:</span> {{ $voucher->type === 'amount' ? number_format($voucher->remaining_value, 2) . ' RON' : number_format($voucher->remaining_value, 2) . ' ore' }}</div>

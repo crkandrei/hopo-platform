@@ -35,6 +35,13 @@ class BirthdayReservationController extends Controller
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
+        if ($request->filled('search')) {
+            $term = '%' . $request->search . '%';
+            $query->where(function ($q) use ($term) {
+                $q->where('guardian_name', 'like', $term)
+                  ->orWhere('guardian_phone', 'like', $term);
+            });
+        }
 
         $reservations = $query->orderBy('reservation_date', 'desc')->orderBy('created_at', 'desc')->paginate(20);
 

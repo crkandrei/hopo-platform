@@ -928,7 +928,7 @@
                     v.innerHTML = '<span class="font-medium">Voucher' + (receipt.voucherHours > 0 ? ' (' + receipt.voucherHours + 'h):' : ':') + '</span><span class="font-semibold">-' + parseFloat(receipt.voucherPrice).toFixed(2) + ' RON</span>';
                     itemsEl.appendChild(v);
                 }
-            } else {
+            } else if (!data || !data.items || !data.items.length) {
                 if (receipt && receipt.timePrice > 0) {
                     const d = document.createElement('div');
                     d.className = 'flex justify-between text-sm';
@@ -949,8 +949,7 @@
                     v.innerHTML = '<div><span class="font-medium">Voucher' + (receipt.voucherHours > 0 ? ' (' + receipt.voucherHours + 'h)' : '') + '</span></div><span class="font-semibold">-' + parseFloat(receipt.voucherPrice).toFixed(2) + ' RON</span>';
                     itemsEl.appendChild(v);
                 }
-            }
-            if (data && data.items && data.items.length) {
+            } else if (data && data.items && data.items.length) {
                 data.items.forEach(function(item) {
                     var d = document.createElement('div');
                     d.className = 'flex justify-between text-sm';

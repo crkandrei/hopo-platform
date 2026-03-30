@@ -121,7 +121,11 @@
             </div>
             <div>
                 <label for="reservation_date" class="block text-sm font-medium text-gray-700 mb-1">Data</label>
-                <input type="date" name="reservation_date" id="reservation_date" value="{{ request('reservation_date') }}" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                <input type="text" name="reservation_date" id="reservation_date" value="{{ request('reservation_date') }}" placeholder="zz/ll/aaaa" autocomplete="off" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Caută</label>
+                <input type="text" name="search" id="search" value="{{ request('search') }}" placeholder="Nume părinte sau telefon" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 w-full">
             </div>
             <div>
                 <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
@@ -153,7 +157,17 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($reservations as $r)
                         <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-900">{{ $r->reservation_date->format('d.m.Y') }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-gray-900">{{ $r->reservation_date->format('d.m.Y') }}</div>
+                                @if($r->reservation_time)
+                                    <div class="text-sm text-gray-500">
+                                        {{ \Carbon\Carbon::parse($r->reservation_time)->format('H:i') }}
+                                        @if($r->birthdayPackage?->duration_minutes)
+                                            – {{ \Carbon\Carbon::parse($r->reservation_time)->addMinutes($r->birthdayPackage->duration_minutes)->format('H:i') }}
+                                        @endif
+                                    </div>
+                                @endif
+                            </td>
                             <td class="px-6 py-4">
                                 <div class="text-sm font-medium text-gray-900">{{ $r->location->name ?? '-' }}</div>
                                 <div class="text-sm text-gray-500">{{ $r->birthdayHall->name ?? '-' }}</div>
@@ -187,4 +201,18 @@
         @endif
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    flatpickr('#reservation_date', {
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'd/m/Y',
+        allowInput: true,
+        locale: { firstDayOfWeek: 1 },
+    });
+</script>
 @endsection

@@ -73,6 +73,10 @@
                 <span class="detail-label">Sală</span>
                 <span class="detail-value">{{ $reservation->birthdayHall->name ?? '—' }}</span>
             </div>
+            <div class="detail-row">
+                <span class="detail-label">Nr. copii</span>
+                <span class="detail-value">{{ $reservation->number_of_children }}</span>
+            </div>
             @if($reservation->number_of_adults !== null)
             <div class="detail-row">
                 <span class="detail-label">Nr. adulți</span>
