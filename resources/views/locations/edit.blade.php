@@ -164,6 +164,21 @@
                     </label>
                 </div>
 
+                <!-- Pre Check-in Enabled -->
+                <div>
+                    <label class="flex items-start gap-2">
+                        <input type="checkbox"
+                               name="pre_checkin_enabled"
+                               value="1"
+                               {{ old('pre_checkin_enabled', $location->pre_checkin_enabled ?? false) ? 'checked' : '' }}
+                               class="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <span class="text-sm text-gray-700">
+                            Activează Pre Check-in QR
+                            <span class="block text-xs text-gray-400 mt-0.5">Părinții pot scana un cod QR înainte de intrare și completa datele pe telefon.</span>
+                        </span>
+                    </label>
+                </div>
+
                 <!-- Birthday Concurrent Reservations (Super Admin only) -->
                 @if(Auth::user()->isSuperAdmin())
                 <div>
@@ -196,6 +211,40 @@
             </div>
         </form>
     </div>
+
+    {{-- ── QR Pre Check-in ────────────────────────────────────────────────── --}}
+    @if($location->pre_checkin_enabled)
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">
+            <i class="fas fa-qrcode mr-2 text-indigo-500"></i>QR Pre Check-in
+        </h2>
+        <p class="text-sm text-gray-600 mb-6">
+            Printați sau afișați acest cod QR la intrare. Părinții îl scanează pentru a completa datele pe telefon înainte de a ajunge la recepție.
+        </p>
+
+        <div class="flex flex-col items-center gap-4">
+            <div id="pre-checkin-qr" class="p-4 bg-white border-2 border-gray-200 rounded-xl inline-block"></div>
+            <p class="text-xs text-gray-500 font-mono break-all text-center">
+                {{ route('pre-checkin.index', $location) }}
+            </p>
+            <button type="button"
+                    onclick="window.print()"
+                    class="px-5 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700">
+                <i class="fas fa-print mr-2"></i>Printează QR
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        new QRCode(document.getElementById('pre-checkin-qr'), {
+            text: @json(route('pre-checkin.index', $location)),
+            width: 220,
+            height: 220,
+            correctLevel: QRCode.CorrectLevel.H,
+        });
+    </script>
+    @endif
 
     {{-- ── Configurare Bridge ─────────────────────────────────────────────── --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6"

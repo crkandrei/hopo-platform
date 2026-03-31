@@ -157,6 +157,7 @@ class LocationController extends Controller
             'bracelet_required' => 'boolean',
             'fiscal_enabled' => 'boolean',
             'birthday_concurrent_reservations' => 'boolean',
+            'pre_checkin_enabled' => 'boolean',
         ]);
 
         // COMPANY_ADMIN cannot change company_id
@@ -169,6 +170,7 @@ class LocationController extends Controller
         $validated['bracelet_required'] = $request->boolean('bracelet_required');
         $validated['fiscal_enabled'] = $request->boolean('fiscal_enabled');
         $validated['birthday_concurrent_reservations'] = $request->boolean('birthday_concurrent_reservations');
+        $validated['pre_checkin_enabled'] = $request->boolean('pre_checkin_enabled');
 
         // Update slug if name changed
         if ($location->name !== $validated['name']) {
