@@ -147,6 +147,15 @@ class ScanPageController extends Controller
         try {
             $session = $this->scanService->startPlaySession($location, $child, $braceletCode, $sessionType);
 
+            // Invalidate pre-checkin token if provided
+            if ($request->filled('pre_checkin_token')) {
+                \App\Models\PreCheckinToken::where('token', $request->pre_checkin_token)
+                    ->where('location_id', $location->id)
+                    ->where('status', 'pending')
+                    ->first()
+                    ?->markAsUsed();
+            }
+
             return ApiResponder::success([
                 'message' => 'Sesiune pornită cu succes',
                 'session' => [
@@ -807,5 +816,47 @@ class ScanPageController extends Controller
         } catch (\Throwable $e) {
             return ApiResponder::error('Nu s-au putut încărca produsele: ' . $e->getMessage(), 500);
         }
+    }
+
+    public function lookupPreCheckinToken(string $token)
+    {
+        $user = Auth::user();
+        if (! $user) {
+            return ApiResponder::error('Neautentificat', 401);
+        }
+
+        $location = $user->location;
+        if (! $location) {
+            return ApiResponder::error('Utilizatorul nu este asociat cu nicio locație', 400);
+        }
+
+        $preCheckinToken = \App\Models\PreCheckinToken::where('token', $token)
+            ->where('location_id', $location->id)
+            ->with(['child', 'guardian'])
+            ->first();
+
+        if (! $preCheckinToken) {
+            return ApiResponder::error('Cod invalid', 422);
+        }
+
+        if ($preCheckinToken->status === 'used') {
+            return ApiResponder::error('Cod deja folosit', 422);
+        }
+
+        if ($preCheckinToken->isExpired()) {
+            return ApiResponder::error('Cod expirat', 422);
+        }
+
+        return ApiResponder::success([
+            'child' => [
+                'id' => $preCheckinToken->child->id,
+                'name' => $preCheckinToken->child->name,
+            ],
+            'guardian' => [
+                'id' => $preCheckinToken->guardian->id,
+                'name' => $preCheckinToken->guardian->name,
+                'phone' => $preCheckinToken->guardian->phone,
+            ],
+        ]);
     }
 }

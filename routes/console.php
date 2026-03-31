@@ -20,6 +20,8 @@ Schedule::command('bridges:mark-offline')->everyMinute();
 
 Schedule::command('subscriptions:notify-expiring')->daily();
 
+Schedule::command('pre-checkin:cleanup')->daily();
+
 Schedule::command('reports:send-daily')
     ->dailyAt('07:00')
     ->timezone('Europe/Bucharest')

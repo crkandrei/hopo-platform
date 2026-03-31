@@ -31,6 +31,7 @@ class AssignBraceletRequest extends FormRequest
             ],
             'child_id' => ['required', 'exists:children,id'],
             'session_type' => ['nullable', 'string', 'in:normal,birthday'],
+            'pre_checkin_token' => ['nullable', 'string', 'uuid'],
         ];
     }
 

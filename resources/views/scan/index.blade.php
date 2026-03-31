@@ -202,6 +202,17 @@
                         </label>
                     </div>
 
+                    <!-- Pre-checkin QR scan (optional) -->
+                    <div class="border-t border-gray-100 pt-3">
+                        <label class="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">QR Părinte (opțional)</label>
+                        <input type="text" id="preCheckinQrInput"
+                               placeholder="Scanează QR de pe telefonul părintelui..."
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                               autocomplete="off">
+                        <div id="preCheckinResult" class="hidden mt-1 px-2 py-1 bg-green-50 border border-green-200 rounded text-xs text-green-800"></div>
+                        <div id="preCheckinError" class="hidden mt-1 px-2 py-1 bg-red-50 border border-red-200 rounded text-xs text-red-700"></div>
+                    </div>
+
                     <button id="assignChildBtn" disabled
                         class="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed">
                         {{ $braceletRequired ? 'Asignează copilul selectat' : 'Pornește sesiunea pentru copilul selectat' }}
@@ -405,6 +416,48 @@ let selectedChildHasActiveSession = false;
 let childChoices = null;          // bracelet mode only — Choices.js for child dropdown
 let childSearchTimeout = null;
 let assignmentInitialized = false;
+let preCheckinTokenValue = null;
+
+// Pre-checkin QR lookup
+document.addEventListener('DOMContentLoaded', function() {
+    const qrInput = document.getElementById('preCheckinQrInput');
+    const qrResult = document.getElementById('preCheckinResult');
+    const qrError = document.getElementById('preCheckinError');
+    if (!qrInput) return;
+
+    qrInput.addEventListener('change', async function() {
+        const token = this.value.trim();
+        qrResult.classList.add('hidden');
+        qrError.classList.add('hidden');
+        preCheckinTokenValue = null;
+        if (!token) return;
+
+        try {
+            const res = await fetch(`/scan-api/pre-checkin/${encodeURIComponent(token)}`, {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+            });
+            const data = await res.json();
+            if (data.success) {
+                preCheckinTokenValue = token;
+                qrResult.textContent = `✓ ${data.child.name} — ${data.guardian.name} (${data.guardian.phone})`;
+                qrResult.classList.remove('hidden');
+                // Pre-select child in dropdown if in bracelet mode
+                if (childChoices && data.child.id) {
+                    childChoices.setChoiceByValue(String(data.child.id));
+                    selectedChild = { id: data.child.id, name: data.child.name };
+                    updateAssignButtonState();
+                }
+            } else {
+                qrError.textContent = data.message || 'Cod invalid';
+                qrError.classList.remove('hidden');
+            }
+        } catch(e) {
+            qrError.textContent = 'Eroare la verificarea codului';
+            qrError.classList.remove('hidden');
+        }
+    });
+});
 
 // ============================================================
 // HELPERS
@@ -1024,9 +1077,10 @@ document.getElementById('assignChildBtn').addEventListener('click', async functi
 
     try {
         const sessionType = document.getElementById('sessionTypeBirthdayAssign')?.checked ? 'birthday' : 'normal';
+        const preCheckinToken = document.getElementById('preCheckinQrInput')?.value.trim() || null;
         const result = await apiCall('/scan-api/assign', {
             method: 'POST',
-            body: JSON.stringify({ child_id: childId, bracelet_code: getBraceletCode(), session_type: sessionType })
+            body: JSON.stringify({ child_id: childId, bracelet_code: getBraceletCode(), session_type: sessionType, pre_checkin_token: preCheckinToken })
         });
 
         if (result.success) {

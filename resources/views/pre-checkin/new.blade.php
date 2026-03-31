@@ -1,0 +1,54 @@
+<form method="POST" action="{{ route('pre-checkin.submit-new', $location) }}">
+    @csrf
+    <input type="text" name="website" value="" style="display:none;visibility:hidden;" tabindex="-1" autocomplete="off">
+
+    <h2 class="text-xl font-bold mb-4">Prima vizită</h2>
+
+    @if($errors->any())
+        <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+            @foreach($errors->all() as $error)
+                <p class="text-red-600 text-sm">{{ $error }}</p>
+            @endforeach
+        </div>
+    @endif
+
+    <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Numele părintelui *</label>
+        <input type="text" name="guardian_name" value="{{ old('guardian_name') }}"
+               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+               required>
+    </div>
+
+    <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Număr de telefon *</label>
+        <input type="tel" name="guardian_phone" value="{{ old('guardian_phone') }}"
+               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+               required>
+    </div>
+
+    <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Numele copilului *</label>
+        <input type="text" name="child_name" value="{{ old('child_name') }}"
+               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+               required>
+    </div>
+
+    <div class="mb-3">
+        <label class="flex items-start gap-2">
+            <input type="checkbox" name="terms_accept" value="1" class="mt-1" {{ old('terms_accept') ? 'checked' : '' }}>
+            <span class="text-sm text-gray-700">Accept <a href="/termeni" target="_blank" class="underline text-blue-600">Termenii și Condițiile</a> *</span>
+        </label>
+    </div>
+
+    <div class="mb-6">
+        <label class="flex items-start gap-2">
+            <input type="checkbox" name="gdpr_accept" value="1" class="mt-1" {{ old('gdpr_accept') ? 'checked' : '' }}>
+            <span class="text-sm text-gray-700">Accept <a href="/gdpr" target="_blank" class="underline text-blue-600">Politica GDPR</a> *</span>
+        </label>
+    </div>
+
+    <button type="submit"
+            class="w-full py-3 bg-green-600 text-white text-lg font-semibold rounded-xl hover:bg-green-700 transition">
+        Generează cod QR
+    </button>
+</form>
