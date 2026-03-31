@@ -1577,6 +1577,22 @@ if (BRACELET_MODE) {
         updateValidationFeedback(filteredValue);
         searchBtn.disabled = !isValidBraceletCode(filteredValue);
 
+        // If a UUID is scanned while the assignment section is open, it's a pre-checkin QR —
+        // redirect it to the QR input instead of treating it as a bracelet code.
+        const qrInputEl = document.getElementById('preCheckinQrInput');
+        const assignSection = document.getElementById('assignmentSection');
+        if (qrInputEl && assignSection && !assignSection.classList.contains('hidden')) {
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            if (uuidRegex.test(filteredValue)) {
+                e.target.value = '';
+                updateValidationFeedback('');
+                searchBtn.disabled = true;
+                qrInputEl.value = filteredValue;
+                qrInputEl.dispatchEvent(new Event('change'));
+                return;
+            }
+        }
+
         clearTimeout(barcodeScanTimeout);
         if (!isManualTyping && isValidBraceletCode(filteredValue) && filteredValue.length >= 9) {
             barcodeScanTimeout = setTimeout(() => {
