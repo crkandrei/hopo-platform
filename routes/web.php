@@ -136,6 +136,13 @@ Route::get('/booking/{location:slug}/packages', [App\Http\Controllers\PublicBook
 Route::get('/booking/{location:slug}/slots', [App\Http\Controllers\PublicBookingController::class, 'getAvailableSlots'])->name('booking.slots');
 Route::get('/booking/{location:slug}/availability', [App\Http\Controllers\PublicBookingController::class, 'getAvailability'])->name('booking.availability');
 
+// Pre-check-in public (no auth)
+Route::get('/pre-checkin/{location:slug}', [App\Http\Controllers\PublicPreCheckinController::class, 'showIndex'])->name('pre-checkin.index');
+Route::post('/pre-checkin/{location:slug}/new', [App\Http\Controllers\PublicPreCheckinController::class, 'submitNew'])->name('pre-checkin.submit-new')->middleware('throttle:10,60');
+Route::get('/pre-checkin/{location:slug}/qr/{token}', [App\Http\Controllers\PublicPreCheckinController::class, 'showQr'])->name('pre-checkin.qr');
+Route::post('/pre-checkin/{location:slug}/existing', [App\Http\Controllers\PublicPreCheckinController::class, 'submitExisting'])->name('pre-checkin.submit-existing')->middleware('throttle:10,60');
+Route::post('/pre-checkin/{location:slug}/existing/token', [App\Http\Controllers\PublicPreCheckinController::class, 'generateExistingToken'])->name('pre-checkin.generate-token')->middleware('throttle:10,60');
+
 // Location context routes (for COMPANY_ADMIN)
 Route::middleware('auth')->group(function () {
     Route::post('/location-context/set', [App\Http\Controllers\LocationContextController::class, 'setLocation'])->name('location-context.set');
@@ -236,6 +243,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/add-products', [App\Http\Controllers\ScanPageController::class, 'addProductsToSession']);
         Route::get('/available-products', [App\Http\Controllers\ScanPageController::class, 'getAvailableProducts']);
         Route::get('/session-products/{sessionId}', [App\Http\Controllers\ScanPageController::class, 'getSessionProducts']);
+        Route::get('/pre-checkin/{token}', [App\Http\Controllers\ScanPageController::class, 'lookupPreCheckinToken']);
     });
     
     // Children management
