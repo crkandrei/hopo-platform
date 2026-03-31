@@ -46,6 +46,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // dashboard-api/*, reports-api/*, and scan-api/* all require CSRF tokens
         $middleware->validateCsrfTokens(except: [
             'stripe/webhook',
+            'pre-checkin/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
