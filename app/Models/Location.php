@@ -25,6 +25,7 @@ class Location extends Model
         'bracelet_required',
         'fiscal_enabled',
         'birthday_concurrent_reservations',
+        'pre_checkin_enabled',
     ];
 
     protected $casts = [
@@ -32,6 +33,7 @@ class Location extends Model
         'bracelet_required' => 'boolean',
         'fiscal_enabled' => 'boolean',
         'birthday_concurrent_reservations' => 'boolean',
+        'pre_checkin_enabled' => 'boolean',
         'price_per_hour' => 'decimal:2',
         'overflow_price_per_hour' => 'decimal:2',
         'booking_visit_count' => 'integer',
