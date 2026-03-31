@@ -20,7 +20,7 @@ class DailyReportRepository implements DailyReportRepositoryInterface
 
         return PlaySession::where('location_id', $location->id)
             ->whereBetween('started_at', [$startOfDay, $endOfDay])
-            ->with(['child', 'products.product', 'voucherUsages'])
+            ->with(['child', 'products.product', 'voucherUsages', 'intervals'])
             ->get();
     }
 

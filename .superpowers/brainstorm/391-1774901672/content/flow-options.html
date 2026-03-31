@@ -1,0 +1,40 @@
+<h2>Ce se întâmplă după ce părintele trimite formularul?</h2>
+<p class="subtitle">Alege fluxul care se potrivește cel mai bine cu modul de lucru din locație</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Sesiune pornită automat</h3>
+      <p>Formularul crează copilul + pornește sesiunea imediat. Staff-ul vede sesiunea activă în pagina de scan și dă brățara. Fără aprobare necesară.</p>
+      <div class="pros-cons" style="margin-top:10px">
+        <div class="pros"><h4>Pro</h4><ul><li>Zero click-uri din partea staff-ului</li><li>Cel mai rapid</li></ul></div>
+        <div class="cons"><h4>Contra</h4><ul><li>Sesiunea rulează chiar dacă brățara nu a fost dată încă</li><li>Risc: părintele pleacă fără brățară</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Coadă de așteptare — staff confirmă</h3>
+      <p>Formularul crează o înregistrare "în așteptare". Staff-ul vede o coadă pe pagina de scan. Un singur click de confirmare pornește sesiunea și marchează brățara ca dată.</p>
+      <div class="pros-cons" style="margin-top:10px">
+        <div class="pros"><h4>Pro</h4><ul><li>Staff controlează când pornește sesiunea</li><li>Poate asocia numărul brățării</li></ul></div>
+        <div class="cons"><h4>Contra</h4><ul><li>Un click extra din partea staff-ului</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Pre-înregistrare — căutare rapidă</h3>
+      <p>Formularul salvează datele părintelui/copilului. Staff-ul caută copilul după nume și îl găsește pre-completat — pornește sesiunea cu 1 click, ca și azi dar fără tastat.</p>
+      <div class="pros-cons" style="margin-top:10px">
+        <div class="pros"><h4>Pro</h4><ul><li>Fluxul staff-ului rămâne identic</li><li>Flexibil — staff tot controlează momentul</li></ul></div>
+        <div class="cons"><h4>Contra</h4><ul><li>Staff-ul tot trebuie să caute copilul</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>
