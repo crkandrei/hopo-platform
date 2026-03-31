@@ -42,20 +42,31 @@ class PreCheckinToken extends Model
 
     public function isValid(): bool
     {
-        return $this->status === 'pending' && $this->expires_at->isFuture();
+        return $this->status === 'pending'
+            && $this->expires_at !== null
+            && $this->expires_at->isFuture();
     }
 
     public function isExpired(): bool
     {
-        return $this->expires_at->isPast();
+        return $this->expires_at === null || $this->expires_at->isPast();
     }
 
-    public function markAsUsed(): void
+    public function markAsUsed(): bool
     {
-        $this->update([
-            'status' => 'used',
-            'used_at' => now(),
-        ]);
+        $affected = static::where('id', $this->id)
+            ->where('status', 'pending')
+            ->update([
+                'status' => 'used',
+                'used_at' => now(),
+            ]);
+
+        if ($affected) {
+            $this->status = 'used';
+            $this->used_at = now();
+        }
+
+        return $affected > 0;
     }
 
     public function scopePending($query)
