@@ -81,6 +81,8 @@ class PublicBookingController extends Controller
                 'name' => $birthdayPackage->name,
                 'description' => $birthdayPackage->description,
                 'duration_minutes' => $birthdayPackage->duration_minutes,
+                'available_from' => $birthdayPackage->available_from ? Carbon::parse($birthdayPackage->available_from)->format('H:i') : null,
+                'available_until' => $birthdayPackage->available_until ? Carbon::parse($birthdayPackage->available_until)->format('H:i') : null,
                 'includes_food' => $birthdayPackage->includes_food,
                 'includes_decorations' => $birthdayPackage->includes_decorations,
             ])
@@ -191,6 +193,15 @@ class PublicBookingController extends Controller
             $dayEnd = Carbon::parse($slotsForDay->max('end_time'))->format('H:i');
         }
 
+        // Package operating hours define the booking window for this package.
+        // If set, they override the hall/default range entirely.
+        if ($package->available_from) {
+            $dayStart = Carbon::parse($package->available_from)->format('H:i');
+        }
+        if ($package->available_until) {
+            $dayEnd = Carbon::parse($package->available_until)->format('H:i');
+        }
+
         $occupied = [];
 
         if (! $location->birthday_concurrent_reservations) {
@@ -270,6 +281,7 @@ class PublicBookingController extends Controller
             'number_of_adults' => 'nullable|integer|min:0',
             'notes' => 'nullable|string|max:1000',
             'gdpr_accept' => 'required|accepted',
+            'rules_accept' => $location->getEffectiveRulesUrl() ? 'required|accepted' : 'nullable',
         ];
 
         $validated = $request->validate($rules);
@@ -282,6 +294,18 @@ class PublicBookingController extends Controller
 
         if (! $package->isAvailableOn($date)) {
             return back()->withInput()->withErrors(['birthday_package_id' => 'Pachet invalid.']);
+        }
+
+        // Validate reservation time is within package operating hours
+        if ($package->available_from || $package->available_until) {
+            $resTime = Carbon::parse($validated['reservation_time']);
+            $resEnd  = $resTime->copy()->addMinutes((int) $package->duration_minutes);
+            if ($package->available_from && $resTime->lt(Carbon::parse($package->available_from))) {
+                return back()->withInput()->withErrors(['reservation_time' => 'Ora aleasă este înainte de programul pachetului (' . Carbon::parse($package->available_from)->format('H:i') . ').']);
+            }
+            if ($package->available_until && $resEnd->gt(Carbon::parse($package->available_until))) {
+                return back()->withInput()->withErrors(['reservation_time' => 'Ora aleasă depășește programul pachetului (trebuie să se termine până la ' . Carbon::parse($package->available_until)->format('H:i') . ').']);
+            }
         }
 
         $numChildren = (int) $validated['number_of_children'];

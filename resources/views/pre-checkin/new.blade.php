@@ -14,22 +14,29 @@
 
     <div class="mb-4">
         <label class="block text-sm font-medium text-gray-700 mb-1">Numele părintelui *</label>
-        <input type="text" name="guardian_name" value="{{ old('guardian_name') }}"
+        <input type="text" name="guardian_name" value="{{ strtoupper(old('guardian_name', '')) }}"
                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+               oninput="this.value=this.value.toUpperCase()"
                required>
     </div>
 
     <div class="mb-4">
         <label class="block text-sm font-medium text-gray-700 mb-1">Număr de telefon *</label>
-        <input type="tel" name="guardian_phone" value="{{ old('guardian_phone') }}"
+        <input type="tel" name="guardian_phone" id="new_guardian_phone" value="{{ old('guardian_phone') }}"
                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
                required>
+        <div id="phone-exists-hint" class="hidden mt-2 p-3 bg-yellow-50 border border-yellow-300 rounded-lg text-sm text-yellow-800">
+            Se pare că ai mai fost la noi! Mergi la
+            <button type="button" id="hint-switch-btn" class="font-semibold underline">Am mai fost aici</button>
+            pentru a genera QR-ul direct. Sau continuă dacă vrei să înregistrezi un copil nou.
+        </div>
     </div>
 
     <div class="mb-4">
         <label class="block text-sm font-medium text-gray-700 mb-1">Numele copilului *</label>
-        <input type="text" name="child_name" value="{{ old('child_name') }}"
+        <input type="text" name="child_name" value="{{ strtoupper(old('child_name', '')) }}"
                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+               oninput="this.value=this.value.toUpperCase()"
                required>
     </div>
 

@@ -66,7 +66,7 @@ class PublicPreCheckinController extends Controller
                     'location_id' => $location->id,
                 ],
                 [
-                    'name' => $validated['guardian_name'],
+                    'name' => strtoupper($validated['guardian_name']),
                     'terms_accepted_at' => now(),
                     'gdpr_accepted_at' => now(),
                     'terms_version' => LegalController::TERMS_VERSION,
@@ -83,12 +83,16 @@ class PublicPreCheckinController extends Controller
                 ]);
             }
 
-            $child = Child::create([
-                'name' => $validated['child_name'],
-                'location_id' => $location->id,
-                'guardian_id' => $guardian->id,
-                'internal_code' => $this->generateInternalCode($validated['child_name']),
-            ]);
+            $child = Child::firstOrCreate(
+                [
+                    'name' => strtoupper($validated['child_name']),
+                    'guardian_id' => $guardian->id,
+                    'location_id' => $location->id,
+                ],
+                [
+                    'internal_code' => $this->generateInternalCode($validated['child_name']),
+                ]
+            );
 
             return PreCheckinToken::create([
                 'token' => (string) Str::uuid(),
@@ -117,6 +121,22 @@ class PublicPreCheckinController extends Controller
         $location->loadMissing('company');
 
         return view('pre-checkin.qr', compact('location', 'preCheckinToken'));
+    }
+
+    public function checkPhone(Request $request, Location $location)
+    {
+        abort_if(! $location->pre_checkin_enabled, 404);
+
+        $phone = $request->input('phone', '');
+        if (! $phone) {
+            return response()->json(['exists' => false]);
+        }
+
+        $exists = Guardian::where('phone', $phone)
+            ->where('location_id', $location->id)
+            ->exists();
+
+        return response()->json(['exists' => $exists]);
     }
 
     public function submitExisting(Request $request, Location $location)

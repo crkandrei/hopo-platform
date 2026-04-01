@@ -33,12 +33,13 @@
                 <!-- Name -->
                 <div>
                     <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Numele Complet <span class="text-red-500">*</span></label>
-                    <input type="text" 
-                           id="name" 
-                           name="name" 
-                           value="{{ old('name', $guardian->name) }}"
+                    <input type="text"
+                           id="name"
+                           name="name"
+                           value="{{ strtoupper(old('name', $guardian->name)) }}"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 @error('name') border-red-500 @enderror"
-                           placeholder="Ex: Maria Popescu"
+                           placeholder="Ex: MARIA POPESCU"
+                           oninput="this.value=this.value.toUpperCase()"
                            required>
                     @error('name')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>

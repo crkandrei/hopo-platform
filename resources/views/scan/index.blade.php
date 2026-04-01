@@ -442,9 +442,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 preCheckinTokenValue = token;
                 qrResult.textContent = `✓ ${data.child.name} — ${data.guardian.name} (${data.guardian.phone})`;
                 qrResult.classList.remove('hidden');
-                // Pre-select child in dropdown if in bracelet mode
+                // Pre-select child in dropdown if in bracelet mode.
+                // We clear and re-populate with just this child to ensure it's in
+                // the dropdown regardless of the initial 15-item load limit.
                 if (childChoices && data.child.id) {
-                    childChoices.setChoiceByValue(String(data.child.id));
+                    let label = data.child.name;
+                    if (data.guardian && data.guardian.name) label += ` - ${data.guardian.name}`;
+                    if (data.guardian && data.guardian.phone) label += ` (${data.guardian.phone})`;
+                    childChoices.clearStore();
+                    childChoices.setChoices(
+                        [{ value: String(data.child.id), label, selected: true }],
+                        'value', 'label', true
+                    );
                     selectedChild = { id: data.child.id, name: data.child.name };
                     updateAssignButtonState();
                 }
@@ -1512,6 +1521,14 @@ if (BRACELET_MODE) {
         updateValidationFeedback('');
         codeInput.dispatchEvent(new Event('input'));
         codeInput.focus();
+        // Reset QR pre-checkin input
+        const qrEl = document.getElementById('preCheckinQrInput');
+        const qrResult = document.getElementById('preCheckinResult');
+        const qrError = document.getElementById('preCheckinError');
+        if (qrEl) qrEl.value = '';
+        if (qrResult) qrResult.classList.add('hidden');
+        if (qrError) qrError.classList.add('hidden');
+        preCheckinTokenValue = null;
     };
 
     function isValidBraceletCode(code) {
@@ -1641,6 +1658,14 @@ if (BRACELET_MODE) {
         this.textContent = 'Se caută...';
         try {
             const data = await apiCall('/scan-api/lookup', { method: 'POST', body: JSON.stringify({ code }) });
+            // Reset QR pre-checkin for the new bracelet scan
+            const qrEl = document.getElementById('preCheckinQrInput');
+            const qrResult = document.getElementById('preCheckinResult');
+            const qrError = document.getElementById('preCheckinError');
+            if (qrEl) qrEl.value = '';
+            if (qrResult) qrResult.classList.add('hidden');
+            if (qrError) qrError.classList.add('hidden');
+            preCheckinTokenValue = null;
             renderBraceletInfo(data);
             loadRecentCompleted();
         } catch (err) {

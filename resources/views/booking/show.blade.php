@@ -204,6 +204,20 @@
 
             {{-- 5. GDPR + Submit --}}
             <div class="p-6">
+                @php $rulesUrl = $location->getEffectiveRulesUrl(); @endphp
+                @if($rulesUrl)
+                <label class="inline-flex items-start gap-3 cursor-pointer mb-4 block">
+                    <input type="checkbox" name="rules_accept" id="rules_accept" value="1"
+                        {{ old('rules_accept') ? 'checked' : '' }} required
+                        class="mt-0.5 rounded border-gray-300 text-hopo-purple focus:ring-hopo-purple flex-shrink-0">
+                    <span class="text-sm text-gray-700">
+                        Am citit și accept
+                        <a href="{{ $rulesUrl }}" target="_blank" rel="noopener noreferrer" class="text-hopo-purple underline">regulamentul locației</a>.
+                        <span class="text-red-500">*</span>
+                    </span>
+                </label>
+                @endif
+
                 <label class="inline-flex items-start gap-3 cursor-pointer mb-5 block">
                     <input type="checkbox" name="gdpr_accept" id="gdpr_accept" value="1"
                         {{ old('gdpr_accept') ? 'checked' : '' }} required
@@ -317,7 +331,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 '<div class="flex items-start justify-between gap-2">' +
                     '<h4 class="font-semibold text-gray-900 leading-tight">' + escapeHtml(packageData.name) + '</h4>' +
                 '</div>' +
-                '<p class="text-xs text-gray-500"><i class="fas fa-clock text-gray-300 mr-1"></i>' + packageData.duration_minutes + ' min</p>' +
+                '<p class="text-xs text-gray-500"><i class="fas fa-clock text-gray-300 mr-1"></i>' + packageData.duration_minutes + ' min' +
+                    (packageData.available_from && packageData.available_until ? ' &nbsp;·&nbsp; <i class="fas fa-calendar-clock text-gray-300 mr-1"></i>' + packageData.available_from + ' – ' + packageData.available_until : '') +
+                '</p>' +
                 description +
                 badgesWrapper +
             '</div>' +

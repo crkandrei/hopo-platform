@@ -38,6 +38,27 @@
                     @error('duration_minutes')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                 </div>
                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Program disponibil</label>
+                    <div class="flex items-center gap-3">
+                        <div class="flex-1">
+                            <label for="available_from" class="block text-xs text-gray-500 mb-1">De la</label>
+                            <input type="time" name="available_from" id="available_from"
+                                   value="{{ old('available_from', $birthdayPackage->available_from ? \Carbon\Carbon::parse($birthdayPackage->available_from)->format('H:i') : '') }}"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <span class="mt-5 text-gray-400">—</span>
+                        <div class="flex-1">
+                            <label for="available_until" class="block text-xs text-gray-500 mb-1">Până la</label>
+                            <input type="time" name="available_until" id="available_until"
+                                   value="{{ old('available_until', $birthdayPackage->available_until ? \Carbon\Carbon::parse($birthdayPackage->available_until)->format('H:i') : '') }}"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">Opțional. Dacă e setat, părinții pot rezerva doar în acest interval.</p>
+                    @error('available_from')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                    @error('available_until')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                </div>
+                <div>
                     <p class="block text-sm font-medium text-gray-700 mb-2">Zile disponibile <span class="text-red-500">*</span></p>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         @foreach(\App\Models\BirthdayPackage::DAY_NAMES as $dayOfWeek => $dayLabel)

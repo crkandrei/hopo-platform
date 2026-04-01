@@ -22,7 +22,7 @@
 
     <!-- Form -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <form method="POST" action="{{ route('locations.update', $location) }}">
+        <form method="POST" action="{{ route('locations.update', $location) }}" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -177,6 +177,42 @@
                             <span class="block text-xs text-gray-400 mt-0.5">Părinții pot scana un cod QR înainte de intrare și completa datele pe telefon.</span>
                         </span>
                     </label>
+                </div>
+
+                <!-- Rules Document / URL -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Regulament Locație</label>
+
+                    @if($location->rules_document_path)
+                        <div class="flex items-center gap-3 mb-2 p-2 bg-green-50 border border-green-200 rounded-md text-sm">
+                            <i class="fas fa-file-pdf text-green-600"></i>
+                            <a href="{{ Storage::disk('public')->url($location->rules_document_path) }}"
+                               target="_blank" class="text-green-700 underline flex-1 truncate">Document încărcat</a>
+                            <label class="flex items-center gap-1 text-red-600 cursor-pointer text-xs">
+                                <input type="checkbox" name="remove_rules_document" value="1" class="rounded border-gray-300">
+                                Șterge
+                            </label>
+                        </div>
+                    @endif
+
+                    <div class="mb-2">
+                        <label class="block text-xs text-gray-500 mb-1">Încarcă document (PDF, DOC, DOCX — max 5MB)</label>
+                        <input type="file"
+                               name="rules_document"
+                               accept=".pdf,.doc,.docx"
+                               class="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Sau introdu un link extern</label>
+                        <input type="url"
+                               name="rules_url"
+                               value="{{ old('rules_url', $location->rules_url ?? '') }}"
+                               placeholder="https://..."
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+
+                    <p class="text-xs text-gray-400 mt-1">Documentul încărcat are prioritate față de link. Dacă niciunul nu e setat, bifa de regulament nu apare la rezervare.</p>
                 </div>
 
                 <!-- Birthday Concurrent Reservations (Super Admin only) -->

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Storage;
 
 class Location extends Model
 {
@@ -26,6 +27,8 @@ class Location extends Model
         'fiscal_enabled',
         'birthday_concurrent_reservations',
         'pre_checkin_enabled',
+        'rules_url',
+        'rules_document_path',
     ];
 
     protected $casts = [
@@ -122,5 +125,18 @@ class Location extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    /**
+     * Returns the effective URL for the location rules document.
+     * Uploaded file takes priority over the manual URL.
+     */
+    public function getEffectiveRulesUrl(): ?string
+    {
+        if ($this->rules_document_path) {
+            return Storage::disk('public')->url($this->rules_document_path);
+        }
+
+        return $this->rules_url ?: null;
     }
 }

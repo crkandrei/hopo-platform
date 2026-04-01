@@ -48,15 +48,49 @@
 </div>
 
 <script>
+function showExistingForm() {
+    document.getElementById('new-client-form').classList.add('hidden');
+    document.getElementById('existing-client-form').classList.remove('hidden');
+    document.getElementById('existing-client-form').scrollIntoView({ behavior: 'smooth' });
+    const phoneInput = document.querySelector('#existing-client-form input[name="guardian_phone"]');
+    if (phoneInput) {
+        const newPhone = document.getElementById('new_guardian_phone');
+        if (newPhone && newPhone.value) phoneInput.value = newPhone.value;
+        setTimeout(() => phoneInput.focus(), 100);
+    }
+}
+
 document.getElementById('btn-new').addEventListener('click', function() {
     document.getElementById('existing-client-form').classList.add('hidden');
     document.getElementById('new-client-form').classList.remove('hidden');
     document.getElementById('new-client-form').scrollIntoView({ behavior: 'smooth' });
 });
-document.getElementById('btn-existing').addEventListener('click', function() {
-    document.getElementById('new-client-form').classList.add('hidden');
-    document.getElementById('existing-client-form').classList.remove('hidden');
-    document.getElementById('existing-client-form').scrollIntoView({ behavior: 'smooth' });
-});
+document.getElementById('btn-existing').addEventListener('click', showExistingForm);
+
+// Live phone check in "Prima vizită" form
+const newPhoneInput = document.getElementById('new_guardian_phone');
+if (newPhoneInput) {
+    let checkTimeout;
+    newPhoneInput.addEventListener('blur', function() {
+        const phone = this.value.trim();
+        const hint = document.getElementById('phone-exists-hint');
+        if (!phone || phone.length < 7) { hint.classList.add('hidden'); return; }
+        clearTimeout(checkTimeout);
+        checkTimeout = setTimeout(async function() {
+            try {
+                const res = await fetch('{{ route('pre-checkin.check-phone', $location) }}?phone=' + encodeURIComponent(phone));
+                const data = await res.json();
+                if (data.exists) {
+                    hint.classList.remove('hidden');
+                } else {
+                    hint.classList.add('hidden');
+                }
+            } catch (e) {}
+        }, 200);
+    });
+
+    const hintBtn = document.getElementById('hint-switch-btn');
+    if (hintBtn) hintBtn.addEventListener('click', showExistingForm);
+}
 </script>
 @endsection

@@ -6,6 +6,7 @@ use App\Models\Company;
 use App\Models\Location;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class LocationController extends Controller
@@ -158,6 +159,9 @@ class LocationController extends Controller
             'fiscal_enabled' => 'boolean',
             'birthday_concurrent_reservations' => 'boolean',
             'pre_checkin_enabled' => 'boolean',
+            'rules_url' => 'nullable|url|max:500',
+            'rules_document' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+            'remove_rules_document' => 'nullable|boolean',
         ]);
 
         // COMPANY_ADMIN cannot change company_id
@@ -171,6 +175,25 @@ class LocationController extends Controller
         $validated['fiscal_enabled'] = $request->boolean('fiscal_enabled');
         $validated['birthday_concurrent_reservations'] = $request->boolean('birthday_concurrent_reservations');
         $validated['pre_checkin_enabled'] = $request->boolean('pre_checkin_enabled');
+
+        // Handle rules document upload
+        $rulesFile = $validated['rules_document'] ?? null;
+        unset($validated['rules_document'], $validated['remove_rules_document']);
+
+        if ($rulesFile) {
+            if ($location->rules_document_path) {
+                Storage::disk('public')->delete($location->rules_document_path);
+            }
+            $ext = $rulesFile->getClientOriginalExtension() ?: 'pdf';
+            $validated['rules_document_path'] = $rulesFile->storeAs(
+                "locations/{$location->id}",
+                "regulament.{$ext}",
+                'public'
+            );
+        } elseif ($request->boolean('remove_rules_document') && $location->rules_document_path) {
+            Storage::disk('public')->delete($location->rules_document_path);
+            $validated['rules_document_path'] = null;
+        }
 
         // Update slug if name changed
         if ($location->name !== $validated['name']) {
@@ -186,9 +209,9 @@ class LocationController extends Controller
             }
             $validated['slug'] = $newSlug;
         }
-        
+
         $location->update($validated);
-        
+
         return redirect()->route('locations.index')
             ->with('success', 'Locația a fost actualizată cu succes');
     }

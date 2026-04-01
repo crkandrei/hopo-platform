@@ -140,6 +140,7 @@ Route::get('/booking/{location:slug}/availability', [App\Http\Controllers\Public
 Route::get('/pre-checkin/{location:slug}', [App\Http\Controllers\PublicPreCheckinController::class, 'showIndex'])->name('pre-checkin.index');
 Route::post('/pre-checkin/{location:slug}/new', [App\Http\Controllers\PublicPreCheckinController::class, 'submitNew'])->name('pre-checkin.submit-new')->middleware('throttle:10,60');
 Route::get('/pre-checkin/{location:slug}/qr/{token}', [App\Http\Controllers\PublicPreCheckinController::class, 'showQr'])->name('pre-checkin.qr');
+Route::get('/pre-checkin/{location:slug}/check-phone', [App\Http\Controllers\PublicPreCheckinController::class, 'checkPhone'])->name('pre-checkin.check-phone')->middleware('throttle:30,1');
 Route::post('/pre-checkin/{location:slug}/existing', [App\Http\Controllers\PublicPreCheckinController::class, 'submitExisting'])->name('pre-checkin.submit-existing')->middleware('throttle:10,60');
 Route::post('/pre-checkin/{location:slug}/existing/token', [App\Http\Controllers\PublicPreCheckinController::class, 'generateExistingToken'])->name('pre-checkin.generate-token')->middleware('throttle:10,60');
 

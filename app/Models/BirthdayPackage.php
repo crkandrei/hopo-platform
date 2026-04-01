@@ -25,6 +25,8 @@ class BirthdayPackage extends Model
         'name',
         'description',
         'duration_minutes',
+        'available_from',
+        'available_until',
         'includes_food',
         'includes_decorations',
         'is_active',

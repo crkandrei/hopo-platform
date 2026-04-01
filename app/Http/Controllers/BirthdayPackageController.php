@@ -31,6 +31,8 @@ class BirthdayPackageController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'duration_minutes' => 'required|integer|min:15',
+            'available_from' => 'nullable|date_format:H:i',
+            'available_until' => 'nullable|date_format:H:i|after:available_from',
             'available_weekdays' => 'required|array|min:1',
             'available_weekdays.*' => 'integer|between:0,6|distinct',
             'includes_food' => 'boolean',
@@ -41,6 +43,8 @@ class BirthdayPackageController extends Controller
         $validated['is_active'] = $request->boolean('is_active', true);
         $validated['includes_food'] = $request->boolean('includes_food', false);
         $validated['includes_decorations'] = $request->boolean('includes_decorations', false);
+        $validated['available_from'] = $validated['available_from'] ?: null;
+        $validated['available_until'] = $validated['available_until'] ?: null;
         $birthdayPackage = BirthdayPackage::create($validated);
         $this->syncBirthdayPackageWeekdays($birthdayPackage, $validated['available_weekdays']);
         return redirect()
@@ -62,6 +66,8 @@ class BirthdayPackageController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'duration_minutes' => 'required|integer|min:15',
+            'available_from' => 'nullable|date_format:H:i',
+            'available_until' => 'nullable|date_format:H:i|after:available_from',
             'available_weekdays' => 'required|array|min:1',
             'available_weekdays.*' => 'integer|between:0,6|distinct',
             'includes_food' => 'boolean',
@@ -71,6 +77,8 @@ class BirthdayPackageController extends Controller
         $validated['is_active'] = $request->boolean('is_active', true);
         $validated['includes_food'] = $request->boolean('includes_food', false);
         $validated['includes_decorations'] = $request->boolean('includes_decorations', false);
+        $validated['available_from'] = $validated['available_from'] ?: null;
+        $validated['available_until'] = $validated['available_until'] ?: null;
         $birthdayPackage->update($validated);
         $this->syncBirthdayPackageWeekdays($birthdayPackage, $validated['available_weekdays']);
         return redirect()
