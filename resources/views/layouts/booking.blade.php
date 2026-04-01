@@ -14,7 +14,9 @@
         <div class="w-full max-w-2xl mx-auto px-4 sm:px-6 flex items-center gap-3">
             <img src="{{ $location->company?->logoUrl() ?? asset('images/hopo-logo.png') }}" alt="{{ $location->company?->name ?? 'Hopo' }}" class="h-20 w-auto">
             <div class="border-l border-gray-200 pl-3">
-                <p class="text-[11px] font-semibold text-hopo-purple uppercase tracking-widest">Rezervare zi de naștere</p>
+                @hasSection('header-subtitle')
+                    <p class="text-[11px] font-semibold text-hopo-purple uppercase tracking-widest">@yield('header-subtitle')</p>
+                @endif
                 <h1 class="text-base font-semibold text-gray-900 leading-tight">@yield('header-title', 'Rezervare')</h1>
                 @if($location->phone)
                     <p class="text-xs text-gray-500 mt-0.5">Telefon: {{ $location->phone }}</p>

@@ -1,6 +1,7 @@
 @extends('layouts.booking')
 
 @section('title', 'Rezervare zi de naștere - ' . $location->name)
+@section('header-subtitle', 'Rezervare zi de naștere')
 @section('header-title', $location->name)
 
 @section('content')
