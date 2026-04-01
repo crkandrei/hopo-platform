@@ -43,9 +43,9 @@
                     <li>Nu este permisă utilizarea agresivă sau periculoasă a echipamentelor</li>
                     <li>Este interzisă introducerea alimentelor în zonele de joacă (exceptând zonele desemnate)</li>
                     <li>Copiii cu boli contagioase nu pot accesa serviciile</li>
-                    <li>Este obligatorie respectarea liniștii și a celorlalți vizitatori</li>
                     <li>Este interzis fumatul în interior</li>
                     <li>Personalul are dreptul să refuze accesul în caz de nerespectare a regulamentului</li>
+                    <li>Copiii sub varsta de 4 ani trebuie supravegheați de un adult responsabil</li>
                 </ul>
             </section>
 
