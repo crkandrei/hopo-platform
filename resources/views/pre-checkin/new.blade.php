@@ -41,16 +41,21 @@
     </div>
 
     <div class="mb-3">
+        @php $rulesUrl = $location->getEffectiveRulesUrl(); @endphp
         <label class="flex items-start gap-2">
-            <input type="checkbox" name="terms_accept" value="1" class="mt-1" {{ old('terms_accept') ? 'checked' : '' }}>
-            <span class="text-sm text-gray-700">Accept <a href="/termeni" target="_blank" class="underline text-blue-600">Termenii și Condițiile</a> *</span>
+            <input type="checkbox" name="terms_accept" value="1" class="mt-1" {{ old('terms_accept') ? 'checked' : '' }} required>
+            @if($rulesUrl)
+                <span class="text-sm text-gray-700">Am citit și accept <a href="{{ $rulesUrl }}" target="_blank" rel="noopener noreferrer" class="underline text-blue-600">regulamentul locației</a> *</span>
+            @else
+                <span class="text-sm text-gray-700">Accept <a href="{{ route('legal.terms.public') }}" target="_blank" class="underline text-blue-600">Termenii și Condițiile</a> *</span>
+            @endif
         </label>
     </div>
 
     <div class="mb-6">
         <label class="flex items-start gap-2">
-            <input type="checkbox" name="gdpr_accept" value="1" class="mt-1" {{ old('gdpr_accept') ? 'checked' : '' }}>
-            <span class="text-sm text-gray-700">Accept <a href="/gdpr" target="_blank" class="underline text-blue-600">Politica GDPR</a> *</span>
+            <input type="checkbox" name="gdpr_accept" value="1" class="mt-1" {{ old('gdpr_accept') ? 'checked' : '' }} required>
+            <span class="text-sm text-gray-700">Accept <a href="{{ route('legal.gdpr.public') }}" target="_blank" class="underline text-blue-600">Politica GDPR</a> *</span>
         </label>
     </div>
 

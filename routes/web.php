@@ -367,5 +367,5 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 });
 
 // Legal documents accessible without authentication
-Route::get('/legal/terms', [App\Http\Controllers\LegalController::class, 'terms'])->name('legal.terms.public');
-Route::get('/legal/gdpr', [App\Http\Controllers\LegalController::class, 'gdpr'])->name('legal.gdpr.public');
+Route::get('/legal/terms', [App\Http\Controllers\LegalController::class, 'termsPublic'])->name('legal.terms.public');
+Route::get('/legal/gdpr', [App\Http\Controllers\LegalController::class, 'gdprPublic'])->name('legal.gdpr.public');

@@ -41,15 +41,35 @@ class LegalController extends Controller
     public function gdpr()
     {
         $locationName = 'Locului de Joacă';
-        
+
         // Try to get location name from authenticated user
         if (Auth::check() && Auth::user()->location) {
             $locationName = Auth::user()->location->name;
         }
-        
+
         return view('legal.gdpr', [
             'version' => self::GDPR_VERSION,
             'locationName' => $locationName,
+        ]);
+    }
+
+    /**
+     * Display GDPR policy page for public (unauthenticated) access
+     */
+    public function gdprPublic()
+    {
+        return view('legal.gdpr-public', [
+            'version' => self::GDPR_VERSION,
+        ]);
+    }
+
+    /**
+     * Display terms and conditions page for public (unauthenticated) access
+     */
+    public function termsPublic()
+    {
+        return view('legal.terms-public', [
+            'version' => self::TERMS_VERSION,
         ]);
     }
 }
