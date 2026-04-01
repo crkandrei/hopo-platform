@@ -62,6 +62,16 @@ class WebController extends Controller
             ->groupBy('locations.company_id')
             ->pluck('total', 'company_id');
 
+        // Per-company pre-checkin tokens used today
+        $preCheckinByCompany = DB::table('pre_checkin_tokens')
+            ->join('locations', 'pre_checkin_tokens.location_id', '=', 'locations.id')
+            ->where('pre_checkin_tokens.status', 'used')
+            ->where('pre_checkin_tokens.used_at', '>=', now()->startOfDay())
+            ->where('pre_checkin_tokens.used_at', '<=', now()->endOfDay())
+            ->select('locations.company_id', DB::raw('COUNT(*) as precheckin_today'))
+            ->groupBy('locations.company_id')
+            ->pluck('precheckin_today', 'company_id');
+
         // Per-company active sessions right now
         $activeByCompany = DB::table('play_sessions')
             ->join('locations', 'play_sessions.location_id', '=', 'locations.id')
@@ -74,8 +84,9 @@ class WebController extends Controller
             ->with('locations:id,company_id,is_active')
             ->orderBy('name')
             ->get()
-            ->map(function ($company) use ($sessionsByCompany, $incomeByCompany, $activeByCompany, $standaloneByCompany) {
+            ->map(function ($company) use ($sessionsByCompany, $incomeByCompany, $activeByCompany, $standaloneByCompany, $preCheckinByCompany) {
                 $company->sessions_today = $sessionsByCompany[$company->id] ?? 0;
+                $company->precheckin_today = $preCheckinByCompany[$company->id] ?? 0;
                 $company->income_today   = (float) ($incomeByCompany[$company->id] ?? 0) + (float) ($standaloneByCompany[$company->id] ?? 0);
                 $company->active_now     = $activeByCompany[$company->id] ?? 0;
                 $company->active_locations = $company->locations->where('is_active', true)->count();

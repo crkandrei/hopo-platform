@@ -114,6 +114,9 @@
                         <td class="px-4 py-4 text-center">
                             @if($company->sessions_today > 0)
                                 <span class="text-yellow-700 font-medium">{{ $company->sessions_today }}</span>
+                                @if($company->precheckin_today > 0)
+                                    <span class="text-xs text-blue-500 ml-1">({{ $company->precheckin_today }} PC)</span>
+                                @endif
                             @else
                                 <span class="text-gray-300">—</span>
                             @endif

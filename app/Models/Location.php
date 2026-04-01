@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Facades\Storage;
 
 class Location extends Model
 {
@@ -134,7 +133,7 @@ class Location extends Model
     public function getEffectiveRulesUrl(): ?string
     {
         if ($this->rules_document_path) {
-            return Storage::disk('public')->url($this->rules_document_path);
+            return route('pre-checkin.rules', ['location' => $this->slug]);
         }
 
         return $this->rules_url ?: null;

@@ -2,8 +2,6 @@
     @csrf
     <input type="text" name="website" value="" style="display:none;visibility:hidden;" tabindex="-1" autocomplete="off">
 
-    <h2 class="text-xl font-bold mb-4">Prima vizită</h2>
-
     @if($errors->any())
         <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
             @foreach($errors->all() as $error)
@@ -12,17 +10,26 @@
         </div>
     @endif
 
-    <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Numele părintelui *</label>
-        <input type="text" name="guardian_name" value="{{ strtoupper(old('guardian_name', '')) }}"
-               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-               oninput="this.value=this.value.toUpperCase()"
-               required>
+    <div class="flex gap-3 mb-4">
+        <div class="flex-1">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Prenume părinte *</label>
+            <input type="text" name="guardian_first_name" value="{{ strtoupper(old('guardian_first_name', '')) }}"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   oninput="this.value=this.value.toUpperCase()"
+                   required>
+        </div>
+        <div class="flex-1">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nume părinte *</label>
+            <input type="text" name="guardian_last_name" value="{{ strtoupper(old('guardian_last_name', '')) }}"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   oninput="this.value=this.value.toUpperCase()"
+                   required>
+        </div>
     </div>
 
     <div class="mb-4">
         <label class="block text-sm font-medium text-gray-700 mb-1">Număr de telefon *</label>
-        <input type="tel" name="guardian_phone" id="new_guardian_phone" value="{{ old('guardian_phone') }}"
+        <input type="tel" name="guardian_phone" id="new_guardian_phone" value="{{ old('guardian_phone', $prefill_phone ?? '') }}"
                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
                required>
         <div id="phone-exists-hint" class="hidden mt-2 p-3 bg-yellow-50 border border-yellow-300 rounded-lg text-sm text-yellow-800">

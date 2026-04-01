@@ -39,6 +39,61 @@
             @endforeach
         </div>
     @endif
+
+    <div class="mt-6 border-t border-gray-200 pt-4">
+        <button type="button" id="btn-add-child"
+                class="w-full text-center py-3 px-4 border-2 border-dashed border-gray-300 text-gray-600 rounded-xl hover:border-blue-400 hover:text-blue-600 transition text-sm font-medium">
+            + Adaugă un copil nou
+        </button>
+
+        <div id="add-child-form" class="{{ $errors->hasAny(['child_name','terms_accept','gdpr_accept']) ? '' : 'hidden' }} mt-4">
+            <form method="POST" action="{{ route('pre-checkin.add-child', $location) }}">
+                @csrf
+                <input type="hidden" name="guardian_phone" value="{{ $guardian->phone }}">
+
+                <h3 class="text-base font-semibold text-gray-800 mb-3">Înregistrare copil nou</h3>
+
+                @if($errors->hasAny(['child_name','terms_accept','gdpr_accept']))
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
+                        @foreach($errors->only(['child_name','terms_accept','gdpr_accept']) as $error)
+                            <p class="text-red-600 text-sm">{{ $error }}</p>
+                        @endforeach
+                    </div>
+                @endif
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Numele copilului *</label>
+                    <input type="text" name="child_name" value="{{ old('child_name', '') }}"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           oninput="this.value=this.value.toUpperCase()"
+                           required>
+                </div>
+
+                @php $rulesUrl = $location->getEffectiveRulesUrl(); @endphp
+                <div class="mb-3">
+                    <label class="flex items-start gap-2">
+                        <input type="checkbox" name="terms_accept" value="1" class="mt-1" {{ old('terms_accept') ? 'checked' : '' }} required>
+                        @if($rulesUrl)
+                            <span class="text-sm text-gray-700">Am citit și accept <a href="{{ $rulesUrl }}" target="_blank" rel="noopener noreferrer" class="underline text-blue-600">regulamentul locației</a> *</span>
+                        @else
+                            <span class="text-sm text-gray-700">Accept <a href="{{ route('legal.terms.public') }}" target="_blank" class="underline text-blue-600">Termenii și Condițiile</a> *</span>
+                        @endif
+                    </label>
+                </div>
+                <div class="mb-4">
+                    <label class="flex items-start gap-2">
+                        <input type="checkbox" name="gdpr_accept" value="1" class="mt-1" {{ old('gdpr_accept') ? 'checked' : '' }} required>
+                        <span class="text-sm text-gray-700">Accept <a href="{{ route('legal.gdpr.public') }}" target="_blank" class="underline text-blue-600">Politica GDPR</a> *</span>
+                    </label>
+                </div>
+
+                <button type="submit"
+                        class="w-full py-3 bg-green-600 text-white text-base font-semibold rounded-xl hover:bg-green-700 transition">
+                    Înregistrează și generează QR
+                </button>
+            </form>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -97,5 +152,17 @@ document.querySelectorAll('.dismiss-qr').forEach(function(btn) {
         document.querySelector('[data-child-id="' + childId + '"].generate-qr-btn').textContent = 'Generează QR';
     });
 });
+
+const addChildBtn = document.getElementById('btn-add-child');
+if (addChildBtn) {
+    addChildBtn.addEventListener('click', function() {
+        const form = document.getElementById('add-child-form');
+        form.classList.toggle('hidden');
+        if (!form.classList.contains('hidden')) {
+            form.scrollIntoView({ behavior: 'smooth' });
+            form.querySelector('input[name="child_name"]').focus();
+        }
+    });
+}
 </script>
 @endsection

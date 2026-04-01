@@ -45,7 +45,8 @@ class NewClientPreCheckinTest extends TestCase
     public function test_new_client_creates_guardian_child_and_token(): void
     {
         $response = $this->post(route('pre-checkin.submit-new', $this->location), [
-            'guardian_name' => 'Maria Ionescu',
+            'guardian_first_name' => 'Maria',
+            'guardian_last_name' => 'Ionescu',
             'guardian_phone' => '0722111222',
             'child_name' => 'Andrei Ionescu',
             'terms_accept' => '1',
@@ -57,7 +58,7 @@ class NewClientPreCheckinTest extends TestCase
 
         $this->assertDatabaseHas('guardians', [
             'phone' => '0722111222',
-            'name' => 'Maria Ionescu',
+            'name' => 'MARIA IONESCU',
             'location_id' => $this->location->id,
         ]);
 
@@ -81,7 +82,8 @@ class NewClientPreCheckinTest extends TestCase
         ]);
 
         $this->post(route('pre-checkin.submit-new', $this->location), [
-            'guardian_name' => 'Alt Nume',
+            'guardian_first_name' => 'Alt',
+            'guardian_last_name' => 'Nume',
             'guardian_phone' => '0722111222',
             'child_name' => 'Copil Nou',
             'terms_accept' => '1',
@@ -98,7 +100,8 @@ class NewClientPreCheckinTest extends TestCase
     public function test_honeypot_rejects_bots_silently(): void
     {
         $response = $this->post(route('pre-checkin.submit-new', $this->location), [
-            'guardian_name' => 'Bot',
+            'guardian_first_name' => 'Bot',
+            'guardian_last_name' => 'Bot',
             'guardian_phone' => '0700000000',
             'child_name' => 'Bot Child',
             'terms_accept' => '1',
@@ -114,7 +117,8 @@ class NewClientPreCheckinTest extends TestCase
     public function test_new_client_requires_terms_acceptance(): void
     {
         $response = $this->post(route('pre-checkin.submit-new', $this->location), [
-            'guardian_name' => 'Maria Ionescu',
+            'guardian_first_name' => 'Maria',
+            'guardian_last_name' => 'Ionescu',
             'guardian_phone' => '0722111222',
             'child_name' => 'Andrei',
             'terms_accept' => '0',
@@ -129,7 +133,8 @@ class NewClientPreCheckinTest extends TestCase
     public function test_new_client_requires_gdpr_acceptance(): void
     {
         $response = $this->post(route('pre-checkin.submit-new', $this->location), [
-            'guardian_name' => 'Maria Ionescu',
+            'guardian_first_name' => 'Maria',
+            'guardian_last_name' => 'Ionescu',
             'guardian_phone' => '0722111222',
             'child_name' => 'Andrei',
             'terms_accept' => '1',

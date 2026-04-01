@@ -143,6 +143,10 @@ Route::get('/pre-checkin/{location:slug}/qr/{token}', [App\Http\Controllers\Publ
 Route::get('/pre-checkin/{location:slug}/check-phone', [App\Http\Controllers\PublicPreCheckinController::class, 'checkPhone'])->name('pre-checkin.check-phone')->middleware('throttle:30,1');
 Route::post('/pre-checkin/{location:slug}/existing', [App\Http\Controllers\PublicPreCheckinController::class, 'submitExisting'])->name('pre-checkin.submit-existing')->middleware('throttle:10,60');
 Route::post('/pre-checkin/{location:slug}/existing/token', [App\Http\Controllers\PublicPreCheckinController::class, 'generateExistingToken'])->name('pre-checkin.generate-token')->middleware('throttle:10,60');
+Route::post('/pre-checkin/{location:slug}/lookup', [App\Http\Controllers\PublicPreCheckinController::class, 'lookupPhone'])->name('pre-checkin.lookup')->middleware('throttle:10,60');
+Route::get('/pre-checkin/{location:slug}/existing', [App\Http\Controllers\PublicPreCheckinController::class, 'showExistingPage'])->name('pre-checkin.show-existing');
+Route::post('/pre-checkin/{location:slug}/existing/child', [App\Http\Controllers\PublicPreCheckinController::class, 'addChildToExisting'])->name('pre-checkin.add-child')->middleware('throttle:10,60');
+Route::get('/pre-checkin/{location:slug}/rules', [App\Http\Controllers\PublicPreCheckinController::class, 'viewRules'])->name('pre-checkin.rules');
 
 // Location context routes (for COMPANY_ADMIN)
 Route::middleware('auth')->group(function () {

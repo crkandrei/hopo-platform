@@ -283,6 +283,7 @@
     @endif
 
     {{-- ── Configurare Bridge ─────────────────────────────────────────────── --}}
+    @if(auth()->user()->isSuperAdmin())
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6"
          x-data="{
              showKey: false,
@@ -470,5 +471,6 @@
         @endif
         @endif
     </div>
+    @endif
 </div>
 @endsection
