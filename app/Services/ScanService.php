@@ -386,8 +386,6 @@ class ScanService
                     'effective_seconds' => $effectiveSeconds,
                     'current_interval_started_at' => $currentInterval && $currentInterval->started_at ? $currentInterval->started_at->toISOString() : null,
                     'bracelet_code' => $session->bracelet_code,
-                    'estimated_price' => $session->calculatePrice(),
-                    'formatted_estimated_price' => $session->getFormattedPrice(),
                 ];
             })
             ->toArray();
