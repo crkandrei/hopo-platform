@@ -94,7 +94,7 @@ class PublicPreCheckinController extends Controller
                     'location_id' => $location->id,
                 ],
                 [
-                    'internal_code' => $this->generateInternalCode($validated['child_name']),
+                    'internal_code' => $this->generateInternalCode($location, $validated['child_name']),
                 ]
             );
 
@@ -347,7 +347,7 @@ class PublicPreCheckinController extends Controller
                     'location_id' => $location->id,
                 ],
                 [
-                    'internal_code' => $this->generateInternalCode($validated['child_name']),
+                    'internal_code' => $this->generateInternalCode($location, $validated['child_name']),
                 ]
             );
 
@@ -380,11 +380,15 @@ class PublicPreCheckinController extends Controller
         );
     }
 
-    private function generateInternalCode(string $name): string
+    private function generateInternalCode(Location $location, string $name): string
     {
         $prefix = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $name), 0, 3));
         $prefix = $prefix ?: 'COD';
 
-        return $prefix . str_pad(random_int(1, 999), 3, '0', STR_PAD_LEFT);
+        do {
+            $code = $prefix . str_pad(random_int(1, 999), 3, '0', STR_PAD_LEFT);
+        } while (Child::where('location_id', $location->id)->where('internal_code', $code)->exists());
+
+        return $code;
     }
 }
