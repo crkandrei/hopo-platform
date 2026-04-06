@@ -642,7 +642,15 @@ class ScanPageController extends Controller
             ->first();
 
         if (!$activeSession) {
-            return ApiResponder::error('Copilul nu are o sesiune activă', 404);
+            return ApiResponder::success([
+                'child' => [
+                    'id' => $child->id,
+                    'name' => $child->name,
+                    'guardian_name' => optional($child->guardian)->name,
+                ],
+                'bracelet_code' => null,
+                'active_session' => null,
+            ]);
         }
 
         $currentInterval = $activeSession->intervals->whereStrict('ended_at', null)->sortByDesc('started_at')->first();
