@@ -47,7 +47,8 @@ class TieredDurationStrategy implements PricingStrategyInterface
         $tier = $this->findBaseTier($tiers, $roundedHours);
 
         if ($tier) {
-            $price = $this->calculateTierPrice($tier, $roundedHours);
+            $nextTier = $this->findNextTier($tiers, $tier);
+            $price = $this->calculateTierPrice($tier, $nextTier, $roundedHours);
             return new PricingResult($price, $roundedHours);
         }
 
@@ -126,20 +127,44 @@ class TieredDurationStrategy implements PricingStrategyInterface
     }
 
     /**
-     * Calculate price using base tier + excess billed at base tier's hourly rate.
-     * e.g. 2.5h with 2h=50RON tier: 50 + 0.5 * (50/2) = 62.5 RON
+     * Find smallest tier above the base tier (next tier up).
+     *
+     * @param \Illuminate\Database\Eloquent\Collection<int, PricingTier> $tiers
      */
-    private function calculateTierPrice(PricingTier $tier, float $roundedHours): float
+    private function findNextTier(\Illuminate\Database\Eloquent\Collection $tiers, PricingTier $baseTier): ?PricingTier
+    {
+        foreach ($tiers as $tier) {
+            if ((float) $tier->duration_hours > (float) $baseTier->duration_hours) {
+                return $tier;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Calculate price using base tier + excess billed at the incremental rate toward the next tier.
+     * If no next tier exists (beyond last tier), excess is billed at the last tier's average hourly rate.
+     * e.g. 1.5h with 1h=40 and 2h=60: 40 + 0.5 * (60-40)/(2-1) = 50 RON
+     * e.g. 3.5h with 3h=75 (last tier): 75 + 0.5 * (75/3) = 87.5 RON
+     */
+    private function calculateTierPrice(PricingTier $tier, ?PricingTier $nextTier, float $roundedHours): float
     {
         $tierDuration = (float) $tier->duration_hours;
-        $tierPrice = (float) $tier->price;
-        $excessHours = $roundedHours - $tierDuration;
+        $tierPrice    = (float) $tier->price;
+        $excessHours  = $roundedHours - $tierDuration;
 
         if ($excessHours <= 0) {
             return $tierPrice;
         }
 
-        $hourlyRate = $tierDuration > 0 ? $tierPrice / $tierDuration : 0;
+        if ($nextTier !== null) {
+            $nextDuration = (float) $nextTier->duration_hours;
+            $nextPrice    = (float) $nextTier->price;
+            $hourlyRate   = ($nextPrice - $tierPrice) / ($nextDuration - $tierDuration);
+        } else {
+            $hourlyRate = $tierDuration > 0 ? $tierPrice / $tierDuration : 0;
+        }
+
         return round($tierPrice + $excessHours * $hourlyRate, 2);
     }
 }

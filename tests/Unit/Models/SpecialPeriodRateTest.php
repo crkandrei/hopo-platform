@@ -41,20 +41,20 @@ class SpecialPeriodRateTest extends TestCase
         $this->assertEquals(35.00, $rate->calculateTieredPrice(2.0));
     }
 
-    public function test_price_between_tiers_uses_next_tier(): void
+    public function test_price_between_tiers_uses_incremental_rate(): void
     {
         $rate = $this->makeRate([1 => 20.00, 2 => 35.00, 3 => 45.00]);
 
-        // 1.5h → prima tranșă ≥ 1.5h este 2h → 35 RON
-        $this->assertEquals(35.00, $rate->calculateTieredPrice(1.5));
+        // 1.5h → bază 1h (20) + 0.5 × rata incrementală (35-20)/(2-1) = 27.50 RON
+        $this->assertEquals(27.50, $rate->calculateTieredPrice(1.5));
     }
 
-    public function test_price_just_above_tier_uses_next_tier(): void
+    public function test_price_just_above_tier_uses_incremental_rate(): void
     {
         $rate = $this->makeRate([1 => 20.00, 2 => 35.00]);
 
-        // 1.01h → prima tranșă ≥ 1.01h este 2h → 35 RON
-        $this->assertEquals(35.00, $rate->calculateTieredPrice(1.01));
+        // 1.01h → bază 1h (20) + 0.01 × rata incrementală (35-20)/1 = 20.15 RON
+        $this->assertEquals(20.15, $rate->calculateTieredPrice(1.01));
     }
 
     // =========================================================
@@ -105,11 +105,11 @@ class SpecialPeriodRateTest extends TestCase
         $this->assertEquals(0.00, $rate->calculateTieredPrice(2.0));
     }
 
-    public function test_single_tier_configured_used_for_all_durations_up_to_it(): void
+    public function test_single_tier_configured_used_for_all_durations_below_it(): void
     {
         $rate = $this->makeRate([2 => 35.00], overflow: 10.00);
 
-        // 1h → sub singura tranșă (2h): prima tranșă ≥ 1h este 2h → 35 RON
+        // 1h → sub singura tranșă (2h): nicio tranșă ≤ 1h → returnează prima tranșă = 35 RON
         $this->assertEquals(35.00, $rate->calculateTieredPrice(1.0));
     }
 
@@ -123,9 +123,11 @@ class SpecialPeriodRateTest extends TestCase
         ], overflow: 12.00);
 
         $this->assertEquals(20.00, $rate->calculateTieredPrice(1.0));
-        $this->assertEquals(35.00, $rate->calculateTieredPrice(1.5)); // 1.5 → tranșa 2h
+        // 1.5h → bază 1h (20) + 0.5 × (35-20)/1 = 27.50 RON
+        $this->assertEquals(27.50, $rate->calculateTieredPrice(1.5));
         $this->assertEquals(35.00, $rate->calculateTieredPrice(2.0));
-        $this->assertEquals(45.00, $rate->calculateTieredPrice(2.5)); // 2.5 → tranșa 3h
+        // 2.5h → bază 2h (35) + 0.5 × (45-35)/1 = 40.00 RON
+        $this->assertEquals(40.00, $rate->calculateTieredPrice(2.5));
         $this->assertEquals(45.00, $rate->calculateTieredPrice(3.0));
         $this->assertEquals(55.00, $rate->calculateTieredPrice(4.0));
         $this->assertEquals(67.00, $rate->calculateTieredPrice(5.0)); // 55 + 1×12 = 67

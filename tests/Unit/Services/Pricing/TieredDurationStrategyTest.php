@@ -60,10 +60,10 @@ class TieredDurationStrategyTest extends TestCase
         $this->addTier($location, 1.0, 20.00);
         $this->addTier($location, 2.0, 35.00);
 
-        // 1.5h → bază = tranșa 1h (20 RON) + 0.5h exces × (20/1) = 30 RON
+        // 1.5h → bază = tranșa 1h (20 RON) + 0.5h exces × rata incrementală (35-20)/(2-1) = 27.50 RON
         $price = $this->strategy->calculatePrice($location, 1.5, Carbon::parse('2024-01-15'));
 
-        $this->assertEquals(30.00, $price);
+        $this->assertEquals(27.50, $price);
     }
 
     public function test_duration_above_all_tiers_charges_excess_at_highest_tier_rate(): void
@@ -72,7 +72,8 @@ class TieredDurationStrategyTest extends TestCase
         $this->addTier($location, 1.0, 20.00);
         $this->addTier($location, 2.0, 35.00);
 
-        // 2.5h → bază = tranșa 2h (35) + 0.5h × (35/2 = 17.5) = 43.75 RON
+        // 2.5h → bază = tranșa 2h (35) + 0.5h × rata ultimului tier (35/2 = 17.5) = 43.75 RON
+        // Nu există tier următor, deci se folosește rata medie a ultimului tier
         $price = $this->strategy->calculatePrice($location, 2.5, Carbon::parse('2024-01-15'));
 
         $this->assertEquals(43.75, $price);
@@ -204,10 +205,10 @@ class TieredDurationStrategyTest extends TestCase
         $this->addTier($location, 1.0, 20.00);
         $this->addTier($location, 2.0, 35.00);
 
-        // 1h 20min → rotunjit 1.5h → bază tranșa 1h (20) + 0.5 × 20 = 30 RON
+        // 1h 20min → rotunjit la 15 min → 1.5h → bază tranșa 1h (20) + 0.5 × rata incrementală (35-20)/1 = 27.50 RON
         $price = $this->strategy->calculatePrice($location, 1.0 + 20.0 / 60, Carbon::parse('2024-01-15'));
 
-        $this->assertEquals(30.00, $price);
+        $this->assertEquals(27.50, $price);
     }
 
     public function test_three_tiers_full_scenario(): void
@@ -221,7 +222,7 @@ class TieredDurationStrategyTest extends TestCase
         $this->assertEquals(35.00, $this->strategy->calculatePrice($location, 2.0, Carbon::parse('2024-01-15')));
         $this->assertEquals(45.00, $this->strategy->calculatePrice($location, 3.0, Carbon::parse('2024-01-15')));
 
-        // 3.5h → bază tranșa 3h (45) + 0.5 × (45/3 = 15) = 52.5 RON
+        // 3.5h → bază tranșa 3h (45) + 0.5 × rata ultimului tier (45/3 = 15) = 52.5 RON
         $this->assertEquals(52.50, $this->strategy->calculatePrice($location, 3.5, Carbon::parse('2024-01-15')));
     }
 

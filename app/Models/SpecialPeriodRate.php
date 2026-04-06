@@ -72,7 +72,8 @@ class SpecialPeriodRate extends Model
 
     /**
      * Calculate price for a given rounded duration when pricing_mode is tiered.
-     * Rounded hours must already be computed (e.g. via FlatHourlyStrategy::roundToHalfHour).
+     * Excess above a tier is billed at the incremental rate toward the next tier.
+     * Beyond the last tier, the explicit overflow_price_per_hour is used (or the last tier's avg rate).
      *
      * @param float $roundedHours
      * @return float Price in RON
@@ -84,16 +85,43 @@ class SpecialPeriodRate extends Model
             return 0.00;
         }
         ksort($tiers);
-        foreach ($tiers as $duration => $price) {
-            if ($roundedHours <= (float) $duration) {
-                return (float) $price;
+
+        $durations = array_keys($tiers);
+
+        // Find base tier (largest where duration <= roundedHours)
+        $baseIdx = null;
+        foreach ($durations as $i => $duration) {
+            if ((float) $duration <= $roundedHours) {
+                $baseIdx = $i;
             }
         }
-        $lastDuration = (float) array_key_last($tiers);
-        $lastPrice = (float) $tiers[$lastDuration];
-        $overflowRate = $this->overflow_price_per_hour ? (float) $this->overflow_price_per_hour : 0.00;
-        $overflowHours = $roundedHours - $lastDuration;
-        return round($lastPrice + $overflowHours * $overflowRate, 2);
+
+        if ($baseIdx === null) {
+            return (float) $tiers[$durations[0]];
+        }
+
+        $baseDuration = (float) $durations[$baseIdx];
+        $basePrice    = (float) $tiers[$baseDuration];
+        $excessHours  = $roundedHours - $baseDuration;
+
+        if ($excessHours <= 0) {
+            return $basePrice;
+        }
+
+        $nextIdx = $baseIdx + 1;
+        if (isset($durations[$nextIdx])) {
+            $nextDuration = (float) $durations[$nextIdx];
+            $nextPrice    = (float) $tiers[$nextDuration];
+            $hourlyRate   = ($nextPrice - $basePrice) / ($nextDuration - $baseDuration);
+        } else {
+            // Dincolo de ultima tranșă: folosi overflow_price_per_hour explicit (chiar dacă 0)
+            // null înseamnă nesetat → fără taxă suplimentară (0)
+            $hourlyRate = $this->overflow_price_per_hour !== null
+                ? (float) $this->overflow_price_per_hour
+                : 0.00;
+        }
+
+        return round($basePrice + $excessHours * $hourlyRate, 2);
     }
 }
 
