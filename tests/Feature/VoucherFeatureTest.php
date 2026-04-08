@@ -30,6 +30,8 @@ class VoucherFeatureTest extends TestCase
             'location_id' => $this->location->id,
             'role_id' => Role::where('name', 'COMPANY_ADMIN')->first()->id,
         ]);
+        $this->app->instance('current.location', $this->location);
+        $this->withoutMiddleware(\App\Http\Middleware\CheckLocationSubscription::class);
     }
 
     public function test_voucher_index_requires_auth(): void
@@ -88,6 +90,7 @@ class VoucherFeatureTest extends TestCase
             'remaining_value' => 80,
             'is_active' => true,
         ]);
+        $this->actingAs($this->admin);
         $response = $this->postJson(route('vouchers.validate'), [
             'code' => 'VALIDCODE',
             'location_id' => $this->location->id,

@@ -33,7 +33,7 @@ class PublicPreCheckinController extends Controller
 
         // Rate limiting per phone: max 5 children / 24h for same number
         $phoneKey = 'pre-checkin-phone:' . $request->input('guardian_phone', '') . ':' . $location->id;
-        if (RateLimiter::tooManyAttempts($phoneKey, 5)) {
+        if (RateLimiter::tooManyAttempts($phoneKey, 10)) {
             return back()->withInput()->withErrors([
                 'guardian_phone' => 'Prea multe înregistrări de pe acest număr. Încercați mai târziu.',
             ]);
@@ -325,7 +325,7 @@ class PublicPreCheckinController extends Controller
             ->firstOrFail();
 
         $phoneKey = 'pre-checkin-phone:' . $validated['guardian_phone'] . ':' . $location->id;
-        if (RateLimiter::tooManyAttempts($phoneKey, 5)) {
+        if (RateLimiter::tooManyAttempts($phoneKey, 10)) {
             return back()->withInput()->withErrors([
                 'child_name' => 'Prea multe înregistrări de pe acest număr. Încercați mai târziu.',
             ]);

@@ -104,7 +104,7 @@ class CheckoutFlowTest extends TestCase
 
         $this->app->instance('current.location', $location);
 
-        $response = $this->actingAs($user)->get('/payment/success');
+        $response = $this->actingAs($user)->get('/payment/success?session_id=cs_test_abc123');
 
         $response->assertStatus(200);
     }

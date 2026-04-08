@@ -107,8 +107,8 @@ class VoucherServiceTest extends TestCase
         ]);
         $stats = $this->service->getVoucherStats($location);
         $this->assertSame(2, $stats['total_issued_count']);
-        $this->assertEqualsWithDelta(150, $stats['total_initial_value'], 0.01);
-        $this->assertEqualsWithDelta(60, $stats['total_used_value'], 0.01);
-        $this->assertEqualsWithDelta(90, $stats['total_remaining_value'], 0.01);
+        $this->assertEqualsWithDelta(150, $stats['amount']['issued'], 0.01);
+        $this->assertEqualsWithDelta(60, $stats['amount']['used'], 0.01);
+        $this->assertEqualsWithDelta(90, $stats['amount']['remaining'], 0.01);
     }
 }

@@ -6,6 +6,22 @@ use Tests\TestCase;
 
 class SecurityFixesTest extends TestCase
 {
+    private int $obLevel;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->obLevel = ob_get_level();
+    }
+
+    protected function tearDown(): void
+    {
+        while (ob_get_level() > $this->obLevel) {
+            ob_end_clean();
+        }
+        parent::tearDown();
+    }
+
     // ── Fix 1: /api/scan/* routes must not exist ──────────────────────────
 
     public function test_public_api_scan_generate_does_not_exist(): void

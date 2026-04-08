@@ -11,13 +11,14 @@ use App\Models\Guardian;
 use App\Models\PlaySession;
 use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class DataIsolationTest extends TestCase
 {
     // Roles are created in parent TestCase::setUp()
 
-    /** @test */
+    #[Test]
     public function users_can_only_access_their_location_data()
     {
         // Create companies and locations
@@ -55,7 +56,7 @@ class DataIsolationTest extends TestCase
         $this->assertNotContains($child2->id, $children->pluck('id'));
     }
 
-    /** @test */
+    #[Test]
     public function company_admin_can_access_all_locations_in_their_company()
     {
         // Create company with multiple locations
@@ -95,7 +96,7 @@ class DataIsolationTest extends TestCase
         $this->assertFalse($companyAdmin->canAccessLocation($otherLocation->id));
     }
 
-    /** @test */
+    #[Test]
     public function super_admin_can_access_all_locations()
     {
         // Create multiple companies and locations
@@ -120,7 +121,7 @@ class DataIsolationTest extends TestCase
         $this->assertTrue($superAdmin->canAccessLocation($location2->id));
     }
 
-    /** @test */
+    #[Test]
     public function play_sessions_are_isolated_by_location()
     {
         // Create locations
@@ -157,7 +158,7 @@ class DataIsolationTest extends TestCase
         $this->assertEquals($session2->id, $location2Sessions->first()->id);
     }
 
-    /** @test */
+    #[Test]
     public function products_are_isolated_by_location()
     {
         // Create locations
