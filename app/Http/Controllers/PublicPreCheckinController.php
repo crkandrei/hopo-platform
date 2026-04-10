@@ -31,9 +31,13 @@ class PublicPreCheckinController extends Controller
             return redirect()->route('pre-checkin.index', $location);
         }
 
-        // Rate limiting per phone: max 5 children / 24h for same number
+        // Rate limiting per phone: only for new guardians
         $phoneKey = 'pre-checkin-phone:' . $request->input('guardian_phone', '') . ':' . $location->id;
-        if (RateLimiter::tooManyAttempts($phoneKey, 10)) {
+        $isExistingGuardian = Guardian::where('phone', $request->input('guardian_phone', ''))
+            ->where('location_id', $location->id)
+            ->exists();
+
+        if (! $isExistingGuardian && RateLimiter::tooManyAttempts($phoneKey, 10)) {
             return back()->withInput()->withErrors([
                 'guardian_phone' => 'Prea multe înregistrări de pe acest număr. Încercați mai târziu.',
             ]);
@@ -59,7 +63,9 @@ class PublicPreCheckinController extends Controller
             'gdpr_accept' => 'required|accepted',
         ]);
 
-        RateLimiter::hit($phoneKey, 86400);
+        if (! $isExistingGuardian) {
+            RateLimiter::hit($phoneKey, 86400);
+        }
 
         $guardianName = strtoupper($validated['guardian_first_name'] . ' ' . $validated['guardian_last_name']);
 
@@ -323,14 +329,6 @@ class PublicPreCheckinController extends Controller
         $guardian = Guardian::where('phone', $validated['guardian_phone'])
             ->where('location_id', $location->id)
             ->firstOrFail();
-
-        $phoneKey = 'pre-checkin-phone:' . $validated['guardian_phone'] . ':' . $location->id;
-        if (RateLimiter::tooManyAttempts($phoneKey, 10)) {
-            return back()->withInput()->withErrors([
-                'child_name' => 'Prea multe înregistrări de pe acest număr. Încercați mai târziu.',
-            ]);
-        }
-        RateLimiter::hit($phoneKey, 86400);
 
         $guardian->update([
             'terms_accepted_at' => now(),
