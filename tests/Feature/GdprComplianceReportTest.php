@@ -124,4 +124,120 @@ class GdprComplianceReportTest extends TestCase
         $response = $this->get(route('reports.gdpr-compliance.pdf'));
         $response->assertRedirect(route('login'));
     }
+
+    #[Test]
+    public function data_endpoint_returns_only_location_guardians(): void
+    {
+        $otherLocation = Location::factory()->create(['company_id' => $this->company->id]);
+
+        Guardian::factory()->create([
+            'location_id' => $this->location->id,
+            'name' => 'Parinte Local',
+        ]);
+        Guardian::factory()->create([
+            'location_id' => $otherLocation->id,
+            'name' => 'Parinte Alt',
+        ]);
+
+        $response = $this->actingAs($this->companyAdmin)
+            ->getJson(route('reports.gdpr-compliance.data'));
+
+        $response->assertStatus(200);
+        $data = $response->json('data');
+        $this->assertCount(1, $data);
+        $this->assertEquals('Parinte Local', $data[0]['name']);
+    }
+
+    #[Test]
+    public function data_endpoint_filters_by_terms_status_not_accepted(): void
+    {
+        Guardian::factory()->create([
+            'location_id' => $this->location->id,
+            'name' => 'Fara Termeni',
+            'terms_accepted_at' => null,
+            'terms_version' => null,
+        ]);
+        Guardian::factory()->create([
+            'location_id' => $this->location->id,
+            'name' => 'Cu Termeni',
+            'terms_accepted_at' => now(),
+            'terms_version' => '1.0',
+        ]);
+
+        $response = $this->actingAs($this->companyAdmin)
+            ->getJson(route('reports.gdpr-compliance.data', ['terms_status' => 'not_accepted']));
+
+        $data = $response->json('data');
+        $this->assertCount(1, $data);
+        $this->assertEquals('Fara Termeni', $data[0]['name']);
+    }
+
+    #[Test]
+    public function data_endpoint_filters_by_gdpr_status_accepted(): void
+    {
+        Guardian::factory()->create([
+            'location_id' => $this->location->id,
+            'name' => 'Cu GDPR',
+            'gdpr_accepted_at' => now(),
+            'gdpr_version' => '1.0',
+        ]);
+        Guardian::factory()->create([
+            'location_id' => $this->location->id,
+            'name' => 'Fara GDPR',
+            'gdpr_accepted_at' => null,
+            'gdpr_version' => null,
+        ]);
+
+        $response = $this->actingAs($this->companyAdmin)
+            ->getJson(route('reports.gdpr-compliance.data', ['gdpr_status' => 'accepted']));
+
+        $data = $response->json('data');
+        $this->assertCount(1, $data);
+        $this->assertEquals('Cu GDPR', $data[0]['name']);
+    }
+
+    #[Test]
+    public function data_endpoint_summary_counts_correctly(): void
+    {
+        // Both accepted
+        Guardian::factory()->create([
+            'location_id' => $this->location->id,
+            'terms_accepted_at' => now(),
+            'gdpr_accepted_at' => now(),
+        ]);
+        // Only terms
+        Guardian::factory()->create([
+            'location_id' => $this->location->id,
+            'terms_accepted_at' => now(),
+            'gdpr_accepted_at' => null,
+        ]);
+        // Neither
+        Guardian::factory()->create([
+            'location_id' => $this->location->id,
+            'terms_accepted_at' => null,
+            'gdpr_accepted_at' => null,
+        ]);
+
+        $response = $this->actingAs($this->companyAdmin)
+            ->getJson(route('reports.gdpr-compliance.data'));
+
+        $summary = $response->json('summary');
+        $this->assertEquals(3, $summary['total']);
+        $this->assertEquals(1, $summary['both_accepted']);
+        $this->assertEquals(2, $summary['pending']);
+    }
+
+    #[Test]
+    public function data_endpoint_paginates_correctly(): void
+    {
+        Guardian::factory()->count(15)->create(['location_id' => $this->location->id]);
+
+        $response = $this->actingAs($this->companyAdmin)
+            ->getJson(route('reports.gdpr-compliance.data', ['per_page' => 10, 'page' => 1]));
+
+        $meta = $response->json('meta');
+        $this->assertEquals(15, $meta['total']);
+        $this->assertEquals(2, $meta['total_pages']);
+        $this->assertCount(10, $response->json('data'));
+    }
 }
