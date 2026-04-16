@@ -19,17 +19,13 @@
         tr:nth-child(even) td { background: #f9fafb; }
         .badge-ok { color: #065f46; background: #d1fae5; padding: 1px 6px; border-radius: 10px; font-size: 10px; white-space: nowrap; }
         .badge-no { color: #991b1b; background: #fee2e2; padding: 1px 6px; border-radius: 10px; font-size: 10px; white-space: nowrap; }
-        .print-btn { display: inline-block; margin-bottom: 20px; padding: 8px 20px; background: #4f46e5; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
         @media print {
-            .print-btn { display: none; }
             body { padding: 0; }
             @page { margin: 15mm; }
         }
     </style>
 </head>
 <body>
-    <button class="print-btn" onclick="window.print()">Printează / Salvează PDF</button>
-
     <h1>Raport Conformitate GDPR/T&amp;C</h1>
     <div class="subtitle">
         {{ $location->name }} &nbsp;·&nbsp; Generat la {{ $generatedAt }}
@@ -99,5 +95,6 @@
             @endforelse
         </tbody>
     </table>
+    <script>window.addEventListener('load', function () { window.print(); });</script>
 </body>
 </html>
