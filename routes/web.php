@@ -166,6 +166,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports/traffic', [App\Http\Controllers\ReportsController::class, 'traffic'])->name('reports.traffic');
     Route::get('/reports/general', [App\Http\Controllers\GeneralReportController::class, 'index'])->name('reports.general');
     Route::get('/reports/general/data', [App\Http\Controllers\GeneralReportController::class, 'data'])->name('reports.general.data');
+    Route::get('/reports/gdpr-compliance', [App\Http\Controllers\ReportsController::class, 'gdprCompliance'])->name('reports.gdpr-compliance');
+    Route::get('/reports/gdpr-compliance/data', [App\Http\Controllers\ReportsController::class, 'gdprComplianceData'])->name('reports.gdpr-compliance.data');
+    Route::get('/reports/gdpr-compliance/pdf', [App\Http\Controllers\ReportsController::class, 'gdprCompliancePdf'])->name('reports.gdpr-compliance.pdf');
     Route::get('/reports/children', [App\Http\Controllers\SuperAdminReportsController::class, 'index'])->name('reports.children');
     Route::get('/reports/children/data', [App\Http\Controllers\SuperAdminReportsController::class, 'data'])->name('reports.children.data');
     // Redirect old route for backwards compatibility
