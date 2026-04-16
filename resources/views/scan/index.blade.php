@@ -352,6 +352,28 @@
     </div>
 </div>
 
+<!-- Modal confirmare QR pre-checkin -->
+<div id="qrConfirmModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 text-center">
+        <div class="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-child text-green-600 text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-1" id="qrConfirmChildName"></h3>
+        <p class="text-sm text-gray-500 mb-1" id="qrConfirmGuardianInfo"></p>
+        <p class="text-sm text-gray-600 mt-4 mb-6">Confirmi pornirea sesiunii pentru acest copil?</p>
+        <div class="flex flex-col gap-3">
+            <button id="qrConfirmBtn"
+                class="w-full h-12 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition text-base flex items-center justify-center gap-2">
+                <i class="fas fa-play"></i> Pornește sesiunea
+            </button>
+            <button id="qrCancelBtn"
+                class="w-full h-10 text-gray-500 hover:text-gray-700 text-sm font-medium">
+                Anulează
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Add Products Modal -->
 <div id="addProductsModal" class="fixed inset-0 z-50 hidden" aria-hidden="true">
     <div id="addProductsOverlay" class="fixed inset-0 bg-black bg-opacity-50"></div>
@@ -440,26 +462,33 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
             if (data.success) {
                 preCheckinTokenValue = token;
-                qrResult.textContent = `✓ ${data.child.name} — ${data.guardian.name} (${data.guardian.phone})`;
-                qrResult.classList.remove('hidden');
-                // Pre-select child in dropdown if in bracelet mode.
-                // We clear and re-populate with just this child to ensure it's in
-                // the dropdown regardless of the initial 15-item load limit.
-                if (childChoices && data.child.id) {
-                    let label = data.child.name;
-                    if (data.guardian && data.guardian.name) label += ` - ${data.guardian.name}`;
-                    if (data.guardian && data.guardian.phone) label += ` (${data.guardian.phone})`;
-                    childChoices.clearStore();
-                    childChoices.setChoices(
-                        [{ value: String(data.child.id), label, selected: true }],
-                        'value', 'label', true
-                    );
-                    selectedChild = { id: data.child.id, name: data.child.name };
-                    updateAssignButtonState();
+                const confirmed = await showQrConfirmModal(data);
+                if (confirmed) {
+                    qrResult.textContent = `✓ ${data.child.name} — ${data.guardian.name} (${data.guardian.phone})`;
+                    qrResult.classList.remove('hidden');
+                    if (childChoices && data.child.id) {
+                        let label = data.child.name;
+                        if (data.guardian && data.guardian.name) label += ` - ${data.guardian.name}`;
+                        if (data.guardian && data.guardian.phone) label += ` (${data.guardian.phone})`;
+                        childChoices.clearStore();
+                        childChoices.setChoices(
+                            [{ value: String(data.child.id), label, selected: true }],
+                            'value', 'label', true
+                        );
+                        await updateAssignButtonState();
+                    }
+                    const assignBtn = document.getElementById('assignChildBtn');
+                    if (assignBtn && !assignBtn.disabled) {
+                        assignBtn.click();
+                    }
+                } else {
+                    qrInput.value = '';
+                    preCheckinTokenValue = null;
                 }
             } else {
                 qrError.textContent = data.message || 'Cod invalid';
                 qrError.classList.remove('hidden');
+                qrInput.value = '';
             }
         } catch(e) {
             qrError.textContent = 'Eroare la verificarea codului';
@@ -467,6 +496,40 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+function showQrConfirmModal(data) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('qrConfirmModal');
+        const confirmBtn = document.getElementById('qrConfirmBtn');
+        const cancelBtn = document.getElementById('qrCancelBtn');
+
+        document.getElementById('qrConfirmChildName').textContent = data.child.name;
+        document.getElementById('qrConfirmGuardianInfo').textContent =
+            `${data.guardian.name} · ${data.guardian.phone}`;
+
+        modal.classList.remove('hidden');
+        setTimeout(() => confirmBtn.focus(), 50);
+
+        function handleConfirm() { close(true); }
+        function handleCancel() { close(false); }
+        function handleBackdrop(e) { if (e.target === modal) close(false); }
+        function handleEscape(e) { if (e.key === 'Escape') close(false); }
+
+        function close(result) {
+            modal.classList.add('hidden');
+            confirmBtn.removeEventListener('click', handleConfirm);
+            cancelBtn.removeEventListener('click', handleCancel);
+            modal.removeEventListener('click', handleBackdrop);
+            document.removeEventListener('keydown', handleEscape);
+            resolve(result);
+        }
+
+        confirmBtn.addEventListener('click', handleConfirm);
+        cancelBtn.addEventListener('click', handleCancel);
+        modal.addEventListener('click', handleBackdrop);
+        document.addEventListener('keydown', handleEscape);
+    });
+}
 
 // ============================================================
 // HELPERS

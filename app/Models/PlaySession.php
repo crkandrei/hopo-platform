@@ -586,6 +586,12 @@ class PlaySession extends Model
         if ($this->voucher_id) {
             $v = $this->relationLoaded('voucher') ? $this->voucher : $this->voucher()->first();
             if ($v && $v->type === 'amount') {
+                // Use cached collection when already eager-loaded to avoid N+1 queries.
+                if ($this->relationLoaded('voucherUsages')) {
+                    return (float) $this->voucherUsages
+                        ->where('voucher_id', $v->id)
+                        ->sum('amount_used');
+                }
                 return (float) $this->voucherUsages()->where('voucher_id', $v->id)->sum('amount_used');
             }
         }

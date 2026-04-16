@@ -69,7 +69,7 @@ class DashboardService
             ->whereNotNull('calculated_price')
             ->where('ended_at', '>=', $startOfDay)
             ->where('ended_at', '<=', $endOfDay)
-            ->with('products')
+            ->with(['products', 'voucher', 'voucherUsages'])
             ->get();
 
         $cashTotal    = 0;
@@ -81,7 +81,7 @@ class DashboardService
                 $timePrice     = $session->calculated_price ?? $session->calculatePrice();
                 $productsPrice = $session->getProductsTotalPrice(); // no query — products eager loaded
                 $totalPrice    = $timePrice + $productsPrice;
-                $voucherPrice  = $session->getVoucherPrice();
+                $voucherPrice  = $session->getVoucherDiscount();
 
                 if ($voucherPrice > 0) {
                     $voucherTotal += $voucherPrice;
@@ -105,15 +105,17 @@ class DashboardService
         $standaloneToday = StandaloneReceipt::where('location_id', $locationId)
             ->whereNotNull('paid_at')
             ->whereBetween('paid_at', [$startOfDay, $endOfDay])
+            ->with('voucherUsages')
             ->get();
 
         foreach ($standaloneToday as $receipt) {
+            $amountCollected = max(0.0, (float) $receipt->total_amount - $receipt->getVoucherDiscount());
             if ($receipt->payment_method === 'CASH') {
-                $cashTotal += (float) $receipt->total_amount;
+                $cashTotal += $amountCollected;
             } elseif ($receipt->payment_method === 'CARD') {
-                $cardTotal += (float) $receipt->total_amount;
+                $cardTotal += $amountCollected;
             } else {
-                $cashTotal += (float) $receipt->total_amount;
+                $cashTotal += $amountCollected;
             }
         }
 
@@ -163,7 +165,7 @@ class DashboardService
             ->whereNotNull('calculated_price')
             ->where('ended_at', '>=', $start)
             ->where('ended_at', '<=', $end)
-            ->with('products')
+            ->with(['products', 'voucher', 'voucherUsages'])
             ->get();
 
         $total = 0;
@@ -171,7 +173,7 @@ class DashboardService
             if ($session->isPaid() && ! $session->is_free) {
                 $timePrice     = $session->calculated_price ?? 0;
                 $productsPrice = $session->getProductsTotalPrice(); // no query — products eager loaded
-                $voucherPrice  = $session->getVoucherPrice();
+                $voucherPrice  = $session->getVoucherDiscount();
                 // Subtract voucher: only cash+card is real income
                 $total        += $timePrice + $productsPrice - $voucherPrice;
             }
