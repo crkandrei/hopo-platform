@@ -119,7 +119,7 @@
 
     function badgeHtml(dateStr) {
         if (!dateStr) return '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Neacceptat</span>';
-        return `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">${dateStr}</span>`;
+        return `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">${escHtml(dateStr)}</span>`;
     }
 
     function renderRows(data) {
