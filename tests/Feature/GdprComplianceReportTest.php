@@ -273,6 +273,28 @@ class GdprComplianceReportTest extends TestCase
     }
 
     #[Test]
+    public function pdf_endpoint_excludes_guardians_not_matching_filter(): void
+    {
+        Guardian::factory()->create([
+            'location_id' => $this->location->id,
+            'name' => 'Fara Termeni',
+            'terms_accepted_at' => null,
+        ]);
+        Guardian::factory()->create([
+            'location_id' => $this->location->id,
+            'name' => 'Cu Termeni',
+            'terms_accepted_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->companyAdmin)
+            ->get(route('reports.gdpr-compliance.pdf', ['terms_status' => 'accepted']));
+
+        $response->assertStatus(200);
+        $response->assertSee('Cu Termeni');
+        $response->assertDontSee('Fara Termeni');
+    }
+
+    #[Test]
     public function data_endpoint_summary_is_independent_of_filters(): void
     {
         // 3 guardians total: 2 accepted terms, 1 did not
