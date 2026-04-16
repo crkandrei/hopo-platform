@@ -34,6 +34,7 @@ class GdprComplianceReportTest extends TestCase
         ]);
 
         $this->staff = User::factory()->create([
+            'company_id' => $this->company->id,
             'location_id' => $this->location->id,
             'role_id' => Role::where('name', 'STAFF')->first()->id,
         ]);
@@ -108,5 +109,19 @@ class GdprComplianceReportTest extends TestCase
             ->get(route('reports.gdpr-compliance.pdf'));
 
         $response->assertStatus(403);
+    }
+
+    #[Test]
+    public function guest_cannot_access_gdpr_compliance_data(): void
+    {
+        $response = $this->getJson(route('reports.gdpr-compliance.data'));
+        $response->assertStatus(401);
+    }
+
+    #[Test]
+    public function guest_cannot_access_gdpr_compliance_pdf(): void
+    {
+        $response = $this->get(route('reports.gdpr-compliance.pdf'));
+        $response->assertRedirect(route('login'));
     }
 }
