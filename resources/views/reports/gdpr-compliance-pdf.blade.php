@@ -42,7 +42,7 @@
 
     <div class="summary">
         <div class="summary-card">
-            <div class="label">Total guardieni</div>
+            <div class="label">Total părinți</div>
             <div class="value">{{ $summary['total'] }}</div>
         </div>
         <div class="summary-card">
@@ -94,7 +94,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="8" style="text-align:center; color:#666; padding:20px;">Niciun guardian găsit</td>
+                <td colspan="8" style="text-align:center; color:#666; padding:20px;">Niciun părinte găsit</td>
             </tr>
             @endforelse
         </tbody>

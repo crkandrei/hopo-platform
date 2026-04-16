@@ -9,7 +9,7 @@
     {{-- Carduri statistici --}}
     <div id="summary-cards" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-            <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Total guardieni</div>
+            <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Total părinți</div>
             <div id="stat-total" class="text-3xl font-bold text-gray-800">—</div>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
@@ -124,7 +124,7 @@
     function renderRows(data) {
         const tbody = document.getElementById('table-body');
         if (!data.length) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-400">Niciun guardian găsit</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-400">Niciun părinte găsit</td></tr>';
             return;
         }
         tbody.innerHTML = data.map(g => `
