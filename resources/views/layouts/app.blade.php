@@ -322,10 +322,15 @@
                                 <i class="fas fa-chart-bar mr-2 text-xs"></i>
                                 <span>Analiză Trafic</span>
                             </a>
-                            <a href="{{ route('reports.general') }}" 
+                            <a href="{{ route('reports.general') }}"
                                class="flex items-center px-4 py-2 text-sm rounded-lg transition-colors {{ request()->routeIs('reports.general') ? 'bg-sky-500 text-white' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
                                 <i class="fas fa-file-alt mr-2 text-xs"></i>
                                 <span>Raport General</span>
+                            </a>
+                            <a href="{{ route('reports.gdpr-compliance') }}"
+                               class="flex items-center px-4 py-2 text-sm rounded-lg transition-colors {{ request()->routeIs('reports.gdpr-compliance*') ? 'bg-sky-500 text-white' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
+                                <i class="fas fa-shield-alt mr-2 text-xs"></i>
+                                <span>Conformitate GDPR</span>
                             </a>
                             @if($currentUser->isSuperAdmin())
                             <a href="{{ route('reports.children') }}" 
