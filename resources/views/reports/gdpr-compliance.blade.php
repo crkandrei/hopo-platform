@@ -113,7 +113,6 @@
 (function () {
     const dataUrl  = '{{ route("reports.gdpr-compliance.data") }}';
     const pdfUrl   = '{{ route("reports.gdpr-compliance.pdf") }}';
-    const csrfToken = '{{ csrf_token() }}';
 
     let state = { page: 1, perPage: 10, termsStatus: 'all', gdprStatus: 'all', sortBy: 'name', sortDir: 'asc' };
 
@@ -170,14 +169,22 @@
         });
 
         fetch(`${dataUrl}?${params}`, {
-            headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
+            headers: { 'Accept': 'application/json' }
         })
         .then(r => r.json())
         .then(json => {
-            if (!json.success) return;
+            if (!json.success) {
+                document.getElementById('table-body').innerHTML =
+                    '<tr><td colspan="7" class="text-center py-8 text-red-500">Eroare la încărcarea datelor</td></tr>';
+                return;
+            }
             renderRows(json.data);
             renderPagination(json.meta);
             renderSummary(json.summary);
+        })
+        .catch(() => {
+            document.getElementById('table-body').innerHTML =
+                '<tr><td colspan="7" class="text-center py-8 text-red-500">Eroare de rețea. Reîncărcați pagina.</td></tr>';
         });
     }
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Guardian;
+use App\Support\ApiResponder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -21,6 +22,10 @@ class ReportsController extends Controller
         return view('reports.traffic');
     }
 
+    /**
+     * Display GDPR/T&C compliance report page
+     * Access: SUPER_ADMIN, COMPANY_ADMIN
+     */
     public function gdprCompliance()
     {
         $user = Auth::user();
@@ -31,17 +36,23 @@ class ReportsController extends Controller
         return view('reports.gdpr-compliance');
     }
 
+    /**
+     * Server-side data for GDPR/T&C compliance table (pagination/filters/sort)
+     * Access: SUPER_ADMIN, COMPANY_ADMIN
+     */
     public function gdprComplianceData(Request $request)
     {
         $user = Auth::user();
         if ($user->isStaff()) {
             abort(403, 'Acces interzis');
         }
-        if (!$user->location) {
-            return response()->json(['success' => false, 'message' => 'Fără locație asociată'], 400);
+
+        $location = app('current.location');
+        if (!$location) {
+            return ApiResponder::error('Fără locație asociată', 400);
         }
 
-        $locationId = $user->location->id;
+        $locationId = $location->id;
 
         $request->validate([
             'page'         => 'nullable|integer|min:1',
@@ -100,8 +111,7 @@ class ReportsController extends Controller
             'created_at'       => $g->created_at->format('d.m.Y'),
         ]);
 
-        return response()->json([
-            'success' => true,
+        return ApiResponder::success([
             'data'    => $data,
             'meta'    => [
                 'page'        => $page,
@@ -117,6 +127,10 @@ class ReportsController extends Controller
         ]);
     }
 
+    /**
+     * Display printable PDF view for GDPR/T&C compliance report
+     * Access: SUPER_ADMIN, COMPANY_ADMIN
+     */
     public function gdprCompliancePdf(Request $request)
     {
         $user = Auth::user();
@@ -124,11 +138,12 @@ class ReportsController extends Controller
             abort(403, 'Acces interzis');
         }
 
-        if (!$user->location) {
+        $location = app('current.location');
+        if (!$location) {
             abort(400, 'Fără locație asociată');
         }
 
-        $locationId = $user->location->id;
+        $locationId = $location->id;
 
         $request->validate([
             'terms_status' => 'nullable|in:all,accepted,not_accepted',
@@ -156,7 +171,7 @@ class ReportsController extends Controller
 
         return view('reports.gdpr-compliance-pdf', [
             'guardians'   => $guardians,
-            'location'    => $user->location,
+            'location'    => $location,
             'generatedAt' => now()->format('d.m.Y H:i'),
             'summary'     => [
                 'total'         => $total,
