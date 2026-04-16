@@ -246,6 +246,33 @@ class GdprComplianceReportTest extends TestCase
     }
 
     #[Test]
+    public function pdf_endpoint_contains_guardian_name(): void
+    {
+        Guardian::factory()->create([
+            'location_id' => $this->location->id,
+            'name' => 'Ion Popescu',
+            'terms_accepted_at' => now(),
+            'gdpr_accepted_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->companyAdmin)
+            ->get(route('reports.gdpr-compliance.pdf'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Ion Popescu');
+    }
+
+    #[Test]
+    public function pdf_endpoint_contains_location_name(): void
+    {
+        $response = $this->actingAs($this->companyAdmin)
+            ->get(route('reports.gdpr-compliance.pdf'));
+
+        $response->assertStatus(200);
+        $response->assertSee($this->location->name);
+    }
+
+    #[Test]
     public function data_endpoint_summary_is_independent_of_filters(): void
     {
         // 3 guardians total: 2 accepted terms, 1 did not

@@ -124,6 +124,47 @@ class ReportsController extends Controller
             abort(403, 'Acces interzis');
         }
 
-        return view('reports.gdpr-compliance-pdf');
+        if (!$user->location) {
+            abort(400, 'Fără locație asociată');
+        }
+
+        $locationId = $user->location->id;
+
+        $request->validate([
+            'terms_status' => 'nullable|in:all,accepted,not_accepted',
+            'gdpr_status'  => 'nullable|in:all,accepted,not_accepted',
+        ]);
+
+        $termsStatus = $request->input('terms_status', 'all');
+        $gdprStatus  = $request->input('gdpr_status', 'all');
+
+        $guardians = Guardian::where('location_id', $locationId)
+            ->when($termsStatus === 'accepted', fn($q) => $q->whereNotNull('terms_accepted_at'))
+            ->when($termsStatus === 'not_accepted', fn($q) => $q->whereNull('terms_accepted_at'))
+            ->when($gdprStatus === 'accepted', fn($q) => $q->whereNotNull('gdpr_accepted_at'))
+            ->when($gdprStatus === 'not_accepted', fn($q) => $q->whereNull('gdpr_accepted_at'))
+            ->orderBy('name')
+            ->get(['id', 'name', 'phone', 'terms_accepted_at', 'terms_version', 'gdpr_accepted_at', 'gdpr_version', 'created_at']);
+
+        $total        = Guardian::where('location_id', $locationId)->count();
+        $bothAccepted = Guardian::where('location_id', $locationId)
+            ->whereNotNull('terms_accepted_at')
+            ->whereNotNull('gdpr_accepted_at')
+            ->count();
+
+        return view('reports.gdpr-compliance-pdf', [
+            'guardians'   => $guardians,
+            'location'    => $user->location,
+            'generatedAt' => now()->format('d.m.Y H:i'),
+            'summary'     => [
+                'total'         => $total,
+                'both_accepted' => $bothAccepted,
+                'pending'       => $total - $bothAccepted,
+            ],
+            'filters' => [
+                'terms_status' => $termsStatus,
+                'gdpr_status'  => $gdprStatus,
+            ],
+        ]);
     }
 }
