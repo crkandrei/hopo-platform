@@ -72,13 +72,17 @@ class GdprComplianceReportTest extends TestCase
     #[Test]
     public function company_admin_can_access_gdpr_compliance_data(): void
     {
+        Guardian::factory()->create(['location_id' => $this->location->id]);
+
         $response = $this->actingAs($this->companyAdmin)
             ->getJson(route('reports.gdpr-compliance.data'));
 
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'success',
-                'data',
+                'data' => [
+                    ['id', 'name', 'phone', 'terms_accepted_at', 'terms_version', 'gdpr_accepted_at', 'gdpr_version', 'created_at']
+                ],
                 'meta' => ['page', 'per_page', 'total', 'total_pages'],
                 'summary' => ['total', 'both_accepted', 'pending'],
             ]);
@@ -239,5 +243,34 @@ class GdprComplianceReportTest extends TestCase
         $this->assertEquals(15, $meta['total']);
         $this->assertEquals(2, $meta['total_pages']);
         $this->assertCount(10, $response->json('data'));
+    }
+
+    #[Test]
+    public function data_endpoint_summary_is_independent_of_filters(): void
+    {
+        // 3 guardians total: 2 accepted terms, 1 did not
+        Guardian::factory()->count(2)->create([
+            'location_id' => $this->location->id,
+            'terms_accepted_at' => now(),
+            'gdpr_accepted_at' => now(),
+        ]);
+        Guardian::factory()->create([
+            'location_id' => $this->location->id,
+            'terms_accepted_at' => null,
+            'gdpr_accepted_at' => null,
+        ]);
+
+        // Apply filter that only returns 2 results
+        $response = $this->actingAs($this->companyAdmin)
+            ->getJson(route('reports.gdpr-compliance.data', ['terms_status' => 'accepted']));
+
+        $data = $response->json('data');
+        $this->assertCount(2, $data);
+
+        // But summary should still reflect all 3 guardians
+        $summary = $response->json('summary');
+        $this->assertEquals(3, $summary['total']);
+        $this->assertEquals(2, $summary['both_accepted']);
+        $this->assertEquals(1, $summary['pending']);
     }
 }

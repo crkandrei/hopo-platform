@@ -23,7 +23,8 @@ class ReportsController extends Controller
 
     public function gdprCompliance()
     {
-        if (Auth::user()->isStaff()) {
+        $user = Auth::user();
+        if ($user->isStaff()) {
             abort(403, 'Acces interzis');
         }
 
@@ -32,11 +33,10 @@ class ReportsController extends Controller
 
     public function gdprComplianceData(Request $request)
     {
-        if (Auth::user()->isStaff()) {
+        $user = Auth::user();
+        if ($user->isStaff()) {
             abort(403, 'Acces interzis');
         }
-
-        $user = Auth::user();
         if (!$user->location) {
             return response()->json(['success' => false, 'message' => 'Fără locație asociată'], 400);
         }
@@ -119,7 +119,8 @@ class ReportsController extends Controller
 
     public function gdprCompliancePdf(Request $request)
     {
-        if (Auth::user()->isStaff()) {
+        $user = Auth::user();
+        if ($user->isStaff()) {
             abort(403, 'Acces interzis');
         }
 
