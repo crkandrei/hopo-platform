@@ -321,7 +321,11 @@ Route::middleware('auth')->group(function () {
     
     // Users management (super admin and company admin)
     Route::resource('users', App\Http\Controllers\UserController::class);
-    
+
+    // Impersonation (super admin only) — stop must be before {user} to avoid route conflict
+    Route::post('/impersonate/stop', [App\Http\Controllers\ImpersonationController::class, 'stopImpersonating'])->name('impersonate.stop');
+    Route::post('/impersonate/{user}', [App\Http\Controllers\ImpersonationController::class, 'impersonate'])->name('impersonate.start');
+
     // Pricing management (super admin and company admin)
     Route::get('/pricing', [App\Http\Controllers\PricingController::class, 'index'])->name('pricing.index');
     Route::post('/pricing/mode', [App\Http\Controllers\PricingController::class, 'updatePricingMode'])->name('pricing.mode.update');

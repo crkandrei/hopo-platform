@@ -463,6 +463,23 @@
 
         <!-- Main Content -->
         <div id="main-content" class="flex-1 flex flex-col overflow-hidden lg:ml-0">
+            <!-- Impersonation Banner -->
+            @if(session('impersonator_id'))
+            <div class="bg-amber-400 text-amber-900 text-sm py-2 px-4 flex items-center justify-center gap-4 sticky top-0 z-50">
+                <span>
+                    <i class="fas fa-user-secret mr-1"></i>
+                    Ești conectat ca: <strong>{{ Auth::user()->name }}</strong>
+                    ({{ Auth::user()->role->display_name }})
+                </span>
+                <form method="POST" action="{{ route('impersonate.stop') }}">
+                    @csrf
+                    <button type="submit" class="underline font-semibold hover:text-amber-700">
+                        Ieși din impersonare
+                    </button>
+                </form>
+            </div>
+            @endif
+
             <!-- Top Header -->
             <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
                 <div class="flex items-center justify-between px-3 md:px-4 lg:px-6 py-3 md:py-4">

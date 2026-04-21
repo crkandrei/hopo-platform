@@ -102,9 +102,20 @@
                                    class="text-blue-600 hover:text-blue-900 mr-3">
                                     <i class="fas fa-edit"></i> Editează
                                 </a>
+                                @if(auth()->user()->isSuperAdmin() && !$user->isSuperAdmin())
+                                <form action="{{ route('impersonate.start', $user) }}"
+                                      method="POST"
+                                      class="inline"
+                                      onsubmit="return confirm('Vrei să te conectezi ca {{ $user->name }}?')">
+                                    @csrf
+                                    <button type="submit" class="text-amber-600 hover:text-amber-900 mr-3">
+                                        <i class="fas fa-user-secret"></i> Impersonează
+                                    </button>
+                                </form>
+                                @endif
                                 @if($user->id !== auth()->id())
-                                <form action="{{ route('users.destroy', $user) }}" 
-                                      method="POST" 
+                                <form action="{{ route('users.destroy', $user) }}"
+                                      method="POST"
                                       class="inline"
                                       onsubmit="return confirm('Sunteți sigur că doriți să ștergeți acest utilizator?');">
                                     @csrf
