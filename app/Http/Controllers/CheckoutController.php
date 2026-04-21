@@ -64,6 +64,7 @@ class CheckoutController extends Controller
             return redirect()->route('checkout.plans');
         }
 
-        return view('checkout.success');
+        return redirect()->route('subscription.manage')
+            ->with('success', 'Abonamentul a fost reînnoit cu succes!');
     }
 }

@@ -364,8 +364,9 @@ Route::middleware('auth')->group(function () {
 // Stripe Webhook (public, no auth, no CSRF — verified via Stripe signature)
 Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle'])->name('stripe.webhook');
 
-// Checkout (company admin)
+// Checkout & subscription management (company admin)
 Route::middleware('auth')->group(function () {
+    Route::get('/abonament', [App\Http\Controllers\CompanySubscriptionController::class, 'index'])->name('subscription.manage');
     Route::get('/checkout/plans', [CheckoutController::class, 'plans'])->name('checkout.plans');
     Route::post('/checkout/session', [CheckoutController::class, 'createSession'])->name('checkout.session');
     Route::get('/payment/success', [CheckoutController::class, 'success'])->name('payment.success');

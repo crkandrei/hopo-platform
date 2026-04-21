@@ -258,6 +258,15 @@
                         <span class="sidebar-text">Final de Zi</span>
                     </a>
 
+                    @if($currentUser->isCompanyAdmin())
+                    <a href="{{ route('subscription.manage') }}"
+                       data-title="Abonament"
+                       class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('subscription.manage') ? 'bg-sky-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
+                        <i class="fas fa-credit-card sidebar-icon mr-3"></i>
+                        <span class="sidebar-text">Abonament</span>
+                    </a>
+                    @endif
+
                     @if($currentUser->isCompanyAdmin() && $companyAdminLocation)
                     <a href="{{ route('birthday-reservations.index', ['location_id' => $companyAdminLocation->id]) }}"
                        data-title="Rezervări"
