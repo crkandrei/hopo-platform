@@ -82,15 +82,11 @@
                     @if($company->logo_path)
                         <div class="mb-3 flex items-center gap-4">
                             <img src="{{ $company->logoUrl() }}" alt="Logo actual" class="h-14 w-auto rounded border border-gray-200 p-1">
-                            <form method="POST" action="{{ route('companies.logo.delete', $company) }}" class="inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit"
-                                        onclick="return confirm('Ești sigur că vrei să ștergi logo-ul?')"
-                                        class="text-sm text-red-600 hover:text-red-800 underline">
-                                    Șterge logo
-                                </button>
-                            </form>
+                            <button type="button"
+                                    onclick="if(confirm('Ești sigur că vrei să ștergi logo-ul?')) document.getElementById('delete-logo-form').submit();"
+                                    class="text-sm text-red-600 hover:text-red-800 underline">
+                                Șterge logo
+                            </button>
                         </div>
                     @endif
 
@@ -179,4 +175,13 @@
         </form>
     </div>
 </div>
+
+@if($company->logo_path)
+{{-- Formular separat pentru ștergere logo — în afara formularului principal pentru a evita forme imbricate --}}
+<form id="delete-logo-form" method="POST" action="{{ route('companies.logo.delete', $company) }}" class="hidden">
+    @csrf
+    @method('DELETE')
+</form>
+@endif
+
 @endsection
