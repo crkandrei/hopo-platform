@@ -51,7 +51,12 @@ class CheckoutController extends Controller
                 ->withErrors(['Locația curentă nu a putut fi determinată.']);
         }
 
-        $url = $this->gateway->createCheckoutSession($plan, $location, Auth::user());
+        try {
+            $url = $this->gateway->createCheckoutSession($plan, $location, Auth::user());
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            return redirect()->route('checkout.plans')
+                ->withErrors(['Plata nu a putut fi inițiată. Contactați administratorul.']);
+        }
 
         return redirect()->away($url);
     }

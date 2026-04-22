@@ -375,6 +375,7 @@ Route::middleware('auth')->group(function () {
 // Admin subscription plan management (super admin)
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::resource('subscription-plans', SubscriptionPlanController::class);
+    Route::post('subscription-plans/{subscriptionPlan}/resync', [SubscriptionPlanController::class, 'resync'])->name('subscription-plans.resync');
     Route::resource('tva-rates', TvaRateController::class);
 });
 

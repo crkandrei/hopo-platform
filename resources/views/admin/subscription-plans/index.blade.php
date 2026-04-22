@@ -68,6 +68,14 @@
                                class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">
                                 Editează
                             </a>
+                            <form method="POST" action="{{ route('admin.subscription-plans.resync', $plan) }}" class="inline"
+                                  onsubmit="return confirm('Re-sincronizezi planul «{{ $plan->name }}» cu Stripe? Se va crea un nou product+price în Stripe.')">
+                                @csrf
+                                <button type="submit"
+                                    class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium border border-amber-300 text-amber-700 hover:bg-amber-50 transition-colors">
+                                    Re-sync Stripe
+                                </button>
+                            </form>
                             <form method="POST" action="{{ route('admin.subscription-plans.destroy', $plan) }}" class="inline"
                                   onsubmit="return confirm('Sigur vrei să dezactivezi/ștergi planul «{{ $plan->name }}»?')">
                                 @csrf

@@ -165,6 +165,35 @@ class SubscriptionPlanController extends Controller
             ->with('success', "Planul «{$name}» a fost șters.");
     }
 
+    public function resync(SubscriptionPlan $subscriptionPlan)
+    {
+        $this->authorizeSuperAdmin();
+
+        try {
+            // Archive old Stripe plan if it exists (ignore errors — it may not exist in Stripe)
+            try {
+                $this->gateway->archivePlan($subscriptionPlan);
+            } catch (\Throwable) {
+            }
+
+            $stripeIds = $this->gateway->createPlan($subscriptionPlan);
+            $subscriptionPlan->update([
+                'stripe_product_id' => $stripeIds['product_id'],
+                'stripe_price_id'   => $stripeIds['price_id'],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('SubscriptionPlanController: Stripe resync failed', [
+                'plan_id' => $subscriptionPlan->id,
+                'error'   => $e->getMessage(),
+            ]);
+            return redirect()->route('admin.subscription-plans.index')
+                ->with('warning', "Re-sincronizarea cu Stripe a eșuat: {$e->getMessage()}");
+        }
+
+        return redirect()->route('admin.subscription-plans.index')
+            ->with('success', "Planul «{$subscriptionPlan->name}» a fost re-sincronizat cu Stripe.");
+    }
+
     private function authorizeSuperAdmin(): void
     {
         if (!Auth::user()?->isSuperAdmin()) {
