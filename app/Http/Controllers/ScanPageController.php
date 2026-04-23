@@ -832,10 +832,11 @@ class ScanPageController extends Controller
                     return [
                         'id' => $sp->id,
                         'product_id' => $sp->product_id,
-                        'product_name' => $sp->product->name ?? 'Produs',
+                        'product_name' => $sp->is_sgr ? 'Garantie SGR' : ($sp->product->name ?? 'Produs'),
                         'quantity' => $sp->quantity,
                         'unit_price' => $sp->unit_price,
                         'total_price' => $sp->total_price,
+                        'is_sgr' => $sp->is_sgr,
                     ];
                 });
 
