@@ -79,6 +79,7 @@ class ProductController extends Controller
             'price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
             'is_active' => ['sometimes', 'boolean'],
             'tva_rate_id' => ['nullable', 'exists:tva_rates,id'],
+            'has_sgr' => ['sometimes', 'boolean'],
         ]);
 
         try {
@@ -88,6 +89,7 @@ class ProductController extends Controller
                 'price' => $validated['price'],
                 'is_active' => $validated['is_active'] ?? true,
                 'tva_rate_id' => $validated['tva_rate_id'] ?? null,
+                'has_sgr' => $validated['has_sgr'] ?? false,
             ]);
 
             return redirect()->route('products.index')
@@ -175,6 +177,7 @@ class ProductController extends Controller
             'price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
             'is_active' => ['sometimes', 'boolean'],
             'tva_rate_id' => ['nullable', 'exists:tva_rates,id'],
+            'has_sgr' => ['sometimes', 'boolean'],
         ]);
 
         try {
@@ -183,6 +186,7 @@ class ProductController extends Controller
                 'price' => $validated['price'],
                 'is_active' => $validated['is_active'] ?? $product->is_active,
                 'tva_rate_id' => $validated['tva_rate_id'] ?? null,
+                'has_sgr' => $validated['has_sgr'] ?? false,
             ]);
 
             return redirect()->route('products.index')

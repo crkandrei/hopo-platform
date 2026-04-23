@@ -24,4 +24,9 @@ class TvaRate extends Model
     {
         return $this->hasMany(Product::class);
     }
+
+    public static function getSgrVatClass(): int
+    {
+        return (int) (static::where('percentage', 0)->where('is_active', true)->value('vat_class') ?? 1);
+    }
 }

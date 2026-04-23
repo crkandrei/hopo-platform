@@ -12,11 +12,13 @@ class PlaySessionProduct extends Model
         'product_id',
         'quantity',
         'unit_price',
+        'is_sgr',
     ];
 
     protected $casts = [
         'quantity' => 'integer',
         'unit_price' => 'decimal:2',
+        'is_sgr' => 'boolean',
     ];
 
     /**

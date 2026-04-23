@@ -52,10 +52,21 @@
                         <div>
                             <span class="font-medium text-gray-900">{{ $prod->name }}</span>
                             <span class="text-gray-500 text-sm ml-2">{{ number_format($prod->price, 2) }} RON / buc</span>
+                            @if($prod->has_sgr)
+                                <span class="text-xs text-blue-600 ml-1">(+ {{ number_format(\App\Models\Product::SGR_VALUE, 2) }} RON SGR)</span>
+                            @endif
                         </div>
                         <div class="flex items-center gap-2">
                             <label class="text-sm text-gray-600">Cantitate</label>
-                            <input type="number" min="0" value="0" data-source-type="product" data-source-id="{{ $prod->id }}" data-name="{{ $prod->name }}" data-price="{{ $prod->price }}" class="item-qty w-20 px-2 py-1 border border-gray-300 rounded-md" name="qty_product_{{ $prod->id }}">
+                            <input type="number" min="0" value="0"
+                                   data-source-type="product"
+                                   data-source-id="{{ $prod->id }}"
+                                   data-name="{{ $prod->name }}"
+                                   data-price="{{ $prod->price }}"
+                                   data-has-sgr="{{ $prod->has_sgr ? '1' : '0' }}"
+                                   data-sgr-value="{{ \App\Models\Product::SGR_VALUE }}"
+                                   class="item-qty w-20 px-2 py-1 border border-gray-300 rounded-md"
+                                   name="qty_product_{{ $prod->id }}">
                         </div>
                     </div>
                     @endforeach
@@ -199,6 +210,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const qty = parseInt(input.value, 10) || 0;
             const price = parseFloat(input.dataset.price) || 0;
             total += qty * price;
+            if (input.dataset.hasSgr === '1') {
+                total += qty * (parseFloat(input.dataset.sgrValue) || 0);
+            }
         });
         totalDisplay.textContent = total.toFixed(2);
         btnSubmit.disabled = total <= 0;

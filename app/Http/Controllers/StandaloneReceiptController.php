@@ -8,6 +8,7 @@ use App\Models\StandaloneReceipt;
 use App\Models\StandaloneReceiptItem;
 use App\Models\FiscalReceiptLog;
 use App\Models\Location;
+use App\Models\TvaRate;
 use App\Models\Voucher;
 use App\Services\VoucherService;
 use Illuminate\Http\Request;
@@ -75,6 +76,18 @@ class StandaloneReceiptController extends Controller
                 'unit_price' => $unitPrice,
                 'quantity' => $qty,
             ];
+
+            if ($item['source_type'] === 'product' && $source->has_sgr) {
+                $sgrUnitPrice = Product::SGR_VALUE;
+                $totalAmount += $sgrUnitPrice * $qty;
+                $receiptItems[] = [
+                    'source_type' => 'sgr',
+                    'source_id' => $source->id,
+                    'name' => 'Garantie SGR',
+                    'unit_price' => $sgrUnitPrice,
+                    'quantity' => $qty,
+                ];
+            }
         }
 
         if ($totalAmount <= 0) {
@@ -166,14 +179,16 @@ class StandaloneReceiptController extends Controller
 
         // Pre-load products with TVA rates to avoid N+1 queries
         $productIds = $standaloneReceipt->items
-            ->where('source_type', 'product')
+            ->whereIn('source_type', ['product', 'sgr'])
             ->pluck('source_id');
         $products = \App\Models\Product::with('tvaRate')
             ->whereIn('id', $productIds)
             ->get()
             ->keyBy('id');
 
-        $items = $standaloneReceipt->items->map(function (StandaloneReceiptItem $item) use ($products) {
+        $sgrVatClass = TvaRate::getSgrVatClass();
+
+        $items = $standaloneReceipt->items->map(function (StandaloneReceiptItem $item) use ($products, $sgrVatClass) {
             $result = [
                 'name' => $item->name,
                 'quantity' => $item->quantity,
@@ -182,6 +197,8 @@ class StandaloneReceiptController extends Controller
             if ($item->source_type === 'product') {
                 $product = $products->get($item->source_id);
                 $result['vatClass'] = $product?->tvaRate?->vat_class ?? 1;
+            } elseif ($item->source_type === 'sgr') {
+                $result['vatClass'] = $sgrVatClass;
             }
             return $result;
         })->values()->all();

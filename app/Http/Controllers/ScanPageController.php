@@ -726,7 +726,7 @@ class ScanPageController extends Controller
                     'play_session_id' => $session->id,
                     'product_id' => $product->id,
                     'quantity' => $productData['quantity'],
-                    'unit_price' => $product->price, // Salvează prețul la momentul adăugării
+                    'unit_price' => $product->price,
                 ]);
 
                 $addedProducts[] = [
@@ -736,7 +736,28 @@ class ScanPageController extends Controller
                     'quantity' => $sessionProduct->quantity,
                     'unit_price' => $sessionProduct->unit_price,
                     'total_price' => $sessionProduct->total_price,
+                    'is_sgr' => false,
                 ];
+
+                if ($product->has_sgr) {
+                    $sgrProduct = PlaySessionProduct::create([
+                        'play_session_id' => $session->id,
+                        'product_id' => $product->id,
+                        'quantity' => $productData['quantity'],
+                        'unit_price' => \App\Models\Product::SGR_VALUE,
+                        'is_sgr' => true,
+                    ]);
+
+                    $addedProducts[] = [
+                        'id' => $sgrProduct->id,
+                        'product_id' => $product->id,
+                        'product_name' => 'Garantie SGR',
+                        'quantity' => $sgrProduct->quantity,
+                        'unit_price' => $sgrProduct->unit_price,
+                        'total_price' => $sgrProduct->total_price,
+                        'is_sgr' => true,
+                    ];
+                }
             }
 
             return ApiResponder::success([
@@ -768,10 +789,11 @@ class ScanPageController extends Controller
             $products = Product::where('location_id', $location->id)
                 ->where('is_active', true)
                 ->orderBy('name')
-                ->get(['id', 'name', 'price']);
+                ->get(['id', 'name', 'price', 'has_sgr']);
 
             return ApiResponder::success([
                 'products' => $products,
+                'sgr_value' => Product::SGR_VALUE,
             ]);
 
         } catch (\Throwable $e) {

@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Product;
+use App\Models\TvaRate;
 use Illuminate\Support\Collection;
 
 class FiscalReceiptBuilder
@@ -31,7 +33,21 @@ class FiscalReceiptBuilder
      */
     public function resolveProductLines(Collection $sessionProducts): array
     {
-        return $sessionProducts->map(function ($sp) {
+        $sgrVatClass = TvaRate::getSgrVatClass();
+        $lines = [];
+
+        foreach ($sessionProducts as $sp) {
+            if ($sp->is_sgr) {
+                $lines[] = [
+                    'name'        => 'Garantie SGR',
+                    'quantity'    => $sp->quantity,
+                    'unit_price'  => (float) $sp->unit_price,
+                    'total_price' => (float) $sp->total_price,
+                    'vatClass'    => $sgrVatClass,
+                ];
+                continue;
+            }
+
             $productName = null;
 
             if ($sp->product && $sp->product->name) {
@@ -39,7 +55,7 @@ class FiscalReceiptBuilder
             }
 
             if (empty($productName) && $sp->product_id) {
-                $product = \App\Models\Product::find($sp->product_id);
+                $product = Product::find($sp->product_id);
                 if ($product && $product->name) {
                     $productName = trim($product->name);
                 }
@@ -49,14 +65,16 @@ class FiscalReceiptBuilder
                 $productName = 'Produs ID: ' . $sp->product_id;
             }
 
-            return [
+            $lines[] = [
                 'name'        => $productName,
                 'quantity'    => $sp->quantity,
                 'unit_price'  => (float) $sp->unit_price,
                 'total_price' => (float) $sp->total_price,
                 'vatClass'    => $sp->product?->tvaRate?->vat_class ?? 1,
             ];
-        })->values()->all();
+        }
+
+        return $lines;
     }
 
     /**

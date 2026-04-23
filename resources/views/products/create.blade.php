@@ -70,6 +70,21 @@
             <div>
                 <div class="flex items-center">
                     <input type="checkbox"
+                           id="has_sgr"
+                           name="has_sgr"
+                           value="1"
+                           {{ old('has_sgr', false) ? 'checked' : '' }}
+                           class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                    <label for="has_sgr" class="ml-2 block text-sm text-gray-900">
+                        Garantie SGR ({{ number_format(\App\Models\Product::SGR_VALUE, 2, ',', '.') }} RON / buc, TVA 0%)
+                    </label>
+                </div>
+                <p class="mt-1 text-sm text-gray-500">Bifați pentru sucuri, ape și alte băuturi cu recipient SGR. Garantia se adaugă automat pe bon.</p>
+            </div>
+
+            <div>
+                <div class="flex items-center">
+                    <input type="checkbox"
                            id="is_active"
                            name="is_active"
                            value="1"
