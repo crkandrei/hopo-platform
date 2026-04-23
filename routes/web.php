@@ -250,6 +250,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/accept-guardian-terms', [App\Http\Controllers\ScanPageController::class, 'acceptGuardianTerms']);
         Route::post('/add-products', [App\Http\Controllers\ScanPageController::class, 'addProductsToSession']);
         Route::get('/available-products', [App\Http\Controllers\ScanPageController::class, 'getAvailableProducts']);
+        Route::get('/product-by-barcode', [App\Http\Controllers\ScanPageController::class, 'productByBarcode']);
         Route::get('/session-products/{sessionId}', [App\Http\Controllers\ScanPageController::class, 'getSessionProducts']);
         Route::get('/pre-checkin/{token}', [App\Http\Controllers\ScanPageController::class, 'lookupPreCheckinToken']);
     });

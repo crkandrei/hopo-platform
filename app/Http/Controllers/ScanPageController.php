@@ -849,6 +849,42 @@ class ScanPageController extends Controller
         }
     }
 
+    public function productByBarcode(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return ApiResponder::error('Neautentificat', 401);
+        }
+        $location = $user->location;
+        if (!$location) {
+            return ApiResponder::error('Nu există nicio locație în sistem', 400);
+        }
+
+        $barcode = trim($request->query('barcode', ''));
+        if ($barcode === '') {
+            return ApiResponder::error('Codul de bare lipsește', 400);
+        }
+
+        $product = Product::where('location_id', $location->id)
+            ->where('barcode', $barcode)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$product) {
+            return ApiResponder::error('Produsul nu a fost găsit', 404);
+        }
+
+        return ApiResponder::success([
+            'product' => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'price' => (float) $product->price,
+                'has_sgr' => $product->has_sgr,
+                'sgr_value' => $product->has_sgr ? Product::SGR_VALUE : null,
+            ],
+        ]);
+    }
+
     public function lookupPreCheckinToken(string $token)
     {
         $user = Auth::user();

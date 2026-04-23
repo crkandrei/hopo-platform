@@ -21,6 +21,7 @@ class Product extends Model
         'is_active',
         'tva_rate_id',
         'has_sgr',
+        'barcode',
     ];
 
     protected $casts = [

@@ -8,6 +8,7 @@ use App\Support\ApiResponder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
 {
@@ -80,6 +81,7 @@ class ProductController extends Controller
             'is_active' => ['sometimes', 'boolean'],
             'tva_rate_id' => ['nullable', 'exists:tva_rates,id'],
             'has_sgr' => ['sometimes', 'boolean'],
+            'barcode' => ['nullable', 'string', 'max:100', Rule::unique('products')->where('location_id', $location->id)],
         ]);
 
         try {
@@ -90,6 +92,7 @@ class ProductController extends Controller
                 'is_active' => $validated['is_active'] ?? true,
                 'tva_rate_id' => $validated['tva_rate_id'] ?? null,
                 'has_sgr' => $validated['has_sgr'] ?? false,
+                'barcode' => $validated['barcode'] ?? null,
             ]);
 
             return redirect()->route('products.index')
@@ -178,6 +181,7 @@ class ProductController extends Controller
             'is_active' => ['sometimes', 'boolean'],
             'tva_rate_id' => ['nullable', 'exists:tva_rates,id'],
             'has_sgr' => ['sometimes', 'boolean'],
+            'barcode' => ['nullable', 'string', 'max:100', Rule::unique('products')->where('location_id', $location->id)->ignore($product->id)],
         ]);
 
         try {
@@ -187,6 +191,7 @@ class ProductController extends Controller
                 'is_active' => $validated['is_active'] ?? $product->is_active,
                 'tva_rate_id' => $validated['tva_rate_id'] ?? null,
                 'has_sgr' => $validated['has_sgr'] ?? false,
+                'barcode' => $validated['barcode'] ?? null,
             ]);
 
             return redirect()->route('products.index')
