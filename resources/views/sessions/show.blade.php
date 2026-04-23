@@ -205,7 +205,7 @@
                     @foreach($session->products as $sessionProduct)
                     <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                         <div>
-                            <div class="font-medium text-gray-900">{{ $sessionProduct->product->name ?? 'Produs' }}</div>
+                            <div class="font-medium text-gray-900">{{ $sessionProduct->is_sgr ? 'Garantie SGR' : ($sessionProduct->product->name ?? 'Produs') }}</div>
                             <div class="text-sm text-gray-500 mt-1">
                                 {{ $sessionProduct->quantity }} buc × {{ number_format($sessionProduct->unit_price, 2, '.', '') }} RON
                             </div>
@@ -331,32 +331,6 @@
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                            placeholder="Scanează sau tastează codul...">
                     <p id="barcodeError" class="mt-1 text-sm text-red-600 hidden"></p>
-                </div>
-
-                {{-- Barcode confirmation --}}
-                <div id="barcodeConfirm" class="hidden bg-indigo-50 border border-indigo-200 rounded-lg p-4 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-500">Produs găsit</p>
-                            <p id="barcodeProductName" class="font-semibold text-gray-900"></p>
-                            <p id="barcodeProductPrice" class="text-sm text-gray-600"></p>
-                        </div>
-                        <button type="button" id="clearBarcodeConfirm" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
-                    </div>
-                    <div>
-                        <label for="barcodeQuantity" class="block text-sm font-medium text-gray-700 mb-1">Cantitate</label>
-                        <input type="number" id="barcodeQuantity" min="1" value="1"
-                               class="w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-                    <button type="button" id="saveBarcodeProduct" class="w-full px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 font-medium">
-                        <i class="fas fa-plus mr-2"></i>Adaugă produs
-                    </button>
-                </div>
-
-                <div class="relative flex items-center">
-                    <div class="flex-grow border-t border-gray-200"></div>
-                    <span class="mx-3 text-sm text-gray-400">sau selectează manual</span>
-                    <div class="flex-grow border-t border-gray-200"></div>
                 </div>
 
                 {{-- Manual select --}}
@@ -805,38 +779,39 @@ function renderProductsList() {
     productsSection.innerHTML = html;
 }
 
-let barcodeFoundProduct = null;
-
 function resetBarcodeState() {
-    barcodeFoundProduct = null;
     const inp = document.getElementById('barcodeInput');
     const err = document.getElementById('barcodeError');
-    const confirm = document.getElementById('barcodeConfirm');
     if (inp) inp.value = '';
     if (err) { err.textContent = ''; err.classList.add('hidden'); }
-    if (confirm) confirm.classList.add('hidden');
 }
 
 async function lookupBarcode(barcode) {
     const err = document.getElementById('barcodeError');
-    const confirmEl = document.getElementById('barcodeConfirm');
     err.classList.add('hidden');
-    confirmEl.classList.add('hidden');
-    barcodeFoundProduct = null;
 
     try {
         const result = await apiCall(`/scan-api/product-by-barcode?barcode=${encodeURIComponent(barcode)}`);
         if (result.success && result.product) {
-            barcodeFoundProduct = result.product;
-            document.getElementById('barcodeProductName').textContent = result.product.name;
-            let priceText = parseFloat(result.product.price).toFixed(2) + ' RON';
-            if (result.product.has_sgr) {
-                priceText += ` + ${parseFloat(result.product.sgr_value).toFixed(2)} RON SGR`;
+            const productsSelect = document.getElementById('productsSelect');
+            const product = result.product;
+
+            let option = productsSelect.querySelector(`option[value="${product.id}"]`);
+            if (!option) {
+                option = document.createElement('option');
+                option.value = product.id;
+                option.dataset.price = product.price;
+                let label = `${product.name} - ${parseFloat(product.price).toFixed(2)} RON`;
+                if (product.has_sgr) {
+                    label += ` + ${parseFloat(product.sgr_value).toFixed(2)} RON SGR`;
+                }
+                option.textContent = label;
+                productsSelect.appendChild(option);
             }
-            document.getElementById('barcodeProductPrice').textContent = priceText;
-            document.getElementById('barcodeQuantity').value = '1';
-            confirmEl.classList.remove('hidden');
-            document.getElementById('barcodeQuantity').focus();
+
+            productsSelect.value = product.id;
+            document.getElementById('barcodeInput').value = '';
+            document.getElementById('productQuantity').focus();
         } else {
             err.textContent = 'Produsul nu a fost găsit pentru acest cod de bare.';
             err.classList.remove('hidden');
@@ -958,29 +933,6 @@ document.getElementById('barcodeInput')?.addEventListener('keydown', function(e)
     }
 });
 
-document.getElementById('clearBarcodeConfirm')?.addEventListener('click', function() {
-    resetBarcodeState();
-    document.getElementById('barcodeInput')?.focus();
-});
-
-document.getElementById('saveBarcodeProduct')?.addEventListener('click', async function() {
-    if (!barcodeFoundProduct) return;
-    const quantity = parseInt(document.getElementById('barcodeQuantity').value) || 1;
-    try {
-        const result = await apiCall('/scan-api/add-products', {
-            method: 'POST',
-            body: JSON.stringify({ session_id: sessionId, products: [{ product_id: barcodeFoundProduct.id, quantity }] })
-        });
-        if (result.success) {
-            closeAddProductsModal();
-            setTimeout(() => window.location.reload(), 300);
-        } else {
-            alert('Eroare: ' + (result.message || 'Nu s-au putut adăuga produsele'));
-        }
-    } catch (e) {
-        alert('Eroare la adăugarea produsului: ' + (e.message || 'Eroare necunoscută'));
-    }
-});
 @endif
 
 // Load products on page load
